@@ -1,0 +1,13 @@
+# קובץ קונפיגורציה כללי - SkyBlockItems
+
+# --- הגדרות קרב ---
+# אם זה true, אביליטיז לא ישפיעו על שחקנים אחרים
+disable-abilities-on-players: true
+
+# אם זה true, אביליטיז לא ישפיעו על NPCs
+disable-abilities-on-npcs: true
+
+# --- הגדרות מתקדמות ---
+# האם לאפשר הודעות צ'אט על Cooldown (יושבת אוטומטית אם ה-Lore מופעל)
+send-cooldown-messages-in-chat: false
+

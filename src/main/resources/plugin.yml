@@ -1,0 +1,12 @@
+name: SkyBlockItems
+version: '${project.version}'
+main: dev.agam.skyblockitems.SkyBlockItems
+api-version: 1.21
+depend: [MMOItems, MythicLib]
+softdepend: [AuraSkills]
+authors: [Agam]
+commands:
+  skyblockitems:
+    description: Main command for SkyBlockItems
+    aliases: [sbi]
+    usage: /<command> [args]
