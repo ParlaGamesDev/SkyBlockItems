@@ -366,10 +366,8 @@ public class AbilityStat extends StringStat {
                 String processed = line;
 
                 // Replace placeholders with actual values from params
-                // Note: We use literal strings for replacement to keep color codes intact
                 if (params.length >= 1) {
                     if (cd <= 0 && processed.contains("{cooldown}")) {
-                        // Regex to remove the cooldown part even if it has color codes
                         processed = processed.replaceAll(",?\\s*.*זמן המתנה של.*\\{cooldown\\}.*שניות\\.?", ".");
                         processed = processed.replace("{cooldown}", "0");
                     } else {
@@ -377,7 +375,7 @@ public class AbilityStat extends StringStat {
                     }
                 }
                 if (params.length >= 2) {
-                    if (mana <= 1.0 && processed.contains("{mana}")) { // AuraSkills often has 0/1 mana default
+                    if (mana <= 1.0 && processed.contains("{mana}")) {
                         processed = processed.replaceAll("בעזרת.*\\{mana\\}.*מאנה,?\\s*", "");
                         processed = processed.replace("{mana}", "0");
                     } else {

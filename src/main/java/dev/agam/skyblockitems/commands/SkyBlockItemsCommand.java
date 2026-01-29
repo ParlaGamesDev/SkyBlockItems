@@ -17,17 +17,17 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("skyblockitems.admin")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+            sender.sendMessage(ChatColor.RED + "אין לך הרשאה לפקודה הזאת!");
             return true;
         }
 
         if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
-            SkyBlockItems.getInstance().reloadConfig();
+            SkyBlockItems.getInstance().reloadAllConfigs();
             sender.sendMessage(ChatColor.GREEN + "[SkyBlockItems] Configuration reloaded successfully!");
             return true;
         }
 
-        sender.sendMessage(ChatColor.RED + "Usage: /sbi reload");
+        sender.sendMessage(ChatColor.RED + "שימוש שגוי, נסה את הפקודה הזאת, /sbi reload");
         return true;
     }
 

@@ -1,5 +1,4 @@
 dev\agam\skyblockitems\integration\MMOItemsHook.class
-dev\agam\skyblockitems\abilities\utility\DiamondRadarAbility.class
 dev\agam\skyblockitems\abilities\tools\BoomerangAbility.class
 dev\agam\skyblockitems\abilities\combat\WebSnareAbility.class
 dev\agam\skyblockitems\abilities\utility\DoubleJumpAbility.class
@@ -18,7 +17,6 @@ dev\agam\skyblockitems\abilities\combat\HealBeamAbility.class
 dev\agam\skyblockitems\abilities\AbilityListener.class
 dev\agam\skyblockitems\abilities\utility\OxygenPurityAbility.class
 dev\agam\skyblockitems\abilities\tools\TreeCapitatorAbility.class
-dev\agam\skyblockitems\abilities\utility\FlightSkillAbility.class
 dev\agam\skyblockitems\abilities\tools\MagnetAbility$1.class
 dev\agam\skyblockitems\abilities\combat\SkySmashAbility$1.class
 dev\agam\skyblockitems\abilities\utility\CleanseAbility.class
@@ -33,14 +31,12 @@ dev\agam\skyblockitems\abilities\combat\SkySmashAbility$1$1.class
 dev\agam\skyblockitems\abilities\AbilityManager.class
 dev\agam\skyblockitems\abilities\tools\ButchersBladeAbility.class
 dev\agam\skyblockitems\abilities\tools\GoldenLeafAbility.class
-dev\agam\skyblockitems\abilities\utility\NightVisionCharmAbility.class
 dev\agam\skyblockitems\abilities\combat\ArrowEffectsAbility.class
 dev\agam\skyblockitems\integration\AbilityLoreListener.class
 dev\agam\skyblockitems\abilities\tools\HammerAbility.class
 dev\agam\skyblockitems\abilities\tools\LuckyTreasureAbility.class
 dev\agam\skyblockitems\abilities\utility\FarmersAuraAbility.class
 dev\agam\skyblockitems\abilities\utility\RetaliationAbility.class
-dev\agam\skyblockitems\integration\AbilityStat.class
 dev\agam\skyblockitems\abilities\tools\ThunderStrikeAbility.class
 dev\agam\skyblockitems\commands\SkyBlockItemsCommand.class
 dev\agam\skyblockitems\abilities\tools\BoomerangAbility$BoomerangTask.class

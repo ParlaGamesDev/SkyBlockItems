@@ -19,7 +19,7 @@ public class SolarStat extends BooleanStat {
                 Material.SUNFLOWER,
                 dev.agam.skyblockitems.SkyBlockItems.getInstance().getAbilitiesConfig()
                         .getString("custom-abilities.SOLAR_REPAIR.name", "טעינה סולארית"),
-                new String[] { "§7טעינת נזק בונוס בעמידה בשמש." },
+                new String[] { "§7טעינת נזק בונוס בעמידה בשמש.", "", "This stat was created from the SkyBlockItems plugin"},
                 new String[] { "weapon", "tool", "armor", "accessory", "all" });
     }
 

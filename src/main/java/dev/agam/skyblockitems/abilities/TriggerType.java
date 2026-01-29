@@ -16,8 +16,8 @@ public enum TriggerType {
     SOLAR_STANCE("&#FFCF00&lעמידה בשמש"),
     UNDERWATER("&#FFCF00&lשהייה במים"),
     PASSIVE("&#FFCF00&lיכולת פסיבית"),
-    FULL_SET("&#FFCF00&lסט מלא"),
-    HOTBAR("&#FFCF00&lשורת הפריטים");
+    HOTBAR("&#FFCF00&l(בהוטבר)"),
+    FULL_SET("&#FFCF00&lסט מלא");
 
     private final String displayName;
 

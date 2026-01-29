@@ -20,7 +20,7 @@ public class InfiniteReservoirStat extends BooleanStat {
                 Material.WATER_BUCKET,
                 dev.agam.skyblockitems.SkyBlockItems.getInstance().getAbilitiesConfig()
                         .getString("custom-abilities.INFINITE_RESERVOIR.name", "מאגר מים אינסופי"),
-                new String[] { "§7דלי המכיל בתוכו מים שלא נגמרים לעולם." },
+                new String[] { "§7דלי המכיל בתוכו מים שלא נגמרים לעולם.", "", "This stat was created from the SkyBlockItems plugin"},
                 new String[] { "tool", "all" });
     }
 

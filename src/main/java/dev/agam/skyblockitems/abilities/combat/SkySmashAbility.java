@@ -60,13 +60,22 @@ public class SkySmashAbility extends SkyBlockAbility {
 
                 // Wait for land
                 new BukkitRunnable() {
+                    int ticks = 0;
+
                     @Override
                     public void run() {
+                        if (!player.isOnline() || ticks > 200) { // Safety: 10 seconds max
+                            fallingPlayers.remove(player.getUniqueId());
+                            cancel();
+                            return;
+                        }
+
                         if (player.isOnGround() || player.getLocation().getBlock().getType() != Material.AIR) {
                             executeSlam(player, finalRadius, finalDamage);
                             fallingPlayers.remove(player.getUniqueId());
                             cancel();
                         }
+                        ticks++;
                     }
                 }.runTaskTimer(SkyBlockItems.getInstance(), 1L, 1L);
             }

@@ -52,45 +52,64 @@ public class CooldownLoreTask extends BukkitRunnable {
 
             if (CooldownManager.isOnCooldown(player.getUniqueId(), abilityId)) {
                 double remaining = CooldownManager.getRemainingCooldown(player.getUniqueId(), abilityId);
-                String cooldownText = ChatColor.RED + ability.getDisplayName() + " בטעינה: "
-                        + String.format("%.1f", remaining) + " ש'";
+                String cooldownText = ChatColor.RED + "זמן המתנה: " + (int) Math.ceil(remaining) + " שניות";
 
-                // Find where to replace in lore
-                // We look for a line that starts with the ability header format (simplified
-                // check)
+                // Find where to add cooldown message - after the description lines
                 int headerIndex = -1;
+                int lastDescriptionIndex = -1;
                 for (int i = 0; i < newLore.size(); i++) {
                     String line = ChatColor.stripColor(newLore.get(i));
-                    if (line.contains(ability.getDisplayName())) {
+                    // Get display name from config to ensure match
+                    String configName = SkyBlockItems.getInstance().getAbilitiesConfig()
+                            .getString("custom-abilities." + abilityId + ".name", ability.getDisplayName());
+
+                    String strippedConfigName = ChatColor
+                            .stripColor(dev.agam.skyblockitems.utils.ColorUtils.translate(configName));
+
+                    if (line.contains(strippedConfigName)) {
                         headerIndex = i;
-                        break;
+                    }
+                    // Description lines start with » or are gray text after header
+                    if (headerIndex != -1 && i > headerIndex) {
+                        if (line.startsWith("»") || line.startsWith("-") ||
+                                (newLore.get(i).startsWith("§7") && !line.isEmpty())) {
+                            lastDescriptionIndex = i;
+                        } else if (!line.isEmpty() && !newLore.get(i).startsWith(ChatColor.RED + "זמן המתנה: ")) {
+                            // Found next section, stop
+                            break;
+                        }
                     }
                 }
 
                 if (headerIndex != -1) {
-                    // Check if already showing cooldown to prevent redundant updates
-                    if (!newLore.get(headerIndex).contains("בטעינה")) {
-                        // Store original lore line in metadata or NBT if needed for restoration?
-                        // Actually, MMOItems will rebuild the item anyway, but we want it to look
-                        // "live"
-                        newLore.set(headerIndex, cooldownText);
-                        // Hide subsequent description lines for this ability?
-                        // For now just replacing the header for simplicity and clarity
-                        modified = true;
-                    } else if (!newLore.get(headerIndex).equals(cooldownText)) {
-                        newLore.set(headerIndex, cooldownText);
+                    int insertIndex = (lastDescriptionIndex != -1) ? lastDescriptionIndex + 1 : headerIndex + 1;
+
+                    // Check if cooldown line already exists
+                    boolean hasCooldownLine = false;
+                    for (int i = headerIndex; i < Math.min(insertIndex + 2, newLore.size()); i++) {
+                        if (newLore.get(i).startsWith(ChatColor.RED + "זמן המתנה: ")) {
+                            // Update existing cooldown line
+                            if (!newLore.get(i).equals(cooldownText)) {
+                                newLore.set(i, cooldownText);
+                                modified = true;
+                            }
+                            hasCooldownLine = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasCooldownLine && insertIndex <= newLore.size()) {
+                        newLore.add(insertIndex, cooldownText);
                         modified = true;
                     }
                 }
             } else {
-                // If it was on cooldown but now isn't, we need to restore it.
-                // Rebuilding via MMOItems is the safest way to get the correct lore back.
-                // However, doing it every tick is heavy. We only do it once.
+                // If cooldown ended, remove the cooldown line
                 for (int i = 0; i < newLore.size(); i++) {
-                    if (newLore.get(i).contains("בטעינה") && newLore.get(i).contains(ability.getDisplayName())) {
-                        // Needs restoration
-                        restoreItem(player, item);
-                        return; // Exit loop, item will be updated next tick if needed
+                    if (newLore.get(i).startsWith(ChatColor.RED + "זמן המתנה: ")) {
+                        newLore.remove(i);
+                        modified = true;
+                        break;
                     }
                 }
             }

@@ -18,7 +18,7 @@ public class MMOItemsHook {
 
             // Skip abilities registered as custom stats
             if (normalizedId.equals("SOLAR_REPAIR") || normalizedId.equals("UNDERWATER_MASTER")
-                    || normalizedId.equals("INFINITE_RESERVOIR") || normalizedId.equals("DIVER_SET"))
+                    || normalizedId.equals("INFINITE_RESERVOIR") || normalizedId.equals("NIGHT_VISION_CHARM"))
                 continue;
 
             MMOItems.plugin.getStats().register(new AbilityStat(normalizedId, ability.getDisplayName()));
@@ -27,12 +27,11 @@ public class MMOItemsHook {
 
         SkyBlockItems.getInstance().getLogger().info("Registered " + count + " ability stats with MMOItems!");
 
-        // Register Custom Stats
         MMOItems.plugin.getStats().register(new GlowStat());
         MMOItems.plugin.getStats().register(new SolarStat());
         MMOItems.plugin.getStats().register(new UnderwaterStat());
         MMOItems.plugin.getStats().register(new InfiniteReservoirStat());
-        MMOItems.plugin.getStats().register(new DiverSetBonusStat());
+        MMOItems.plugin.getStats().register(new NightVisionStat());
         MMOItems.plugin.getStats().register(new NaturalAbilityLoreStat());
     }
 }

@@ -28,6 +28,39 @@ public class PassiveAbilityTask extends BukkitRunnable {
     public void run() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             processPassiveAbilities(player);
+            processNightVision(player);
+        }
+    }
+
+    private void processNightVision(Player player) {
+        boolean hasCharm = false;
+
+        // Scan Hotbar (slots 0-8)
+        for (int i = 0; i < 9; i++) {
+            ItemStack item = player.getInventory().getItem(i);
+            if (item != null && !item.getType().isAir()) {
+                NBTItem nbt = NBTItem.get(item);
+                if (nbt.hasTag("SKYBLOCK_NIGHT_VISION_CHARM")) {
+                    hasCharm = true;
+                    break;
+                }
+            }
+        }
+
+        // Also check offhand
+        if (!hasCharm) {
+            ItemStack offhand = player.getInventory().getItemInOffHand();
+            if (offhand != null && !offhand.getType().isAir()) {
+                NBTItem nbt = NBTItem.get(offhand);
+                if (nbt.hasTag("SKYBLOCK_NIGHT_VISION_CHARM")) {
+                    hasCharm = true;
+                }
+            }
+        }
+
+        if (hasCharm) {
+            player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                    org.bukkit.potion.PotionEffectType.NIGHT_VISION, 300, 0, false, false, false), true);
         }
     }
 

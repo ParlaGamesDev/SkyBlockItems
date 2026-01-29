@@ -52,7 +52,7 @@ public class CleanseAbility extends SkyBlockAbility {
         }
 
         if (removed) {
-            player.sendMessage("§b✨ כל ההשפעות השליליות הוסרו!");
+            player.sendMessage("§bכל ההשפעות השליליות הוסרו!");
             player.getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, player.getLocation().add(0, 1, 0), 20,
                     0.5, 0.5, 0.5, 0.1);
             player.getWorld().playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 1.0f, 1.5f);

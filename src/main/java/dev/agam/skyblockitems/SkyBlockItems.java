@@ -80,4 +80,13 @@ public class SkyBlockItems extends JavaPlugin {
     public org.bukkit.configuration.file.FileConfiguration getMessagesConfig() {
         return messagesConfig;
     }
+
+    /**
+     * Reloads all configuration files (config.yml, abilities.yml, messages.yml)
+     */
+    public void reloadAllConfigs() {
+        reloadConfig(); // Reload config.yml
+        loadCustomConfigs(); // Reload abilities.yml and messages.yml
+        getLogger().info("All configurations reloaded!");
+    }
 }

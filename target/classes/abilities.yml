@@ -145,15 +145,6 @@ custom-abilities:
       - "&7» דלי המכיל בתוכו מים שלא נגמרים לעולם."
       - "&7» מאפשר שימוש אינסופי מבלי למלא מים מחדש."
 
-  DIVER_SET:
-    name: "בונוס סט צוללן"
-    trigger: FULL_SET
-    description:
-      - "&bצוללן מיומן"
-      - "&7» מהירות שחייה גבוהה פי &b2.5"
-      - "&7» נשימה אינסופית מתחת למים"
-      - "&7» ראיית לילה מושלמת במעמקי הים"
-
   DOG_WHISTLE:
     name: "משרוקית חיות"
     trigger: RIGHT_CLICK
@@ -230,13 +221,6 @@ custom-abilities:
     description:
       - "&7מעניק &a{damage}% &7סיכוי לקבל &6תפוח מוזהב"
       - "&7בזמן חציבת עלים של עצים."
-
-  FLIGHT_SKILL:
-    name: "יכולת תעופה"
-    trigger: RIGHT_CLICK
-    description:
-      - "&7מעניק לך יכולת תעופה בדומה לקריאטיב"
-      - "&7למשך &b{duration} &7שניות, זמן המתנה של &c{cooldown} ש'!"
 
   CROP_OVERDRIVE:
     name: "חקלאות מואצת"
@@ -625,3 +609,240 @@ abilities:
 
   weaken-target:
     - "&7גורם למטרה להיות פגיעה יותר לנזק."
+
+  thunder-critical-strike:
+    - "&7מכת רעם קריטית"
+
+  blunt-attack-effect:
+    - "&7אפקט מכה קהה."
+
+  bouncy-fireball:
+    - "&7כדור אש קופצני."
+
+  bunny-mode:
+    - "&7מצב ארנב - קפיצות גבוהות."
+
+  burn:
+    - "&7גורם לאויב להישרף."
+
+  crossbow-arrow-tick:
+    - "&7אפקט חץ רובה קשת."
+
+  crossbow-attack:
+    - "&7התקפת רובה קשת."
+
+  earth-crit-subskill:
+    - "&7תת-יכולת קריטית לאדמה."
+
+  earth-critical-strike:
+    - "&7מכה קריטית אדמה."
+
+  earth-elemental-attack:
+    - "&7התקפה אלמנטלית אדמה."
+
+  fire-critical-strike:
+    - "&7מכה קריטית אש."
+
+  fire-elemental-attack:
+    - "&7התקפה אלמנטלית אש."
+
+  gauntlet-special-attack:
+    - "&7התקפה מיוחדת של כפפה."
+
+  greater-healings:
+    - "&7ריפוי מוגבר."
+
+  hoearthquake:
+    - "&7רעידת אדמה מעדר."
+
+  ice-crit-strike-subskill:
+    - "&7תת-יכולת קריטית קרח."
+
+  ice-critical-strike:
+    - "&7מכה קריטית קרח."
+
+  ice-elemental-attack:
+    - "&7התקפה אלמנטלית קרח."
+
+  minor-healings:
+    - "&7ריפוי קל."
+
+  piercing-attack-effect:
+    - "&7אפקט התקפה חודרת."
+
+  propagate-damage:
+    - "&7הפצת נזק."
+
+  slash-attack-effect:
+    - "&7אפקט התקפת חיתוך."
+
+  slashing-attack-effect:
+    - "&7אפקט התקפת שיסוף."
+
+  staff-attack-hit-entity:
+    - "&7פגיעת מטה בישות."
+
+  staff-attack-tick:
+    - "&7טיק התקפת מטה."
+
+  staff-attack:
+    - "&7התקפת מטה."
+
+  staff-deal-damage:
+    - "&7נזק מטה."
+
+  staff-default-hit:
+    - "&7פגיעת מטה רגילה."
+
+  staff-default-tick:
+    - "&7טיק מטה רגיל."
+
+  staff-default:
+    - "&7מטה רגיל."
+
+  staff-lightning-hit:
+    - "&7פגיעת ברק מטה."
+
+  staff-lightning-tick:
+    - "&7טיק ברק מטה."
+
+  staff-lightning:
+    - "&7מטה ברק."
+
+  staff-mana-hit-tick:
+    - "&7טיק פגיעת מאנה מטה."
+
+  staff-mana-hit:
+    - "&7פגיעת מאנה מטה."
+
+  staff-mana-tick-2:
+    - "&7טיק מאנה מטה 2."
+
+  staff-mana-tick:
+    - "&7טיק מאנה מטה."
+
+  staff-mana:
+    - "&7מטה מאנה."
+
+  staff-nether-hit:
+    - "&7פגיעת נדר מטה."
+
+  staff-nether-tick:
+    - "&7טיק נדר מטה."
+
+  staff-nether:
+    - "&7מטה נדר."
+
+  staff-special-attack:
+    - "&7התקפה מיוחדת מטה."
+
+  staff-sunfire-explode:
+    - "&7פיצוץ אש-שמש מטה."
+
+  staff-sunfire-hit:
+    - "&7פגיעת אש-שמש מטה."
+
+  staff-sunfire-success-2:
+    - "&7הצלחת אש-שמש מטה 2."
+
+  staff-sunfire-success-block:
+    - "&7הצלחת אש-שמש מטה בבלוק."
+
+  staff-sunfire-success-entity:
+    - "&7הצלחת אש-שמש מטה בישות."
+
+  staff-sunfire-tick:
+    - "&7טיק אש-שמש מטה."
+
+  staff-sunfire-tick2:
+    - "&7טיק אש-שמש מטה 2."
+
+  staff-sunfire:
+    - "&7מטה אש-שמש."
+
+  staff-thunder-explode:
+    - "&7פיצוץ רעם מטה."
+
+  staff-thunder-hit:
+    - "&7פגיעת רעם מטה."
+
+  staff-thunder-success-2:
+    - "&7הצלחת רעם מטה 2."
+
+  staff-thunder-success-block:
+    - "&7הצלחת רעם מטה בבלוק."
+
+  staff-thunder-success-entity:
+    - "&7הצלחת רעם מטה בישות."
+
+  staff-thunder-tick:
+    - "&7טיק רעם מטה."
+
+  staff-thunder-tick2:
+    - "&7טיק רעם מטה 2."
+
+  staff-thunder:
+    - "&7מטה רעם."
+
+  staff-void-hit-tick:
+    - "&7טיק פגיעת ריק מטה."
+
+  staff-void-hit:
+    - "&7פגיעת ריק מטה."
+
+  staff-void:
+    - "&7מטה ריק."
+
+  staff-xray-hit:
+    - "&7פגיעת רנטגן מטה."
+
+  staff-xray-tick:
+    - "&7טיק רנטגן מטה."
+
+  staff-xray:
+    - "&7מטה רנטגן."
+
+  thunder-crit-subskill-1:
+    - "&7תת-יכולת קריטית רעם 1."
+
+  thunder-elemental-attack:
+    - "&7התקפה אלמנטלית רעם."
+
+  void-spirit:
+    - "&7רוח הריק."
+
+  void-zapper:
+    - "&7מחשמל ריק."
+
+  water-crit-subskill-1:
+    - "&7תת-יכולת קריטית מים 1."
+
+  water-crit-subskill-2:
+    - "&7תת-יכולת קריטית מים 2."
+
+  water-critical-strike:
+    - "&7מכה קריטית מים."
+
+  water-elemental-attack:
+    - "&7התקפה אלמנטלית מים."
+
+  whip-attack-hit:
+    - "&7פגיעת הצלפה."
+
+  whip-attack-tick:
+    - "&7טיק הצלפה."
+
+  whip-attack:
+    - "&7התקפת הצלפה."
+
+  wind-crit-sub-skill:
+    - "&7תת-יכולת קריטית רוח."
+
+  wind-critical-strike:
+    - "&7מכה קריטית רוח."
+
+  wind-elemental-attack:
+    - "&7התקפה אלמנטלית רוח."
+
+  xray-spirit:
+    - "&7רוח רנטגן."

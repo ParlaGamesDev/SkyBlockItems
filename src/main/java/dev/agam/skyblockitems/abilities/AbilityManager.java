@@ -48,7 +48,7 @@ public class AbilityManager {
         registerAbility(new dev.agam.skyblockitems.abilities.utility.DogWhistleAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.RetaliationAbility(true)); // Freeze
         registerAbility(new dev.agam.skyblockitems.abilities.utility.RetaliationAbility(false)); // Lightning
-        registerAbility(new dev.agam.skyblockitems.abilities.utility.FlightSkillAbility());
+        // FlightSkillAbility removed by user request
         registerAbility(new dev.agam.skyblockitems.abilities.utility.CropOverdriveAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.FarmersAuraAbility("FARMER_AURA_WHEAT",
                 "הילת חיטה", Material.WHEAT));
@@ -60,7 +60,7 @@ public class AbilityManager {
                 "הילת תפוח אדמה", Material.POTATOES));
         // DiamondRadarAbility removed by user request
         registerAbility(new dev.agam.skyblockitems.abilities.utility.CleanseAbility());
-        registerAbility(new dev.agam.skyblockitems.abilities.utility.NightVisionCharmAbility());
+        // ... existing registrations ...
         registerAbility(new dev.agam.skyblockitems.abilities.utility.FeatherWeightAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.MetabolismAbility());
 

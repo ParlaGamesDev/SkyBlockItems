@@ -11,15 +11,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UnderwaterStat extends BooleanStat {
+public class NightVisionStat extends BooleanStat {
 
-    public UnderwaterStat() {
-        super("SKYBLOCK_UNDERWATER_MASTER",
-                Material.HEART_OF_THE_SEA,
+    public NightVisionStat() {
+        super("SKYBLOCK_NIGHT_VISION_CHARM",
+                Material.ENDER_EYE,
                 dev.agam.skyblockitems.SkyBlockItems.getInstance().getAbilitiesConfig()
-                        .getString("custom-abilities.UNDERWATER_MASTER.name", "אדון המים"),
-                new String[] { "§7יכולת נשימה ושחייה משופרת מתחת למים.", "", "This stat was created from the SkyBlockItems plugin"},
-                new String[] { "armor", "accessory", "all" });
+                        .getString("custom-abilities.NIGHT_VISION_CHARM.name", "קמע ראיית לילה"),
+                new String[] { "§7מעניק ראיית לילה קבועה כל עוד הפריט בהוטבר.", "", "This stat was created from the SkyBlockItems plugin"},
+                new String[] { "all" });
     }
 
     @Override
@@ -27,15 +27,17 @@ public class UnderwaterStat extends BooleanStat {
         if (!data.isEnabled())
             return;
 
-        item.addItemTag(new ItemTag("SKYBLOCK_UNDERWATER_MASTER", "true"));
+        item.addItemTag(new ItemTag("SKYBLOCK_NIGHT_VISION_CHARM", true));
 
+        // Build the lore from config
         FileConfiguration abilitiesConfig = dev.agam.skyblockitems.SkyBlockItems.getInstance().getAbilitiesConfig();
-        List<String> description = abilitiesConfig.getStringList("custom-abilities.UNDERWATER_MASTER.description");
-        String configDisplayName = abilitiesConfig.getString("custom-abilities.UNDERWATER_MASTER.name", "אדון המים");
+        List<String> description = abilitiesConfig.getStringList("custom-abilities.NIGHT_VISION_CHARM.description");
+        String configDisplayName = abilitiesConfig.getString("custom-abilities.NIGHT_VISION_CHARM.name",
+                "קמע ראיית לילה");
 
         String triggerName = "פסיבי";
         try {
-            String configTriggerRaw = abilitiesConfig.getString("custom-abilities.UNDERWATER_MASTER.trigger");
+            String configTriggerRaw = abilitiesConfig.getString("custom-abilities.NIGHT_VISION_CHARM.trigger");
             if (configTriggerRaw != null) {
                 try {
                     dev.agam.skyblockitems.abilities.TriggerType type = dev.agam.skyblockitems.abilities.TriggerType
@@ -63,7 +65,6 @@ public class UnderwaterStat extends BooleanStat {
                 loreLines.add(translated);
             }
         }
-
         item.getLore().insert("ability-description", loreLines);
     }
 }
