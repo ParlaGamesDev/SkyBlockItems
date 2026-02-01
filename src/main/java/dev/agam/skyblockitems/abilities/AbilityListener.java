@@ -166,6 +166,11 @@ public class AbilityListener implements Listener {
         if (nbtItem == null || !nbtItem.hasType())
             return;
 
+        // WorldGuard Check
+        if (!dev.agam.skyblockitems.integration.WorldGuardHook.isAbilitiesEnabled(player, player.getLocation())) {
+            return;
+        }
+
         for (Map.Entry<String, SkyBlockAbility> entry : abilityManager.getAbilities().entrySet()) {
             String abilityId = entry.getKey();
             SkyBlockAbility ability = entry.getValue();
@@ -197,37 +202,18 @@ public class AbilityListener implements Listener {
                 continue;
 
             if (CooldownManager.isOnCooldown(player.getUniqueId(), abilityId)) {
-                // If chat messages are enabled in config (fallback)
-                if (SkyBlockItems.getInstance().getAbilitiesConfig().getBoolean("send-cooldown-messages-in-chat",
-                        false)) {
-                    double remaining = CooldownManager.getRemainingCooldown(player.getUniqueId(), abilityId);
-                    String msg = SkyBlockItems.getInstance().getMessagesConfig().getString("players.cooldown",
-                            "&c{ability} בטעינה: {remaining} ש'");
-                    msg = msg.replace("{ability}", ability.getDisplayName()).replace("{remaining}",
-                            String.format("%.1f", remaining));
-                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', msg));
-                }
+                double remaining = CooldownManager.getRemainingCooldown(player.getUniqueId(), abilityId);
+                String msg = SkyBlockItems.getInstance().getMessagesConfig().getString("players.cooldown",
+                        "&cהאביליטי {ability} בטעינה: {remaining} ש'");
+                msg = msg.replace("{ability}", ability.getDisplayName()).replace("{remaining}",
+                        String.format("%.1f", remaining));
+                dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
                 continue;
             }
 
-            // Check PvP / NPC settings
-            if (event instanceof EntityDamageByEntityEvent) {
-                EntityDamageByEntityEvent damageEvent = (EntityDamageByEntityEvent) event;
-                org.bukkit.entity.Entity victim = damageEvent.getEntity();
-
-                if (victim instanceof Player && victim != player) {
-                    if (SkyBlockItems.getInstance().getConfig().getBoolean("disable-abilities-on-players", false)) {
-                        continue;
-                    }
-                }
-
-                if (victim.hasMetadata("NPC") || victim.getClass().getName().contains("Citizens")
-                        || victim.getClass().getName().contains("NPC")) {
-                    if (SkyBlockItems.getInstance().getConfig().getBoolean("disable-abilities-on-npcs", false)) {
-                        continue;
-                    }
-                }
-            }
+            // The PvP/NPC check is now handled globally in MMOItemsAbilityListener
+            // via MetadataDamageEvent to ensure it works for all abilities and blocks
+            // damage/knockback.
 
             if (mana > 0) {
                 try {
@@ -239,7 +225,7 @@ public class AbilityListener implements Listener {
                                     "&cאין מספיק מאנה! ({current}/{required})");
                             msg = msg.replace("{current}", String.valueOf((int) user.getMana())).replace("{required}",
                                     String.valueOf((int) mana));
-                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', msg));
+                            dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
                             continue;
                         }
                         user.setMana(user.getMana() - mana);
@@ -251,8 +237,6 @@ public class AbilityListener implements Listener {
             if (ability.activate(player, event, cooldown, mana, damage, range)) {
                 if (cooldown > 0) {
                     CooldownManager.setCooldown(player.getUniqueId(), abilityId, cooldown);
-                    // Immediate Lore update after setting cooldown
-                    new dev.agam.skyblockitems.tasks.CooldownLoreTask().run();
                 }
             }
         }

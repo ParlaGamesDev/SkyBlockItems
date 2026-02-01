@@ -52,12 +52,16 @@ public class CleanseAbility extends SkyBlockAbility {
         }
 
         if (removed) {
-            player.sendMessage("§bכל ההשפעות השליליות הוסרו!");
+            String msg = SkyBlockItems.getInstance().getMessagesConfig().getString("players.cleanse-success",
+                    "&bכל ההשפעות השליליות הוסרו!");
+            dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
             player.getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, player.getLocation().add(0, 1, 0), 20,
                     0.5, 0.5, 0.5, 0.1);
             player.getWorld().playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 1.0f, 1.5f);
         } else {
-            player.sendMessage("§7אין השפעות שליליות להסרה.");
+            String msg = SkyBlockItems.getInstance().getMessagesConfig().getString("players.cleanse-fail",
+                    "&7אין השפעות שליליות להסרה.");
+            dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
         }
 
         return removed;

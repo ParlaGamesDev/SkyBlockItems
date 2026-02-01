@@ -11,7 +11,6 @@ C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\abilities\combat\SolarRepairAbility.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\abilities\combat\WebSnareAbility.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\abilities\CooldownManager.java
-C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\abilities\LoreFixListener.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\abilities\SkyBlockAbility.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\abilities\tools\BoomerangAbility.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\abilities\tools\ButchersBladeAbility.java
@@ -39,7 +38,9 @@ C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\commands\SkyBlockItemsCommand.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\AbilityLoreListener.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\AbilityStat.java
+C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\MMOItemsAbilityListener.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\MMOItemsHook.java
+C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\WorldGuardHook.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\SkyBlockItems.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\stats\GlowStat.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\stats\InfiniteReservoirStat.java
@@ -47,7 +48,6 @@ C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\stats\NightVisionStat.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\stats\SolarStat.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\stats\UnderwaterStat.java
-C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\tasks\CooldownLoreTask.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\tasks\PassiveAbilityTask.java
-C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\utils\AbilityLoreGenerator.java
 C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\utils\ColorUtils.java
+C:\Users\agamm\.gemini\antigravity\scratch\SkyBlockItems\src\main\java\dev\agam\skyblockitems\utils\MessageUtils.java

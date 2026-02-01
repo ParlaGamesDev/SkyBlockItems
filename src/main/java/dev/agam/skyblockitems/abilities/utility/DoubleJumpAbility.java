@@ -29,8 +29,13 @@ public class DoubleJumpAbility extends SkyBlockAbility implements Listener {
     public boolean activate(Player player, Event event, double cooldown, double manaCost, double damage, double range) {
         // Enable flight allow for the player if they have the ability (Passive check)
         if (player.getGameMode() != GameMode.CREATIVE && player.getGameMode() != GameMode.SPECTATOR) {
-            if (!player.getAllowFlight()) {
+            // Only set allow flight if they are NOT already flying (e.g. from Essentials
+            // /fly)
+            if (!player.isFlying() && !player.getAllowFlight()) {
                 player.setAllowFlight(true);
+                // Mark that we are the ones who enabled it
+                player.setMetadata("SKYBLOCK_FLIGHT_ENABLED",
+                        new org.bukkit.metadata.FixedMetadataValue(SkyBlockItems.getInstance(), true));
             }
         }
         return true;
@@ -67,7 +72,11 @@ public class DoubleJumpAbility extends SkyBlockAbility implements Listener {
         }
 
         if (!hasAbility) {
-            player.setAllowFlight(false);
+            // Only disable flight if WE were the ones who enabled it
+            if (player.hasMetadata("SKYBLOCK_FLIGHT_ENABLED")) {
+                player.setAllowFlight(false);
+                player.removeMetadata("SKYBLOCK_FLIGHT_ENABLED", SkyBlockItems.getInstance());
+            }
             return;
         }
 
@@ -112,7 +121,12 @@ public class DoubleJumpAbility extends SkyBlockAbility implements Listener {
             }
 
             if (hasAbility) {
-                player.setAllowFlight(true);
+                // Only set allow flight if NOT already flying
+                if (!player.isFlying()) {
+                    player.setAllowFlight(true);
+                    player.setMetadata("SKYBLOCK_FLIGHT_ENABLED",
+                            new org.bukkit.metadata.FixedMetadataValue(SkyBlockItems.getInstance(), true));
+                }
             }
         }
     }

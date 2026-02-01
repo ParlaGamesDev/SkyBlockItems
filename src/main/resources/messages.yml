@@ -2,9 +2,16 @@
 # כאן ניתן לערוך את כל ההודעות שהפלאגין שולח לצ'אט.
 
 players:
-  cooldown: "&cהאביליטי בטעינה, זמן ההמתנה נגמר בעוד {remaining} שניות"
+  cooldown: "&cהאביליטי {ability} בטעינה: {remaining} ש'"
   no-mana: "&cאין מספיק מאנה! ({current}/{required})"
+  dog-whistle-success: "&aהחיות שלך שוגרו אליך!"
+  dog-whistle-fail: "&cלא נמצאו חיות מחמד שלך בקרבת מקום."
+  crop-overdrive-start: "&a🌾 היכולת הופעלה! למשך {duration} שניות כל יבול שתקצור יישתל מחדש אוטומטית!"
+  crop-overdrive-end: "&c⌚ השפעת החקלאות המואצת נגמרה."
+  cleanse-success: "&bכל ההשפעות השליליות הוסרו!"
+  cleanse-fail: "&7אין השפעות שליליות להסרה."
   
 staff:
   plugin-reloaded: "&a[SkyBlockItems] הקונפיגורציה נטענה מחדש בהצלחה!"
-  no-permission: "&cאין לך הרשאה לבצע פעולה זו."
+  no-permission: "&cאין לך הרשאה לבצע פעולה זו!"
+  wrong-usage: "&cשימוש שגוי, נסה את הפקודה הזאת: /sbi reload"

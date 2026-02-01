@@ -21,6 +21,17 @@ public class SkyBlockItems extends JavaPlugin {
     }
 
     @Override
+    public void onLoad() {
+        // Register WorldGuard flags (must be done in onLoad)
+        try {
+            if (getServer().getPluginManager().getPlugin("WorldGuard") != null) {
+                dev.agam.skyblockitems.integration.WorldGuardHook.registerFlags();
+            }
+        } catch (NoClassDefFoundError ignored) {
+        }
+    }
+
+    @Override
     public void onEnable() {
         instance = this;
 
@@ -37,10 +48,11 @@ public class SkyBlockItems extends JavaPlugin {
 
         // Register Listeners
         getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.abilities.AbilityListener(), this);
+        getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.integration.MMOItemsAbilityListener(),
+                this);
 
         // Start Passive Tasks
         new dev.agam.skyblockitems.tasks.PassiveAbilityTask().runTaskTimer(this, 20L, 20L);
-        new dev.agam.skyblockitems.tasks.CooldownLoreTask().runTaskTimer(this, 20L, 20L);
 
         // Register Commands
         dev.agam.skyblockitems.commands.SkyBlockItemsCommand sbiCmd = new dev.agam.skyblockitems.commands.SkyBlockItemsCommand();

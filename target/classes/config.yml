@@ -8,6 +8,5 @@ disable-abilities-on-players: true
 disable-abilities-on-npcs: true
 
 # --- הגדרות מתקדמות ---
-# האם לאפשר הודעות צ'אט על Cooldown (יושבת אוטומטית אם ה-Lore מופעל)
-send-cooldown-messages-in-chat: false
-
+# ניתוב הודעות גלובלי (CHAT או ACTION_BAR)
+message-routing: CHAT

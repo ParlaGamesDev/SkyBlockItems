@@ -37,7 +37,10 @@ public class CropOverdriveAbility extends SkyBlockAbility implements Listener {
 
         UUID uuid = player.getUniqueId();
         activeUsers.add(uuid);
-        player.sendMessage("§a🌾 היכולת הופעלה! למשך " + (int) duration + " שניות כל יבול שתקצור יישתל מחדש אוטומטית!");
+        String startMsg = SkyBlockItems.getInstance().getMessagesConfig().getString("players.crop-overdrive-start",
+                "&a🌾 היכולת הופעלה! למשך {duration} שניות כל יבול שתקצור יישתל מחדש אוטומטית!");
+        dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player,
+                startMsg.replace("{duration}", String.valueOf((int) duration)));
 
         Bukkit.getScheduler().runTaskLater(SkyBlockItems.getInstance(), () -> {
             activeUsers.remove(uuid);
@@ -55,7 +58,9 @@ public class CropOverdriveAbility extends SkyBlockAbility implements Listener {
                         }
                     }
                 }
-                player.sendMessage("§c⌚ השפעת החקלאות המואצת נגמרה.");
+                String endMsg = SkyBlockItems.getInstance().getMessagesConfig().getString("players.crop-overdrive-end",
+                        "&c⌚ השפעת החקלאות המואצת נגמרה.");
+                dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, endMsg);
             }
         }, (long) (duration * 20));
 

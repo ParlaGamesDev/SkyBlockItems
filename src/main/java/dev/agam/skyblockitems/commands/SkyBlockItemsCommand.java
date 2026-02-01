@@ -17,17 +17,35 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("skyblockitems.admin")) {
-            sender.sendMessage(ChatColor.RED + "אין לך הרשאה לפקודה הזאת!");
+            String msg = SkyBlockItems.getInstance().getMessagesConfig().getString("staff.no-permission",
+                    "&cאין לך הרשאה לבצע פעולה זו!");
+            if (sender instanceof org.bukkit.entity.Player) {
+                dev.agam.skyblockitems.utils.MessageUtils.sendMessage((org.bukkit.entity.Player) sender, msg);
+            } else {
+                sender.sendMessage(dev.agam.skyblockitems.utils.ColorUtils.translate(msg));
+            }
             return true;
         }
 
         if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
             SkyBlockItems.getInstance().reloadAllConfigs();
-            sender.sendMessage(ChatColor.GREEN + "[SkyBlockItems] Configuration reloaded successfully!");
+            String msg = SkyBlockItems.getInstance().getMessagesConfig().getString("staff.plugin-reloaded",
+                    "&a[SkyBlockItems] הקונפיגורציה נטענה מחדש בהצלחה!");
+            if (sender instanceof org.bukkit.entity.Player) {
+                dev.agam.skyblockitems.utils.MessageUtils.sendMessage((org.bukkit.entity.Player) sender, msg);
+            } else {
+                sender.sendMessage(dev.agam.skyblockitems.utils.ColorUtils.translate(msg));
+            }
             return true;
         }
 
-        sender.sendMessage(ChatColor.RED + "שימוש שגוי, נסה את הפקודה הזאת, /sbi reload");
+        String msg = SkyBlockItems.getInstance().getMessagesConfig().getString("staff.wrong-usage",
+                "&cשימוש שגוי, נסה את הפקודה הזאת, /sbi reload");
+        if (sender instanceof org.bukkit.entity.Player) {
+            dev.agam.skyblockitems.utils.MessageUtils.sendMessage((org.bukkit.entity.Player) sender, msg);
+        } else {
+            sender.sendMessage(dev.agam.skyblockitems.utils.ColorUtils.translate(msg));
+        }
         return true;
     }
 
