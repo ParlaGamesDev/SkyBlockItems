@@ -6,17 +6,13 @@ players:
   no-mana: "&cאין מספיק מאנה! ({current}/{required})"
   dog-whistle-success: "&aהחיות שלך שוגרו אליך!"
   dog-whistle-fail: "&cלא נמצאו חיות מחמד שלך בקרבת מקום."
-  crop-overdrive-start: "&a🌾 היכולת הופעלה! למשך {duration} שניות כל יבול שתקצור יישתל מחדש אוטומטית!"
-  crop-overdrive-end: "&c⌚ השפעת החקלאות המואצת נגמרה."
+  crop-overdrive-start: "&aהיכולת הופעלה! למשך {duration} שניות כל יבול שתקצור יישתל מחדש אוטומטית!"
+  crop-overdrive-end: "&cהשפעת החקלאות המואצת נגמרה."
   cleanse-success: "&bכל ההשפעות השליליות הוסרו!"
   cleanse-fail: "&7אין השפעות שליליות להסרה."
-  ability-activated: "&aהפעלת את היכולת {ability}!"
-  speed-activated: "&b⚡ קיבלת מהירות גבוהה למשך {duration} שניות!"
-  grappling-hook-launch: "&e🪝 השלכת את הוו!"
-  grappling-hook-retract: "&a🪝 נמשכת לכיוון הוו!"
-  multishot-explosive-launched: "&c💥 3 חיצי נפץ שוגרו!"
   
 staff:
   plugin-reloaded: "&a[SkyBlockItems] הקונפיגורציה נטענה מחדש בהצלחה!"
   no-permission: "&cאין לך הרשאה לבצע פעולה זו!"
   wrong-usage: "&cשימוש שגוי, נסה את הפקודה הזאת: /sbi reload"
+

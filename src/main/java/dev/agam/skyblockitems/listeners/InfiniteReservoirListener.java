@@ -14,52 +14,55 @@ import org.bukkit.scheduler.BukkitRunnable;
 /**
  * Listener for Infinite Reservoir ability - prevents water bucket from
  * emptying.
+ * Uses a 1-tick delay to ensure the bucket is restored even if the event
+ * logic normally replaces it with an empty bucket.
  */
 public class InfiniteReservoirListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBucketEmpty(PlayerBucketEmptyEvent event) {
         Player player = event.getPlayer();
-        ItemStack bucket = event.getItemStack();
 
-        if (bucket == null || bucket.getType() != Material.WATER_BUCKET) {
-            return;
+        // Find which hand is being used for the bucket
+        ItemStack mainHand = player.getInventory().getItemInMainHand();
+        ItemStack offHand = player.getInventory().getItemInOffHand();
+
+        ItemStack usedBucket = null;
+        boolean isMainHand = false;
+
+        if (mainHand != null && mainHand.getType() == Material.WATER_BUCKET) {
+            usedBucket = mainHand;
+            isMainHand = true;
+        } else if (offHand != null && offHand.getType() == Material.WATER_BUCKET) {
+            usedBucket = offHand;
+            isMainHand = false;
         }
 
-        NBTItem nbtItem = NBTItem.get(bucket);
+        if (usedBucket == null)
+            return;
+
+        NBTItem nbtItem = NBTItem.get(usedBucket);
         if (nbtItem == null || !nbtItem.hasTag("SKYBLOCK_INFINITE_RESERVOIR")) {
             return;
         }
 
-        // Check if the tag value is true (boolean support)
-        Object tagValue = nbtItem.getBoolean("SKYBLOCK_INFINITE_RESERVOIR");
-        if (tagValue == null || !((Boolean) tagValue)) {
-            // Try string check as fallback
-            String stringValue = nbtItem.getString("SKYBLOCK_INFINITE_RESERVOIR");
-            if (stringValue == null || stringValue.isEmpty() || stringValue.equalsIgnoreCase("false")) {
-                return;
-            }
-        }
+        // Clone the bucket
+        final ItemStack bucketToRestore = usedBucket.clone();
+        final boolean mainHandUsed = isMainHand;
 
-        // Store reference to the original bucket NBT data
-        final ItemStack originalBucket = bucket.clone();
-
-        // Schedule a task to restore the water bucket after the event
+        // Restore the bucket after a tiny delay to override server empty bucket logic
         new BukkitRunnable() {
             @Override
             public void run() {
-                // Restore the water bucket in the player's hand
-                if (player.isOnline()) {
-                    ItemStack mainHand = player.getInventory().getItemInMainHand();
-                    ItemStack offHand = player.getInventory().getItemInOffHand();
+                if (!player.isOnline())
+                    return;
 
-                    // Check which hand had the bucket and restore it
-                    if (mainHand.getType() == Material.BUCKET) {
-                        player.getInventory().setItemInMainHand(originalBucket);
-                    } else if (offHand.getType() == Material.BUCKET) {
-                        player.getInventory().setItemInOffHand(originalBucket);
-                    }
+                if (mainHandUsed) {
+                    player.getInventory().setItemInMainHand(bucketToRestore);
+                } else {
+                    player.getInventory().setItemInOffHand(bucketToRestore);
                 }
+                player.updateInventory();
             }
         }.runTaskLater(SkyBlockItems.getInstance(), 1L);
     }

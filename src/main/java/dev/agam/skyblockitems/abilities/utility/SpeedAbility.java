@@ -43,12 +43,6 @@ public class SpeedAbility extends SkyBlockAbility {
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ILLUSIONER_PREPARE_MIRROR, 1.0f, 1.5f);
         player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
 
-        // Send activation message
-        String msg = dev.agam.skyblockitems.SkyBlockItems.getInstance().getMessagesConfig()
-                .getString("players.speed-activated", "&b⚡ קיבלת מהירות גבוהה למשך {duration} שניות!");
-        msg = msg.replace("{duration}", String.valueOf((int) duration));
-        dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
-
         return true;
     }
 

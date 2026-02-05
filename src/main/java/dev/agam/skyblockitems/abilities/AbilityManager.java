@@ -60,11 +60,8 @@ public class AbilityManager {
                 "הילת תפוח אדמה", Material.POTATOES));
         // DiamondRadarAbility removed by user request
         registerAbility(new dev.agam.skyblockitems.abilities.utility.CleanseAbility());
-        // ... existing registrations ...
-        registerAbility(new dev.agam.skyblockitems.abilities.utility.FeatherWeightAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.MetabolismAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.SpeedAbility());
-        registerAbility(new dev.agam.skyblockitems.abilities.combat.MultiShotExplosiveArrowAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.GrapplingHookAbility());
 
     }
