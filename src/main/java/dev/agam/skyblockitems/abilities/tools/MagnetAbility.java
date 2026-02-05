@@ -19,7 +19,7 @@ import java.util.List;
 public class MagnetAbility extends SkyBlockAbility {
 
     public MagnetAbility() {
-        super("MAGNET", "מגנט", TriggerType.PASSIVE, 5.0, 10.0, 0.0, 10.0);
+        super("MAGNET", "מגנט", TriggerType.RIGHT_CLICK, 5.0, 10.0, 0.0, 10.0);
     }
 
     @Override

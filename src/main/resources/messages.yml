@@ -10,6 +10,11 @@ players:
   crop-overdrive-end: "&c⌚ השפעת החקלאות המואצת נגמרה."
   cleanse-success: "&bכל ההשפעות השליליות הוסרו!"
   cleanse-fail: "&7אין השפעות שליליות להסרה."
+  ability-activated: "&aהפעלת את היכולת {ability}!"
+  speed-activated: "&b⚡ קיבלת מהירות גבוהה למשך {duration} שניות!"
+  grappling-hook-launch: "&e🪝 השלכת את הוו!"
+  grappling-hook-retract: "&a🪝 נמשכת לכיוון הוו!"
+  multishot-explosive-launched: "&c💥 3 חיצי נפץ שוגרו!"
   
 staff:
   plugin-reloaded: "&a[SkyBlockItems] הקונפיגורציה נטענה מחדש בהצלחה!"

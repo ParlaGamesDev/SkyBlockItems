@@ -50,6 +50,8 @@ public class SkyBlockItems extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.abilities.AbilityListener(), this);
         getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.integration.MMOItemsAbilityListener(),
                 this);
+        getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.listeners.InfiniteReservoirListener(),
+                this);
 
         // Start Passive Tasks
         new dev.agam.skyblockitems.tasks.PassiveAbilityTask().runTaskTimer(this, 20L, 20L);

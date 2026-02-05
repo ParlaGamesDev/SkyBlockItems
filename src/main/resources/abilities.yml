@@ -76,7 +76,7 @@ custom-abilities:
 
   MAGNET:
     name: "מגנט"
-    trigger: PASSIVE
+    trigger: RIGHT_CLICK
     description:
       - "&7ממגנט אליך את כל השלל שנפל ברדיוס"
       - "&7רחב של &b{radius} &7בלוקים."
@@ -300,6 +300,33 @@ custom-abilities:
     description:
       - "&7מפחית את קצב איבוד הרעב של השחקן"
       - "&7ב-&a{damage}% &7ומאפשר לשבוע לאורך זמן."
+
+  SPEED:
+    name: "מהירות"
+    trigger: RIGHT_CLICK
+    description:
+      - "&7בעזרת <#5B9BD5>{mana} &7מאנה, מעניק &bספיד 4"
+      - "&7למשך <#DDA0DD>{damage} &7שניות."
+      - "&7זמן המתנה של <#FF6B6B>{cooldown} &7שניות."
+
+  MULTISHOT_EXPLOSIVE_ARROW:
+    name: "חץ נפץ משולש"
+    trigger: ON_ARROW_HIT
+    description:
+      - "&7משגר &c3 חיצי TNT &7עם קשת מולטי-שוט."
+      - "&7כל חץ מתפוצץ ברדיוס <#7DCE82>{radius} &7בלוקים"
+      - "&7וגורם <#FF8C42>{damage} &7נזק. עולה <#5B9BD5>{mana} &7מאנה."
+      - "&7זמן המתנה של <#FF6B6B>{cooldown} &7שניות."
+      - "&cעובד רק עם קשת (Crossbow)!"
+
+  GRAPPLING_HOOK:
+    name: "וו תפיסה"
+    trigger: RIGHT_CLICK
+    description:
+      - "&7השלך את החכה ומשוך את עצמך"
+      - "&7לכיוון נקודת הפגיעה."
+      - "&7מונע נזק נפילה לאחר שימוש."
+      - "&7זמן המתנה של <#FF6B6B>{cooldown} &7שניות."
 
 # --- יכולות רגילות של MMOItems ---
 abilities:

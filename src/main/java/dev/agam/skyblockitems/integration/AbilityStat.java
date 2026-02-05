@@ -114,6 +114,12 @@ public class AbilityStat extends StringStat {
                 return Material.FEATHER;
             case "SLOW_METABOLISM":
                 return Material.APPLE;
+            case "SPEED":
+                return Material.SUGAR;
+            case "MULTISHOT_EXPLOSIVE_ARROW":
+                return Material.CROSSBOW;
+            case "GRAPPLING_HOOK":
+                return Material.FISHING_ROD;
             default:
                 return Material.BOOK;
         }
@@ -199,6 +205,12 @@ public class AbilityStat extends StringStat {
                 return "REDUCTION_PERCENT";
             case "SLOW_METABOLISM":
                 return "REDUCTION_PERCENT";
+            case "SPEED":
+                return "DURATION AMPLIFIER";
+            case "MULTISHOT_EXPLOSIVE_ARROW":
+                return "DAMAGE RADIUS";
+            case "GRAPPLING_HOOK":
+                return "";
             default:
                 return "VALUE";
         }
@@ -282,6 +294,12 @@ public class AbilityStat extends StringStat {
                 return "מפחית את נזק הנפילה מגובה.";
             case "SLOW_METABOLISM":
                 return "מפחית את קצב איבוד הרעב של השחקן.";
+            case "SPEED":
+                return "מעניק אפקט מהירות גבוהה לזמן מוגבל.";
+            case "MULTISHOT_EXPLOSIVE_ARROW":
+                return "3 חיצי TNT מתפוצצים לקרוסבואו עם מולטי-שוט.";
+            case "GRAPPLING_HOOK":
+                return "משיכה עצמית לנקודת פגיעת החכה.";
             default:
                 return "";
         }

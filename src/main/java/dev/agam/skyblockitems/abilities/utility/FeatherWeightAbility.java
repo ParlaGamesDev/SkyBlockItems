@@ -47,10 +47,17 @@ public class FeatherWeightAbility extends SkyBlockAbility implements Listener {
             if (tag != null && !tag.isEmpty()) {
                 try {
                     String[] params = tag.trim().split("\\s+");
-                    if (params.length > 2) {
-                        totalReduction += Double.parseDouble(params[2]);
+                    // Format: COOLDOWN MANA REDUCTION_PERCENT
+                    // params[0] = cooldown, params[1] = mana, params[2] = reduction percent
+                    if (params.length >= 3) {
+                        double reduction = Double.parseDouble(params[2]);
+                        totalReduction += reduction;
+                    } else if (params.length == 1) {
+                        // Fallback: if only one param, treat it as reduction percent
+                        totalReduction += Double.parseDouble(params[0]);
                     }
-                } catch (Exception ignored) {
+                } catch (NumberFormatException ignored) {
+                    // Invalid number format, skip this item
                 }
             }
         }

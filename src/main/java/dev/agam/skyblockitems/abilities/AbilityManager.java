@@ -63,6 +63,9 @@ public class AbilityManager {
         // ... existing registrations ...
         registerAbility(new dev.agam.skyblockitems.abilities.utility.FeatherWeightAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.MetabolismAbility());
+        registerAbility(new dev.agam.skyblockitems.abilities.utility.SpeedAbility());
+        registerAbility(new dev.agam.skyblockitems.abilities.combat.MultiShotExplosiveArrowAbility());
+        registerAbility(new dev.agam.skyblockitems.abilities.utility.GrapplingHookAbility());
 
     }
 
