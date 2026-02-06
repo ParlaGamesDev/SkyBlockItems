@@ -1,16 +1,34 @@
 package dev.agam.skyblockitems;
 
 import dev.agam.skyblockitems.abilities.AbilityManager;
-import dev.agam.skyblockitems.integration.MMOItemsHook;
+import dev.agam.skyblockitems.enchantsystem.hooks.AuraSkillsHook;
+import dev.agam.skyblockitems.enchantsystem.hooks.MMOItemsHook;
+import dev.agam.skyblockitems.enchantsystem.managers.ChatInputManager;
+import dev.agam.skyblockitems.enchantsystem.config.ConfigManager;
+import dev.agam.skyblockitems.enchantsystem.managers.CustomEnchantManager;
+import dev.agam.skyblockitems.enchantsystem.managers.EnchantManager;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class SkyBlockItems extends JavaPlugin {
 
     private static SkyBlockItems instance;
     private AbilityManager abilityManager;
-    private MMOItemsHook mmoItemsHook;
+    private dev.agam.skyblockitems.integration.MMOItemsHook mmoItemsStatHook;
     private org.bukkit.configuration.file.FileConfiguration abilitiesConfig;
     private org.bukkit.configuration.file.FileConfiguration messagesConfig;
+
+    // Enchantment System Managers
+    private ConfigManager enchantConfigManager;
+    private EnchantManager enchantManager;
+    private CustomEnchantManager customEnchantManager;
+    private ChatInputManager chatInputManager;
+
+    // Enchantment System Hooks
+    private AuraSkillsHook auraSkillsHook;
+    private MMOItemsHook mmoEnchantHook;
+    private boolean auraSkillsEnabled = false;
+    private boolean mmoItemsEnabled = false;
 
     public static SkyBlockItems getInstance() {
         return instance;
@@ -35,16 +53,34 @@ public class SkyBlockItems extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        saveDefaultConfig();
+        // Initialize Enchantment System Managers
+        this.enchantConfigManager = new ConfigManager(this);
+        this.chatInputManager = new ChatInputManager(this);
+        this.enchantManager = new EnchantManager(this);
+        this.customEnchantManager = new CustomEnchantManager(this);
+
         loadCustomConfigs();
 
         // Initialize Ability Manager
         this.abilityManager = new AbilityManager();
         this.abilityManager.registerAbilities();
 
-        // Initialize MMOItems Hook
-        this.mmoItemsHook = new MMOItemsHook();
-        this.mmoItemsHook.registerStats();
+        // Initialize Integration Hooks
+        this.mmoItemsStatHook = new dev.agam.skyblockitems.integration.MMOItemsHook();
+        this.mmoItemsStatHook.registerStats();
+
+        // Enchant System Hooks
+        if (Bukkit.getPluginManager().getPlugin("AuraSkills") != null) {
+            this.auraSkillsHook = new AuraSkillsHook(this);
+            this.auraSkillsEnabled = true;
+            getLogger().info("Hooked into AuraSkills!");
+        }
+
+        if (Bukkit.getPluginManager().getPlugin("MMOItems") != null) {
+            this.mmoEnchantHook = new MMOItemsHook(this);
+            this.mmoItemsEnabled = true;
+            getLogger().info("Hooked into MMOItems (Enchant System)!");
+        }
 
         // Register Listeners
         getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.abilities.AbilityListener(), this);
@@ -53,6 +89,16 @@ public class SkyBlockItems extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.listeners.InfiniteReservoirListener(),
                 this);
 
+        // Enchantment System Listeners
+        getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.enchantsystem.listeners.GuiListener(),
+                this);
+        getServer().getPluginManager().registerEvents(
+                new dev.agam.skyblockitems.enchantsystem.listeners.CustomEnchantListener(this), this);
+        if (auraSkillsEnabled) {
+            getServer().getPluginManager().registerEvents(
+                    new dev.agam.skyblockitems.enchantsystem.listeners.AuraSkillsListener(this), this);
+        }
+
         // Start Passive Tasks
         new dev.agam.skyblockitems.tasks.PassiveAbilityTask().runTaskTimer(this, 20L, 20L);
 
@@ -60,6 +106,17 @@ public class SkyBlockItems extends JavaPlugin {
         dev.agam.skyblockitems.commands.SkyBlockItemsCommand sbiCmd = new dev.agam.skyblockitems.commands.SkyBlockItemsCommand();
         getCommand("skyblockitems").setExecutor(sbiCmd);
         getCommand("skyblockitems").setTabCompleter(sbiCmd);
+
+        // Enchantment System Commands
+        dev.agam.skyblockitems.enchantsystem.commands.EnchantCommand enchantCmd = new dev.agam.skyblockitems.enchantsystem.commands.EnchantCommand(
+                this);
+        getCommand("skyblockenchants").setExecutor(enchantCmd);
+        getCommand("skyblockenchants").setTabCompleter(enchantCmd);
+
+        dev.agam.skyblockitems.enchantsystem.commands.MMOEnchantsCommand mmoEnchantsCmd = new dev.agam.skyblockitems.enchantsystem.commands.MMOEnchantsCommand(
+                this);
+        getCommand("mmoenchants").setExecutor(mmoEnchantsCmd);
+        getCommand("mmoenchants").setTabCompleter(mmoEnchantsCmd);
 
         getLogger().info("SkyBlockItems has been enabled!");
     }
@@ -79,12 +136,10 @@ public class SkyBlockItems extends JavaPlugin {
         }
         abilitiesConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(abilitiesFile);
 
-        // Load messages.yml
-        java.io.File messagesFile = new java.io.File(getDataFolder(), "messages.yml");
-        if (!messagesFile.exists()) {
-            saveResource("messages.yml", false);
+        // messagesConfig is now managed by ConfigManager
+        if (enchantConfigManager != null) {
+            messagesConfig = enchantConfigManager.getMessagesConfig();
         }
-        messagesConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(messagesFile);
     }
 
     public org.bukkit.configuration.file.FileConfiguration getAbilitiesConfig() {
@@ -95,12 +150,46 @@ public class SkyBlockItems extends JavaPlugin {
         return messagesConfig;
     }
 
+    public ConfigManager getConfigManager() {
+        return enchantConfigManager;
+    }
+
+    public EnchantManager getEnchantManager() {
+        return enchantManager;
+    }
+
+    public CustomEnchantManager getCustomEnchantManager() {
+        return customEnchantManager;
+    }
+
+    public ChatInputManager getChatInputManager() {
+        return chatInputManager;
+    }
+
+    public AuraSkillsHook getAuraSkillsHook() {
+        return auraSkillsHook;
+    }
+
+    public MMOItemsHook getMMOEnchantHook() {
+        return mmoEnchantHook;
+    }
+
+    public boolean isAuraSkillsEnabled() {
+        return auraSkillsEnabled;
+    }
+
+    public boolean isMMOItemsEnabled() {
+        return mmoItemsEnabled;
+    }
+
     /**
      * Reloads all configuration files (config.yml, abilities.yml, messages.yml)
      */
     public void reloadAllConfigs() {
         reloadConfig(); // Reload config.yml
-        loadCustomConfigs(); // Reload abilities.yml and messages.yml
+        if (enchantConfigManager != null)
+            enchantConfigManager.reload();
+        loadCustomConfigs(); // Reload abilities.yml and update messagesConfig
         getLogger().info("All configurations reloaded!");
     }
 }

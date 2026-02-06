@@ -10,3 +10,10 @@ commands:
     description: Main command for SkyBlockItems
     aliases: [sbi]
     usage: /<command> [args]
+  skyblockenchants:
+    description: Main command for SkyBlockEnchants
+    aliases: [se, enchants]
+    usage: /<command> [args]
+  mmoenchants:
+    description: Main command for MMOEnchants
+    usage: /<command> [args]

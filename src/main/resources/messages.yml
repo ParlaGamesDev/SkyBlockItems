@@ -16,3 +16,86 @@ staff:
   no-permission: "&cאין לך הרשאה לבצע פעולה זו!"
   wrong-usage: "&cשימוש שגוי, נסה את הפקודה הזאת: /sbi reload"
 
+# --- מערכת כישופים ---
+general:
+  prefix: "<#9b59b6>[<#e056fd>✦<#9b59b6>] "
+  no-permission: "<#e74c3c>✖ אין לך הרשאה לבצע את הפעולה הזאת!"
+  player-only: "<#e74c3c>✖ הפקודה הזו נועדה לשחקנים בלבד!"
+  must-hold-item: "<#f39c12>⚠ אתה חייב להחזיק חפץ ביד!"
+  blacklisted-item: "<#e74c3c>✖ החפץ הזה נמצא ברשימה השחורה ולא ניתן לכשף אותו!"
+
+errors:
+  one-at-a-time: "<#e74c3c>✖ ניתן לשים רק חפץ אחד בכל פעם!"
+  remove-current-first: "<#f39c12>⚠ אנא הוצא את החפץ הנוכחי לפני שתשים חדש!"
+  cannot-place-here: "<#e74c3c>✖ לא ניתן לשים חפצים כאן!"
+  not-enough-xp: "<#e74c3c>✖ אין לך מספיק XP! <#f8b739>(נדרש: {cost})"
+  not-enough-mana: "<#3498db>✖ אין לך מספיק מאנה!"
+  conflict-error: "<#e74c3c>✖ לא ניתן להוסיף את הכישוף הזה כי הוא מתנגש עם <#ffeaa7>{enchant}<#e74c3c>!"
+  already-exists: "<#e74c3c>✖ כישוף עם המזהה הזה כבר קיים!"
+
+commands:
+  reload-success: "<#2ecc71>✔ הקונפיגורציה נטענה מחדש בהצלחה!"
+  blacklist:
+    usage: "<#f39c12>שימוש: <#ffeaa7>/sbe blacklist <add|remove|list>"
+    added: "<#2ecc71>✔ החומר <#ecf0f1>{material} <#2ecc71>נוסף לרשימה השחורה."
+    removed: "<#e74c3c>✖ החומר <#ecf0f1>{material} <#e74c3c>הוסר מהרשימה השחורה."
+    list-header: "<#9b59b6>══════ <#e056fd>רשימה שחורה<#9b59b6> ══════"
+    list-item: "<#636e72>• <#dfe6e9>{material}"
+  givebook:
+    usage: "<#f39c12>שימוש: <#ffeaa7>/sbe givebook <שחקן> <id> <רמה>"
+    success: "<#2ecc71>✔ נתת ספר <#a29bfe>{enchant} <#ffeaa7>{level} <#2ecc71>לשחקן <#74b9ff>{player}<#2ecc71>!"
+  mmoenchants:
+    usage: "<#f39c12>שימוש: <#ffeaa7>/mmoenchants <create|delete|edit|reload|list>"
+    created: "<#2ecc71>✔ נוצר כישוף חדש: <#a29bfe>{id}"
+    deleted: "<#e74c3c>✖ הכישוף נמחק: <#a29bfe>{id}"
+    not-found: "<#e74c3c>✖ כישוף לא נמצא: <#a29bfe>{id}"
+    reloaded: "<#2ecc71>✔ הכישופים נטענו מחדש!"
+
+enchanting:
+  gui-title: "&8שולחן כישופים"
+  success: "<#2ecc71>✔ הכישוף <#a29bfe>{enchant} <#ffeaa7>{level} <#2ecc71>הוחל בהצלחה! <#636e72>(עלות: {cost} XP)"
+  upgrade-fail: "<#e74c3c>✖ כבר יש לך את הרמה הזו או גבוהה יותר!"
+  too-expensive: "<#e74c3c>✖ יקר מדי! (מקסימום {max} רמות)"
+  info-label: "<#ffeaa7>&lמידע על כישופים"
+  put-item-label: "<#e74c3c>&lשים פריט לכישוף"
+  level-select:
+    title: "&8בחירת רמה: {enchant}"
+    cost-lore: "<#636e72>עלות: <#2ecc71>{cost} נסיון"
+    click-to-enchant: "<#ffeaa7>▶ לחץ כדי לכשף!"
+
+guide:
+  gui-title: "&8מדריך כישופים"
+  back: "<#e74c3c>◀ חזרה"
+  search:
+    title: "<#f39c12>🔍 חיפוש כישוף"
+    current: "<#f39c12>🔍 חיפוש: <#dfe6e9>{query}"
+    chat-prompt: "<#f39c12>הקש בצ'אט את שם הכישוף לחיפוש <#636e72>(או 'ביטול' לביטול):"
+
+anvil:
+  gui-title: "&8⚒ Anvil"
+  combine-success: "<#2ecc71>✔ השילוב בוצע בהצלחה!"
+  not-enough-xp: "<#e74c3c>✖ אין לך מספיק נסיון!"
+  too-expensive-message: "<#e74c3c>✖ יקר מדי!"
+  ready: "<#2ecc71>מוכן לשילוב!"
+
+targets:
+  sword: "חרב"
+  bow: "קשת"
+  armor: "שריון"
+  tool: "כלי עבודה"
+  helmet: "קסדה"
+  chestplate: "מגן חזה"
+  leggings: "מכנס"
+  boots: "נעליים"
+  fishing_rod: "חכה"
+  trident: "קלשון"
+  crossbow: "רובה קשת"
+  mace: "מייס"
+  global: "כללי"
+
+enchant-descriptions:
+  sharpness: "מגדיל את הנזק הכללי של החרב נגד כל סוגי האויבים והשחקנים."
+  protection: "מפחית את רוב סוגי הנזק שהשחקן מקבל מכל מקור שהו."
+  health_boost: "מגדיל את כמות החיים המקסימלית שלך בזמן לבישת השריון."
+  # ... (can add more as needed, but keeping it brief for the merge)
+
