@@ -42,5 +42,17 @@ public class MMOItemsHook {
         MMOItems.plugin.getStats().register(new NaturalAbilityLoreStat());
         MMOItems.plugin.getStats().register(new DisableEnchantingStat());
         MMOItems.plugin.getStats().register(new DisableAnvilStat());
+
+        // FORCE A RELOAD OF MMOITEMS TEMPLATES
+        // This is required because MMOItems loads before us (due to dependency)
+        // so it tries to load Items BEFORE we register our Stats.
+        // We must tell it to "Try again" now that our stats are ready.
+        SkyBlockItems.getInstance().getLogger().info("Forcing MMOItems to create stat IDs and reload items...");
+        
+        // 1. Reload Stat Registry (updates stat IDs based on valid stats)
+        MMOItems.plugin.getStats().reload(true);
+        
+        // 2. Reload Templates (re-reads configuration files now that stats exist)
+        MMOItems.plugin.getTemplates().reload();
     }
 }

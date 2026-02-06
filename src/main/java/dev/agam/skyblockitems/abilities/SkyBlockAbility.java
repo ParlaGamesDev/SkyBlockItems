@@ -35,7 +35,21 @@ public abstract class SkyBlockAbility {
     public SkyBlockAbility(String id, String displayName, TriggerType defaultTrigger,
             double defaultCooldown, double defaultManaCost, double defaultDamage, double defaultRange) {
         this.id = id;
-        this.displayName = displayName;
+
+        // Load name from config if available, otherwise use default
+        org.bukkit.configuration.file.FileConfiguration config = dev.agam.skyblockitems.SkyBlockItems.getInstance()
+                .getAbilitiesConfig();
+        String configPath = "custom-abilities." + id + ".name";
+        // Check for common ID formats in config if exact match fails
+        if (!config.contains(configPath)) {
+            if (config.contains("custom-abilities." + id.toUpperCase() + ".name"))
+                configPath = "custom-abilities." + id.toUpperCase() + ".name";
+            else if (config.contains("custom-abilities." + id.toLowerCase() + ".name"))
+                configPath = "custom-abilities." + id.toLowerCase() + ".name";
+        }
+
+        this.displayName = config.getString(configPath, displayName);
+
         this.defaultTrigger = defaultTrigger;
         this.defaultCooldown = defaultCooldown;
         this.defaultManaCost = defaultManaCost;

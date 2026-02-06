@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 public class DisableEnchantingStat extends BooleanStat {
 
     public DisableEnchantingStat() {
-        super("DISABLE_ENCHANTING",
+        super("SKYBLOCK_DISABLE_ENCHANTING",
                 Material.ENCHANTING_TABLE,
                 "ביטול כישוף",
                 new String[] { "§7מונע מהחפץ להיכנס לשולחן הכישופים.", "",

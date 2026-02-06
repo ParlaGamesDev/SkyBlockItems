@@ -53,62 +53,88 @@ public class SkyBlockItems extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        getLogger().info("Starting SkyBlockItems initialization...");
 
-        // Initialize Enchantment System Managers
-        this.enchantConfigManager = new ConfigManager(this);
-        this.chatInputManager = new ChatInputManager();
-        this.enchantManager = new EnchantManager(this);
-        this.customEnchantManager = new CustomEnchantManager(this);
+        try {
+            // Initialize Enchantment System Managers
+            getLogger().info("Initializing managers...");
+            this.enchantConfigManager = new ConfigManager(this);
+            this.chatInputManager = new ChatInputManager();
+            this.enchantManager = new EnchantManager(this);
+            this.customEnchantManager = new CustomEnchantManager(this);
+            getLogger().info("Managers initialized.");
 
-        loadCustomConfigs();
+            getLogger().info("Loading configs...");
+            loadCustomConfigs();
+            getLogger().info("Configs loaded.");
 
-        // Initialize Ability Manager
-        this.abilityManager = new AbilityManager();
-        this.abilityManager.registerAbilities();
+            // Initialize Ability Manager
+            getLogger().info("Registering abilities...");
+            this.abilityManager = new AbilityManager();
+            this.abilityManager.registerAbilities();
+            getLogger().info("Abilities registered.");
 
-        // Initialize Integration Hooks
-        this.mmoItemsStatHook = new dev.agam.skyblockitems.integration.MMOItemsHook();
-        this.mmoItemsStatHook.registerStats();
+            // Initialize Integration Hooks
+            getLogger().info("Hooking into MMOItems stats...");
+            this.mmoItemsStatHook = new dev.agam.skyblockitems.integration.MMOItemsHook();
+            this.mmoItemsStatHook.registerStats();
+            getLogger().info("MMOItems stats hooked.");
 
-        // Enchant System Hooks
-        if (Bukkit.getPluginManager().getPlugin("AuraSkills") != null) {
-            this.auraSkillsHook = new AuraSkillsHook();
-            this.auraSkillsEnabled = true;
-            getLogger().info("Hooked into AuraSkills!");
-        }
+            // Enchant System Hooks
+            if (Bukkit.getPluginManager().getPlugin("AuraSkills") != null) {
+                getLogger().info("Hooking into AuraSkills...");
+                this.auraSkillsHook = new AuraSkillsHook();
+                this.auraSkillsEnabled = true;
+                getLogger().info("Hooked into AuraSkills!");
+            }
 
-        if (Bukkit.getPluginManager().getPlugin("MMOItems") != null) {
-            this.mmoEnchantHook = new MMOItemsHook(this);
-            this.mmoItemsEnabled = true;
-            getLogger().info("Hooked into MMOItems (Enchant System)!");
-        }
+            if (Bukkit.getPluginManager().getPlugin("MMOItems") != null) {
+                getLogger().info("Hooking into MMOItems (Enchant System)...");
+                this.mmoEnchantHook = new MMOItemsHook(this);
+                this.mmoItemsEnabled = true;
+                getLogger().info("Hooked into MMOItems (Enchant System)!");
+            }
 
-        // Register Listeners
-        getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.abilities.AbilityListener(), this);
-        getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.integration.MMOItemsAbilityListener(),
-                this);
-        getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.listeners.InfiniteReservoirListener(),
-                this);
-
-        // Enchantment System Listeners
-        getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.enchantsystem.listeners.GuiListener(),
-                this);
-        getServer().getPluginManager().registerEvents(
-                new dev.agam.skyblockitems.enchantsystem.listeners.CustomEnchantListener(this), this);
-        if (auraSkillsEnabled) {
+            // Register Listeners
+            getLogger().info("Registering listeners...");
+            getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.abilities.AbilityListener(), this);
             getServer().getPluginManager().registerEvents(
-                    new dev.agam.skyblockitems.enchantsystem.listeners.AuraSkillsListener(this), this);
+                    new dev.agam.skyblockitems.integration.MMOItemsAbilityListener(),
+                    this);
+            getServer().getPluginManager().registerEvents(
+                    new dev.agam.skyblockitems.listeners.InfiniteReservoirListener(),
+                    this);
+
+            // Enchantment System Listeners
+            getServer().getPluginManager().registerEvents(
+                    new dev.agam.skyblockitems.enchantsystem.listeners.GuiListener(),
+                    this);
+            getServer().getPluginManager().registerEvents(
+                    new dev.agam.skyblockitems.enchantsystem.listeners.CustomEnchantListener(this), this);
+            if (auraSkillsEnabled) {
+                getServer().getPluginManager().registerEvents(
+                        new dev.agam.skyblockitems.enchantsystem.listeners.AuraSkillsListener(this), this);
+            }
+            getLogger().info("Listeners registered.");
+
+            // Start Passive Tasks
+            getLogger().info("Starting passive tasks...");
+            new dev.agam.skyblockitems.tasks.PassiveAbilityTask().runTaskTimer(this, 20L, 20L);
+            getLogger().info("Passive tasks started.");
+
+            // Register Commands
+            getLogger().info("Registering commands...");
+            SkyBlockItemsCommand sbiCommand = new SkyBlockItemsCommand(this);
+            getCommand("skyblockitems").setExecutor(sbiCommand);
+            getCommand("skyblockitems").setTabCompleter(sbiCommand);
+            getLogger().info("Commands registered.");
+
+            getLogger().info("SkyBlockItems has been enabled successfully!");
+        } catch (Throwable e) {
+            getLogger().severe("CRITICAL ERROR DURING PLUGIN ENABLE:");
+            e.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this);
         }
-
-        // Start Passive Tasks
-        new dev.agam.skyblockitems.tasks.PassiveAbilityTask().runTaskTimer(this, 20L, 20L);
-
-        // Register Commands
-        SkyBlockItemsCommand sbiCommand = new SkyBlockItemsCommand(this);
-        getCommand("skyblockitems").setExecutor(sbiCommand);
-        getCommand("skyblockitems").setTabCompleter(sbiCommand);
-
-        getLogger().info("SkyBlockItems has been enabled!");
     }
 
     @Override

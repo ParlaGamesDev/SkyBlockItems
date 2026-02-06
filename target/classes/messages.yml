@@ -39,6 +39,10 @@ errors:
 # פקודות (Commands)
 # ========================================
 commands:
+  unknown: "<#e74c3c>✖ פקודה לא מוכרת."
+  edit:
+    usage: "<#f39c12>שימוש: <#ffeaa7>/sbi edit <enchant-id>"
+    not-found: "<#e74c3c>✖ כישוף לא נמצא: <#ffeaa7>{id}"
   reload-success: "<#2ecc71>✔ הקונפיגורציה נטענה מחדש בהצלחה!"
   blacklist:
     usage: "<#f39c12>שימוש: <#ffeaa7>/sbi blacklist <add|remove|list>"

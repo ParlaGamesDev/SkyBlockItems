@@ -34,7 +34,7 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(plugin.getConfigManager().getMessage("errors.player-only"));
+            sender.sendMessage(plugin.getConfigManager().getMessage("general.player-only"));
             return true;
         }
 
@@ -86,12 +86,12 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (args.length < 2) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("commands.mmoenchants.edit-usage"));
+                    player.sendMessage(plugin.getConfigManager().getMessage("commands.edit.usage"));
                     return true;
                 }
                 CustomEnchant enchant = plugin.getCustomEnchantManager().getEnchant(args[1]);
                 if (enchant == null) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("commands.mmoenchants.not-found")
+                    player.sendMessage(plugin.getConfigManager().getMessage("commands.edit.not-found")
                             .replace("{id}", args[1]));
                     return true;
                 }
@@ -164,12 +164,12 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
 
     private void handleBlacklist(Player player, String[] args) {
         if (!player.hasPermission("skyblockitems.blacklist")) {
-            player.sendMessage(plugin.getConfigManager().getMessage("errors.no-permission"));
+            player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
             return;
         }
 
         if (args.length < 2) {
-            player.sendMessage(plugin.getConfigManager().getMessage("commands.blacklist-usage"));
+            player.sendMessage(plugin.getConfigManager().getMessage("commands.blacklist.usage"));
             return;
         }
 
@@ -179,7 +179,7 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
         switch (action) {
             case "add" -> {
                 if (item == null || item.getType().isAir()) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("errors.must-hold-item"));
+                    player.sendMessage(plugin.getConfigManager().getMessage("general.must-hold-item"));
                     return;
                 }
                 plugin.getConfigManager().addToBlacklist(item.getType().name());

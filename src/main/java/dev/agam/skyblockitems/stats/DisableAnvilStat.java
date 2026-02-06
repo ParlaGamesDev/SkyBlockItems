@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 public class DisableAnvilStat extends BooleanStat {
 
     public DisableAnvilStat() {
-        super("DISABLE_ANVIL",
+        super("SKYBLOCK_DISABLE_ANVIL",
                 Material.ANVIL,
                 "ביטול סדן",
                 new String[] { "§7מונע מהחפץ להיכנס לסדן.", "", "This stat was created from the SkyBlockItems plugin" },
