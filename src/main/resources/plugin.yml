@@ -8,12 +8,5 @@ authors: [Agam]
 commands:
   skyblockitems:
     description: Main command for SkyBlockItems
-    aliases: [sbi]
-    usage: /<command> [args]
-  skyblockenchants:
-    description: Main command for SkyBlockEnchants
-    aliases: [se, enchants]
-    usage: /<command> [args]
-  mmoenchants:
-    description: Main command for MMOEnchants
+    aliases: [sbi, se, enchants, mmoe, skyblockenchants, mmoenchants]
     usage: /<command> [args]

@@ -1,4 +1,4 @@
-package dev.agam.skyblockitems.stats;
+package dev.agam.skyblockitems.abilities.booleans;
 
 import io.lumine.mythic.lib.api.item.ItemTag;
 import net.Indyuce.mmoitems.api.item.build.ItemStackBuilder;
@@ -18,7 +18,8 @@ public class UnderwaterStat extends BooleanStat {
                 Material.HEART_OF_THE_SEA,
                 dev.agam.skyblockitems.SkyBlockItems.getInstance().getAbilitiesConfig()
                         .getString("custom-abilities.UNDERWATER_MASTER.name", "אדון המים"),
-                new String[] { "§7יכולת נשימה ושחייה משופרת מתחת למים.", "", "This stat was created from the SkyBlockItems plugin"},
+                new String[] { "§7יכולת נשימה ושחייה משופרת מתחת למים.", "",
+                        "This stat was created from the SkyBlockItems plugin" },
                 new String[] { "armor", "accessory", "all" });
     }
 

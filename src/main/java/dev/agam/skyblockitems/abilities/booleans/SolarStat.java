@@ -1,4 +1,4 @@
-package dev.agam.skyblockitems.stats;
+package dev.agam.skyblockitems.abilities.booleans;
 
 import io.lumine.mythic.lib.api.item.ItemTag;
 import net.Indyuce.mmoitems.api.item.build.ItemStackBuilder;
@@ -6,20 +6,22 @@ import net.Indyuce.mmoitems.stat.data.BooleanData;
 import net.Indyuce.mmoitems.stat.type.BooleanStat;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DiverSetBonusStat extends BooleanStat {
+public class SolarStat extends BooleanStat {
 
-    public DiverSetBonusStat() {
-        super("SKYBLOCK_DIVER_SET",
-                Material.PRISMARINE_CRYSTALS,
+    public SolarStat() {
+        super("SKYBLOCK_SOLAR_REPAIR",
+                Material.SUNFLOWER,
                 dev.agam.skyblockitems.SkyBlockItems.getInstance().getAbilitiesConfig()
-                        .getString("custom-abilities.DIVER_SET.name", "בונוס סט צוללן"),
-                new String[] { "§7מעניק מהירות שחייה פי 2.5 ונשימה אינסופית." },
-                new String[] { "armor", "all" });
+                        .getString("custom-abilities.SOLAR_REPAIR.name", "טעינה סולארית"),
+                new String[] { "§7טעינת נזק בונוס בעמידה בשמש.", "",
+                        "This stat was created from the SkyBlockItems plugin" },
+                new String[] { "weapon", "tool", "armor", "accessory", "all" });
     }
 
     @Override
@@ -27,17 +29,20 @@ public class DiverSetBonusStat extends BooleanStat {
         if (!data.isEnabled())
             return;
 
-        item.addItemTag(new ItemTag("SKYBLOCK_DIVER_SET", true));
+        // Add the primary ability tag
+        item.addItemTag(new ItemTag("SKYBLOCK_SOLAR_REPAIR", "true"));
 
         // Build the lore from config
         FileConfiguration abilitiesConfig = dev.agam.skyblockitems.SkyBlockItems.getInstance().getAbilitiesConfig();
-        List<String> description = abilitiesConfig.getStringList("custom-abilities.DIVER_SET.description");
-        String configDisplayName = abilitiesConfig.getString("custom-abilities.DIVER_SET.name", "בונוס סט צוללן");
+        List<String> description = abilitiesConfig.getStringList("custom-abilities.SOLAR_REPAIR.description");
+        String configDisplayName = abilitiesConfig.getString("custom-abilities.SOLAR_REPAIR.name", "טעינה סולארית");
 
-        String triggerName = "סט מלא";
+        // Get trigger name
+        String triggerName = "עמידה בשמש";
         try {
-            String configTriggerRaw = abilitiesConfig.getString("custom-abilities.DIVER_SET.trigger");
+            String configTriggerRaw = abilitiesConfig.getString("custom-abilities.SOLAR_REPAIR.trigger");
             if (configTriggerRaw != null) {
+                // Check if it's an enum or custom
                 try {
                     dev.agam.skyblockitems.abilities.TriggerType type = dev.agam.skyblockitems.abilities.TriggerType
                             .valueOf(configTriggerRaw.toUpperCase());
@@ -58,12 +63,23 @@ public class DiverSetBonusStat extends BooleanStat {
                 .replace("{trigger}", triggerName);
         loreLines.add(dev.agam.skyblockitems.utils.ColorUtils.translate(formattedHeader));
 
+        // Description lines
+        double configAmount = abilitiesConfig.getDouble("custom-abilities.SOLAR_REPAIR.charge-amount", 1.0);
+        double configMax = abilitiesConfig.getDouble("custom-abilities.SOLAR_REPAIR.max-charge", 120.0);
+
         for (String line : description) {
-            String translated = dev.agam.skyblockitems.utils.ColorUtils.translate(line);
+            String processed = line
+                    .replace("{damage}", String.valueOf(configAmount))
+                    .replace("{range}", String.valueOf((int) configMax))
+                    .replace("{charge}", "0");
+
+            String translated = dev.agam.skyblockitems.utils.ColorUtils.translate(processed);
             if (!org.bukkit.ChatColor.stripColor(translated).trim().isEmpty()) {
                 loreLines.add(translated);
             }
         }
+
+        // Insert into lore
         item.getLore().insert("ability-description", loreLines);
     }
 }

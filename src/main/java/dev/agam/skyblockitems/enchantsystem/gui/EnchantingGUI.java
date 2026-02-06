@@ -253,8 +253,7 @@ public class EnchantingGUI implements BaseGUI {
 
         ItemStack icon;
         if (conflicted) {
-            String matStr = plugin.getConfigManager().getMessages().getString("enchanting.locked-enchant.material",
-                    "BARRIER");
+            String matStr = plugin.getConfigManager().getMessageRaw("enchanting.locked-enchant.material");
             Material mat = Material.getMaterial(matStr);
             icon = new ItemStack(mat != null ? mat : Material.BARRIER);
         } else {
@@ -270,9 +269,9 @@ public class EnchantingGUI implements BaseGUI {
 
             List<String> lore = new ArrayList<>();
             // Fix conflict coloring by colorizing AFTER replacement
-            String conflictMsg = plugin.getConfigManager().getMessageRaw("enchanting.conflict-lore")
-                    .replace("{enchant}", conflictWith);
-            lore.add(ColorUtils.colorize(conflictMsg));
+            String conflictMsg = plugin.getConfigManager().getMessage("enchanting.conflict-lore", "{enchant}",
+                    conflictWith);
+            lore.add(conflictMsg);
 
             for (String line : plugin.getConfigManager().getMessages()
                     .getStringList("enchanting.locked-enchant.lore")) {
@@ -329,6 +328,13 @@ public class EnchantingGUI implements BaseGUI {
                     player.sendMessage(plugin.getConfigManager().getMessage("errors.one-at-a-time"));
                     return;
                 }
+
+                // MMOItems Disable Enchanting Check
+                if (io.lumine.mythic.lib.api.item.NBTItem.get(clicked).hasTag("MMOITEMS_DISABLE_ENCHANTING")) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("errors.item-disabled-enchanting"));
+                    return;
+                }
+
                 if (itemToEnchant != null && itemToEnchant.getType() != Material.AIR) {
                     player.sendMessage(plugin.getConfigManager().getMessage("errors.remove-current-first"));
                     return;

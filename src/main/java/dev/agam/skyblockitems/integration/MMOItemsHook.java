@@ -2,7 +2,14 @@ package dev.agam.skyblockitems.integration;
 
 import dev.agam.skyblockitems.SkyBlockItems;
 import dev.agam.skyblockitems.abilities.SkyBlockAbility;
-import dev.agam.skyblockitems.stats.*;
+import dev.agam.skyblockitems.abilities.booleans.InfiniteReservoirStat;
+import dev.agam.skyblockitems.abilities.booleans.NightVisionStat;
+import dev.agam.skyblockitems.abilities.booleans.SolarStat;
+import dev.agam.skyblockitems.abilities.booleans.UnderwaterStat;
+import dev.agam.skyblockitems.stats.DisableAnvilStat;
+import dev.agam.skyblockitems.stats.DisableEnchantingStat;
+import dev.agam.skyblockitems.stats.GlowStat;
+import dev.agam.skyblockitems.stats.NaturalAbilityLoreStat;
 import net.Indyuce.mmoitems.MMOItems;
 
 public class MMOItemsHook {
@@ -33,5 +40,7 @@ public class MMOItemsHook {
         MMOItems.plugin.getStats().register(new InfiniteReservoirStat());
         MMOItems.plugin.getStats().register(new NightVisionStat());
         MMOItems.plugin.getStats().register(new NaturalAbilityLoreStat());
+        MMOItems.plugin.getStats().register(new DisableEnchantingStat());
+        MMOItems.plugin.getStats().register(new DisableAnvilStat());
     }
 }

@@ -241,13 +241,7 @@ public class EnchantmentGuideGUI implements BaseGUI {
     private String getDetailedDescription(EnchantConfig enchant) {
         String id = enchant.getId().toLowerCase();
         String path = "enchant-descriptions." + id;
-        String desc = plugin.getConfigManager().getMessagesConfig().getString(path);
-
-        if (desc == null || desc.isEmpty()) {
-            return plugin.getConfigManager().getMessage("enchant-descriptions.default-desc");
-        }
-
-        return ColorUtils.colorize(desc);
+        return plugin.getConfigManager().getMessage(path);
     }
 
     private String formatTargetName(String target) {
@@ -255,13 +249,7 @@ public class EnchantmentGuideGUI implements BaseGUI {
             return "";
         String lower = target.toLowerCase();
         String path = "targets." + lower;
-        String localized = plugin.getConfigManager().getMessagesConfig().getString(path);
-
-        if (localized != null && !localized.isEmpty()) {
-            return localized;
-        }
-
-        return target.substring(0, 1).toUpperCase() + target.substring(1).toLowerCase().replace("_", " ");
+        return plugin.getConfigManager().getMessage(path);
     }
 
     private String toRoman(int num) {

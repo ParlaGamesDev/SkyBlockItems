@@ -63,10 +63,9 @@ public class GrapplingHookAbility extends SkyBlockAbility implements Listener {
         if (dev.agam.skyblockitems.abilities.CooldownManager.isOnCooldown(player.getUniqueId(), "GRAPPLING_HOOK")) {
             double remaining = dev.agam.skyblockitems.abilities.CooldownManager
                     .getRemainingCooldown(player.getUniqueId(), "GRAPPLING_HOOK");
-            String msg = SkyBlockItems.getInstance().getMessagesConfig()
-                    .getString("players.cooldown", "&cהאביליטי {ability} בטעינה: {remaining} ש'");
-            msg = msg.replace("{ability}", getDisplayName())
-                    .replace("{remaining}", String.format("%.1f", remaining));
+            String msg = SkyBlockItems.getInstance().getConfigManager().getMessage("players.cooldown",
+                    "{ability}", getDisplayName(),
+                    "{remaining}", String.format("%.1f", remaining));
             dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
             event.setCancelled(true);
             return;

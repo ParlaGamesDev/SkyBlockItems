@@ -53,12 +53,12 @@ public class DogWhistleAbility extends SkyBlockAbility {
         if (teleported) {
             player.getWorld().spawnParticle(Particle.FALLING_HONEY, player.getLocation().add(0, 1.5, 0), 10, 0.5, 0.5,
                     0.5, 0.1);
-            String msg = dev.agam.skyblockitems.SkyBlockItems.getInstance().getMessagesConfig()
-                    .getString("players.dog-whistle-success", "&aהחיות שלך שוגרו אליך!");
+            String msg = dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
+                    .getMessage("players.dog-whistle-success");
             dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
         } else {
-            String msg = dev.agam.skyblockitems.SkyBlockItems.getInstance().getMessagesConfig()
-                    .getString("players.dog-whistle-fail", "&cלא נמצאו חיות מחמד שלך בקרבת מקום.");
+            String msg = dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
+                    .getMessage("players.dog-whistle-fail");
             dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
         }
 

@@ -1,27 +1,26 @@
-package dev.agam.skyblockitems.stats;
+package dev.agam.skyblockitems.abilities.booleans;
 
 import io.lumine.mythic.lib.api.item.ItemTag;
 import net.Indyuce.mmoitems.api.item.build.ItemStackBuilder;
 import net.Indyuce.mmoitems.stat.data.BooleanData;
 import net.Indyuce.mmoitems.stat.type.BooleanStat;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class InfiniteReservoirStat extends BooleanStat {
+public class NightVisionStat extends BooleanStat {
 
-    public InfiniteReservoirStat() {
-        super("SKYBLOCK_INFINITE_RESERVOIR",
-                Material.WATER_BUCKET,
+    public NightVisionStat() {
+        super("SKYBLOCK_NIGHT_VISION_CHARM",
+                Material.ENDER_EYE,
                 dev.agam.skyblockitems.SkyBlockItems.getInstance().getAbilitiesConfig()
-                        .getString("custom-abilities.INFINITE_RESERVOIR.name", "מאגר מים אינסופי"),
-                new String[] { "§7דלי המכיל בתוכו מים שלא נגמרים לעולם.", "", "This stat was created from the SkyBlockItems plugin"},
-                new String[] { "tool", "all" });
+                        .getString("custom-abilities.NIGHT_VISION_CHARM.name", "קמע ראיית לילה"),
+                new String[] { "§7מעניק ראיית לילה קבועה כל עוד הפריט בהוטבר.", "",
+                        "This stat was created from the SkyBlockItems plugin" },
+                new String[] { "all" });
     }
 
     @Override
@@ -29,21 +28,17 @@ public class InfiniteReservoirStat extends BooleanStat {
         if (!data.isEnabled())
             return;
 
-        item.addItemTag(new ItemTag("SKYBLOCK_INFINITE_RESERVOIR", true));
-
-        // Add glow effect without enchantments showing
-        item.getMeta().addEnchant(Enchantment.LURE, 1, true);
-        item.getMeta().addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        item.addItemTag(new ItemTag("SKYBLOCK_NIGHT_VISION_CHARM", true));
 
         // Build the lore from config
         FileConfiguration abilitiesConfig = dev.agam.skyblockitems.SkyBlockItems.getInstance().getAbilitiesConfig();
-        List<String> description = abilitiesConfig.getStringList("custom-abilities.INFINITE_RESERVOIR.description");
-        String configDisplayName = abilitiesConfig.getString("custom-abilities.INFINITE_RESERVOIR.name",
-                "מים אינסופיים");
+        List<String> description = abilitiesConfig.getStringList("custom-abilities.NIGHT_VISION_CHARM.description");
+        String configDisplayName = abilitiesConfig.getString("custom-abilities.NIGHT_VISION_CHARM.name",
+                "קמע ראיית לילה");
 
         String triggerName = "פסיבי";
         try {
-            String configTriggerRaw = abilitiesConfig.getString("custom-abilities.INFINITE_RESERVOIR.trigger");
+            String configTriggerRaw = abilitiesConfig.getString("custom-abilities.NIGHT_VISION_CHARM.trigger");
             if (configTriggerRaw != null) {
                 try {
                     dev.agam.skyblockitems.abilities.TriggerType type = dev.agam.skyblockitems.abilities.TriggerType

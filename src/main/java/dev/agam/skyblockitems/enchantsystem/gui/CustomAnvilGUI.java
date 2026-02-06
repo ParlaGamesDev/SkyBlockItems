@@ -134,6 +134,13 @@ public class CustomAnvilGUI implements BaseGUI {
                 return;
             }
 
+            // MMOItems Disable Anvil Check
+            if (io.lumine.mythic.lib.api.item.NBTItem.get(clicked).hasTag("MMOITEMS_DISABLE_ANVIL")) {
+                player.sendMessage(plugin.getConfigManager().getMessage("errors.item-disabled-anvil"));
+                event.setCancelled(true);
+                return;
+            }
+
             // Auto-slot logic: Find first empty slot
             if (isEmpty(inventory.getItem(ITEM_1_SLOT))) {
                 inventory.setItem(ITEM_1_SLOT, clicked.clone());
@@ -266,7 +273,8 @@ public class CustomAnvilGUI implements BaseGUI {
 
             if (limitEnabled && cost >= maxCost && !(player.isOp() && bypassOp)) {
                 inventory.setItem(RESULT_SLOT, createPane(Material.BARRIER,
-                        plugin.getConfigManager().getMessage("anvil.too-expensive-message")));
+                        plugin.getConfigManager().getMessage("anvil.too-expensive-message", "{max}",
+                                String.valueOf(maxCost))));
                 updateCombineButton(false, cost, "too-expensive");
                 updateIndicators(false);
             } else {

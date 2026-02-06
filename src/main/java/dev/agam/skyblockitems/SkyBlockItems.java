@@ -1,6 +1,7 @@
 package dev.agam.skyblockitems;
 
 import dev.agam.skyblockitems.abilities.AbilityManager;
+import dev.agam.skyblockitems.commands.SkyBlockItemsCommand;
 import dev.agam.skyblockitems.enchantsystem.hooks.AuraSkillsHook;
 import dev.agam.skyblockitems.enchantsystem.hooks.MMOItemsHook;
 import dev.agam.skyblockitems.enchantsystem.managers.ChatInputManager;
@@ -55,7 +56,7 @@ public class SkyBlockItems extends JavaPlugin {
 
         // Initialize Enchantment System Managers
         this.enchantConfigManager = new ConfigManager(this);
-        this.chatInputManager = new ChatInputManager(this);
+        this.chatInputManager = new ChatInputManager();
         this.enchantManager = new EnchantManager(this);
         this.customEnchantManager = new CustomEnchantManager(this);
 
@@ -71,7 +72,7 @@ public class SkyBlockItems extends JavaPlugin {
 
         // Enchant System Hooks
         if (Bukkit.getPluginManager().getPlugin("AuraSkills") != null) {
-            this.auraSkillsHook = new AuraSkillsHook(this);
+            this.auraSkillsHook = new AuraSkillsHook();
             this.auraSkillsEnabled = true;
             getLogger().info("Hooked into AuraSkills!");
         }
@@ -103,20 +104,9 @@ public class SkyBlockItems extends JavaPlugin {
         new dev.agam.skyblockitems.tasks.PassiveAbilityTask().runTaskTimer(this, 20L, 20L);
 
         // Register Commands
-        dev.agam.skyblockitems.commands.SkyBlockItemsCommand sbiCmd = new dev.agam.skyblockitems.commands.SkyBlockItemsCommand();
-        getCommand("skyblockitems").setExecutor(sbiCmd);
-        getCommand("skyblockitems").setTabCompleter(sbiCmd);
-
-        // Enchantment System Commands
-        dev.agam.skyblockitems.enchantsystem.commands.EnchantCommand enchantCmd = new dev.agam.skyblockitems.enchantsystem.commands.EnchantCommand(
-                this);
-        getCommand("skyblockenchants").setExecutor(enchantCmd);
-        getCommand("skyblockenchants").setTabCompleter(enchantCmd);
-
-        dev.agam.skyblockitems.enchantsystem.commands.MMOEnchantsCommand mmoEnchantsCmd = new dev.agam.skyblockitems.enchantsystem.commands.MMOEnchantsCommand(
-                this);
-        getCommand("mmoenchants").setExecutor(mmoEnchantsCmd);
-        getCommand("mmoenchants").setTabCompleter(mmoEnchantsCmd);
+        SkyBlockItemsCommand sbiCommand = new SkyBlockItemsCommand(this);
+        getCommand("skyblockitems").setExecutor(sbiCommand);
+        getCommand("skyblockitems").setTabCompleter(sbiCommand);
 
         getLogger().info("SkyBlockItems has been enabled!");
     }

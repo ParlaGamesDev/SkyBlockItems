@@ -25,10 +25,12 @@ import java.util.Map;
  */
 public class AbilityListener implements Listener {
 
+    private final SkyBlockItems plugin;
     private final AbilityManager abilityManager;
 
     public AbilityListener() {
-        this.abilityManager = SkyBlockItems.getInstance().getAbilityManager();
+        this.plugin = SkyBlockItems.getInstance();
+        this.abilityManager = plugin.getAbilityManager();
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -134,7 +136,7 @@ public class AbilityListener implements Listener {
     public void onBlockPlace(org.bukkit.event.block.BlockPlaceEvent event) {
         // Tag blocks placed by players to prevent Lucky Treasure dupes
         event.getBlock().setMetadata("PLACED_BY_PLAYER",
-                new org.bukkit.metadata.FixedMetadataValue(SkyBlockItems.getInstance(), true));
+                new org.bukkit.metadata.FixedMetadataValue(plugin, true));
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -203,10 +205,9 @@ public class AbilityListener implements Listener {
 
             if (CooldownManager.isOnCooldown(player.getUniqueId(), abilityId)) {
                 double remaining = CooldownManager.getRemainingCooldown(player.getUniqueId(), abilityId);
-                String msg = SkyBlockItems.getInstance().getMessagesConfig().getString("players.cooldown",
-                        "&cהאביליטי {ability} בטעינה: {remaining} ש'");
-                msg = msg.replace("{ability}", ability.getDisplayName()).replace("{remaining}",
-                        String.format("%.1f", remaining));
+                String msg = plugin.getConfigManager().getMessage("players.cooldown",
+                        "{ability}", ability.getDisplayName(),
+                        "{remaining}", String.format("%.1f", remaining));
                 dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
                 continue;
             }
@@ -221,10 +222,9 @@ public class AbilityListener implements Listener {
                     if (auraApi != null) {
                         dev.aurelium.auraskills.api.user.SkillsUser user = auraApi.getUser(player.getUniqueId());
                         if (user.getMana() < mana) {
-                            String msg = SkyBlockItems.getInstance().getMessagesConfig().getString("players.no-mana",
-                                    "&cאין מספיק מאנה! ({current}/{required})");
-                            msg = msg.replace("{current}", String.valueOf((int) user.getMana())).replace("{required}",
-                                    String.valueOf((int) mana));
+                            String msg = plugin.getConfigManager().getMessage("players.no-mana",
+                                    "{current}", String.valueOf((int) user.getMana()),
+                                    "{required}", String.valueOf((int) mana));
                             dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
                             continue;
                         }
@@ -264,7 +264,7 @@ public class AbilityListener implements Listener {
         // 2. Handle Pet Fall Damage (Dog Whistle teleportation)
         if (event.getEntity().hasMetadata("NEGATE_FALL_DAMAGE")) {
             event.setCancelled(true);
-            event.getEntity().removeMetadata("NEGATE_FALL_DAMAGE", SkyBlockItems.getInstance());
+            event.getEntity().removeMetadata("NEGATE_FALL_DAMAGE", plugin);
         }
     }
 }

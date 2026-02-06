@@ -160,8 +160,7 @@ public class LevelSelectionGUI implements BaseGUI {
             lore.add(plugin.getConfigManager().getMessage("enchanting.level-button.need-xp", "{need}",
                     String.valueOf(totalCost - player.getLevel())));
         } else if (tooExpensive) {
-            lore.add(ColorUtils.colorize("&cכישוף זה יקר מדי!"));
-            lore.add(plugin.getConfigManager().getMessage("enchanting.too-expensive", "{max}",
+            lore.add(plugin.getConfigManager().getMessage("enchanting.too-expensive-lore", "{max}",
                     String.valueOf(maxCost)));
         } else {
             lore.add(plugin.getConfigManager().getMessage("enchanting.level-button.click-to-buy"));
