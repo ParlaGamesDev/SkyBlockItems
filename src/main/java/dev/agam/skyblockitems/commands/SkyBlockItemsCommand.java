@@ -38,9 +38,15 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        // This command requires admin permission
+        if (!player.hasPermission("skyblock.admin")) {
+            player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
+            return true;
+        }
+
         if (args.length == 0) {
-            // Default: Open enchanting GUI for players
-            new EnchantingGUI(plugin, player).open();
+            player.sendMessage(plugin.getConfigManager().getMessage("commands.sbi.usage",
+                    "{usage}", "/sbi <reload|givebook|blacklist|admin|edit>"));
             return true;
         }
 
@@ -48,20 +54,8 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
 
         switch (sub) {
             case "reload" -> {
-                if (!player.hasPermission("skyblockitems.admin")) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
-                    return true;
-                }
                 plugin.reloadAllConfigs();
                 player.sendMessage(plugin.getConfigManager().getMessage("commands.reload-success"));
-            }
-
-            case "enchants" -> {
-                new EnchantingGUI(plugin, player).open();
-            }
-
-            case "anvil" -> {
-                new CustomAnvilGUI(plugin, player).open();
             }
 
             case "givebook" -> {
@@ -73,18 +67,10 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
             }
 
             case "admin" -> {
-                if (!player.hasPermission("mmoenchants.admin")) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
-                    return true;
-                }
                 new EnchantListGUI(plugin, player).open();
             }
 
             case "edit" -> {
-                if (!player.hasPermission("mmoenchants.admin")) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
-                    return true;
-                }
                 if (args.length < 2) {
                     player.sendMessage(plugin.getConfigManager().getMessage("commands.edit.usage"));
                     return true;
@@ -210,7 +196,7 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            List<String> subs = Arrays.asList("reload", "enchants", "anvil", "givebook", "blacklist", "admin", "edit");
+            List<String> subs = Arrays.asList("reload", "givebook", "blacklist", "admin", "edit");
             return filterCompletions(subs, args[0]);
         }
 

@@ -209,6 +209,8 @@ public class CustomEnchantListener implements Listener {
             return;
 
         ItemStack weapon = attacker.getInventory().getItemInMainHand();
+        if (weapon == null || !weapon.hasItemMeta() || !weapon.getItemMeta().hasLore())
+            return;
         Map<String, Integer> enchants = plugin.getEnchantManager().parseLore(weapon.getItemMeta().getLore());
 
         // 1. Life Steal
@@ -237,7 +239,7 @@ public class CustomEnchantListener implements Listener {
 
         // Damage Reflection
         for (ItemStack armor : victim.getInventory().getArmorContents()) {
-            if (armor == null || armor.getType().isAir())
+            if (armor == null || armor.getType().isAir() || !armor.hasItemMeta() || !armor.getItemMeta().hasLore())
                 continue;
             Map<String, Integer> enchants = plugin.getEnchantManager().parseLore(armor.getItemMeta().getLore());
 
@@ -252,6 +254,9 @@ public class CustomEnchantListener implements Listener {
     @EventHandler
     public void onBlockBreak(org.bukkit.event.block.BlockBreakEvent event) {
         ItemStack tool = event.getPlayer().getInventory().getItemInMainHand();
+        if (tool == null || !tool.hasItemMeta() || !tool.getItemMeta().hasLore())
+            return;
+
         Map<String, Integer> enchants = plugin.getEnchantManager().parseLore(tool.getItemMeta().getLore());
 
         if (enchants.containsKey("telepath") || enchants.containsKey("telekinesis")) {

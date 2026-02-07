@@ -118,7 +118,7 @@ public class SkyBlockItems extends JavaPlugin {
 
             // Enchantment System Listeners
             getServer().getPluginManager().registerEvents(
-                    new dev.agam.skyblockitems.enchantsystem.listeners.GuiListener(),
+                    new dev.agam.skyblockitems.enchantsystem.listeners.GuiListener(this),
                     this);
             getServer().getPluginManager().registerEvents(
                     new dev.agam.skyblockitems.enchantsystem.listeners.CustomEnchantListener(this), this);
@@ -135,8 +135,13 @@ public class SkyBlockItems extends JavaPlugin {
             // Register Commands
             getLogger().info("Registering commands...");
             SkyBlockItemsCommand sbiCommand = new SkyBlockItemsCommand(this);
-            getCommand("skyblockitems").setExecutor(sbiCommand);
-            getCommand("skyblockitems").setTabCompleter(sbiCommand);
+            getCommand("sbi").setExecutor(sbiCommand);
+            getCommand("sbi").setTabCompleter(sbiCommand);
+
+            // /enchant command
+            getCommand("enchant").setExecutor(new dev.agam.skyblockitems.commands.EnchantCommand(this));
+            // /anvil command
+            getCommand("anvil").setExecutor(new dev.agam.skyblockitems.commands.AnvilCommand(this));
 
             getLogger().info("Commands registered.");
 

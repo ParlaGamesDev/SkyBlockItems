@@ -6,7 +6,13 @@ depend: [MMOItems, MythicLib]
 softdepend: [AuraSkills]
 authors: [Agam]
 commands:
-  skyblockitems:
-    description: Main command for SkyBlockItems
-    aliases: [sbi, se, enchants, mmoe, skyblockenchants, mmoenchants]
-
+  sbi:
+    description: Admin command for SkyBlockItems
+    permission: skyblock.admin
+  enchant:
+    description: Opens the Enchanting GUI
+    aliases: [enchants, et]
+    permission: skyblock.enchant
+  anvil:
+    description: Opens the Custom Anvil GUI
+    permission: skyblock.anvil

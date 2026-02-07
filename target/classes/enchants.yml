@@ -92,7 +92,7 @@ enchants:
       9: { value: "9", xp-cost: 90 }
       10: { value: "10", xp-cost: 100 }
 
-  sweeping:
+  sweeping_edge:
     enabled: true
     display-name: "&dSweeping Edge"
     description: "&7מגדיל נזק מכות רחבות"
@@ -497,6 +497,93 @@ enchants:
       9: { value: "9", xp-cost: 45 }
       10: { value: "10", xp-cost: 50 }
 
+  fire_protection:
+    enabled: true
+    display-name: "&6Fire Protection"
+    description: "&7מפחית את הנזק מאש ומקטין\nאת זמן הבעירה כשאתה נדלק."
+    material: MAGMA_CREAM
+    targets: [ARMOR]
+    vanilla-enchant: FIRE_PROTECTION
+    required-enchanting-level: 0
+    conflicts: [protection, blast_protection, projectile_protection]
+    anvil-multiplier: 2
+    levels:
+      1: { value: "1", xp-cost: 5 }
+      2: { value: "2", xp-cost: 10 }
+      3: { value: "3", xp-cost: 15 }
+      4: { value: "4", xp-cost: 20 }
+      5: { value: "5", xp-cost: 25 }
+      6: { value: "6", xp-cost: 30 }
+      7: { value: "7", xp-cost: 35 }
+      8: { value: "8", xp-cost: 40 }
+      9: { value: "9", xp-cost: 45 }
+      10: { value: "10", xp-cost: 50 }
+
+  blast_protection:
+    enabled: true
+    display-name: "&cBlast Protection"
+    description: "&7מפחית את הנזק וההדף\nמפיצוצים."
+    material: TNT
+    targets: [ARMOR]
+    vanilla-enchant: BLAST_PROTECTION
+    required-enchanting-level: 0
+    conflicts: [protection, fire_protection, projectile_protection]
+    anvil-multiplier: 2
+    levels:
+      1: { value: "1", xp-cost: 5 }
+      2: { value: "2", xp-cost: 10 }
+      3: { value: "3", xp-cost: 15 }
+      4: { value: "4", xp-cost: 20 }
+      5: { value: "5", xp-cost: 25 }
+      6: { value: "6", xp-cost: 30 }
+      7: { value: "7", xp-cost: 35 }
+      8: { value: "8", xp-cost: 40 }
+      9: { value: "9", xp-cost: 45 }
+      10: { value: "10", xp-cost: 50 }
+
+  projectile_protection:
+    enabled: true
+    display-name: "&bProjectile Protection"
+    description: "&7מפחית את הנזק מחצים\nופגיעות מרחוק."
+    material: ARROW
+    targets: [ARMOR]
+    vanilla-enchant: PROJECTILE_PROTECTION
+    required-enchanting-level: 0
+    conflicts: [protection, fire_protection, blast_protection]
+    anvil-multiplier: 2
+    levels:
+      1: { value: "1", xp-cost: 5 }
+      2: { value: "2", xp-cost: 10 }
+      3: { value: "3", xp-cost: 15 }
+      4: { value: "4", xp-cost: 20 }
+      5: { value: "5", xp-cost: 25 }
+      6: { value: "6", xp-cost: 30 }
+      7: { value: "7", xp-cost: 35 }
+      8: { value: "8", xp-cost: 40 }
+      9: { value: "9", xp-cost: 45 }
+      10: { value: "10", xp-cost: 50 }
+
+  thorns:
+    enabled: true
+    display-name: "&cThorns"
+    description: "&7גורם נזק לתוקפים כאשר\nהם פוגעים בך."
+    material: CACTUS
+    targets: [ARMOR]
+    vanilla-enchant: THORNS
+    required-enchanting-level: 0
+    anvil-multiplier: 4
+    levels:
+      1: { value: "1", xp-cost: 15 }
+      2: { value: "2", xp-cost: 25 }
+      3: { value: "3", xp-cost: 35 }
+      4: { value: "4", xp-cost: 45 }
+      5: { value: "5", xp-cost: 55 }
+      6: { value: "6", xp-cost: 60 }
+      7: { value: "7", xp-cost: 65 }
+      8: { value: "8", xp-cost: 70 }
+      9: { value: "9", xp-cost: 75 }
+      10: { value: "10", xp-cost: 80 }
+
   # ========================================
   # HELMET SPECIFIC
   # ========================================
@@ -520,6 +607,18 @@ enchants:
       9: { value: "9", xp-cost: 90 }
       10: { value: "10", xp-cost: 100 }
 
+  aqua_affinity:
+    enabled: true
+    display-name: "&bAqua Affinity"
+    description: "&7מגדיל את מהירות הכרייה\nמתחת למים."
+    material: PRISMARINE_CRYSTALS
+    targets: [HELMET]
+    vanilla-enchant: AQUA_AFFINITY
+    required-enchanting-level: 0
+    anvil-multiplier: 2
+    levels:
+      1: { value: "1", xp-cost: 20 }
+
   # ========================================
   # BOOTS SPECIFIC
   # ========================================
@@ -542,6 +641,80 @@ enchants:
       8: { value: "8", xp-cost: 40 }
       9: { value: "9", xp-cost: 45 }
       10: { value: "10", xp-cost: 50 }
+
+  depth_strider:
+    enabled: true
+    display-name: "&3Depth Strider"
+    description: "&7מגדיל את מהירות התנועה\nמתחת למים."
+    material: PRISMARINE_SHARD
+    targets: [BOOTS]
+    vanilla-enchant: DEPTH_STRIDER
+    conflicts: [frost_walker]
+    required-enchanting-level: 0
+    anvil-multiplier: 2
+    levels:
+      1: { value: "1", xp-cost: 15 }
+      2: { value: "2", xp-cost: 25 }
+      3: { value: "3", xp-cost: 35 }
+      4: { value: "4", xp-cost: 45 }
+      5: { value: "5", xp-cost: 55 }
+      6: { value: "6", xp-cost: 65 }
+      7: { value: "7", xp-cost: 75 }
+      8: { value: "8", xp-cost: 85 }
+      9: { value: "9", xp-cost: 95 }
+      10: { value: "10", xp-cost: 105 }
+
+  frost_walker:
+    enabled: true
+    display-name: "&bFrost Walker"
+    description: "&7הופך מים לקרח כשאתה\nהולך עליהם."
+    material: ICE
+    targets: [BOOTS]
+    vanilla-enchant: FROST_WALKER
+    conflicts: [depth_strider]
+    required-enchanting-level: 0
+    anvil-multiplier: 4
+    levels:
+      1: { value: "1", xp-cost: 20 }
+      2: { value: "2", xp-cost: 35 }
+      3: { value: "3", xp-cost: 50 }
+      4: { value: "4", xp-cost: 65 }
+      5: { value: "5", xp-cost: 80 }
+
+  soul_speed:
+    enabled: true
+    display-name: "&4Soul Speed"
+    description: "&7מגדיל את מהירות התנועה\nעל Soul Sand ומשטחי נשמות."
+    material: SOUL_SAND
+    targets: [BOOTS]
+    vanilla-enchant: SOUL_SPEED
+    required-enchanting-level: 0
+    anvil-multiplier: 4
+    levels:
+      1: { value: "1", xp-cost: 25 }
+      2: { value: "2", xp-cost: 40 }
+      3: { value: "3", xp-cost: 55 }
+      4: { value: "4", xp-cost: 70 }
+      5: { value: "5", xp-cost: 85 }
+
+  # ========================================
+  # LEGGINGS SPECIFIC
+  # ========================================
+  swift_sneak:
+    enabled: true
+    display-name: "&5Swift Sneak"
+    description: "&7מגדיל את מהירות ההתגנבות."
+    material: LEATHER_LEGGINGS
+    targets: [LEGGINGS]
+    vanilla-enchant: SWIFT_SNEAK
+    required-enchanting-level: 0
+    anvil-multiplier: 4
+    levels:
+      1: { value: "1", xp-cost: 20 }
+      2: { value: "2", xp-cost: 35 }
+      3: { value: "3", xp-cost: 50 }
+      4: { value: "4", xp-cost: 65 }
+      5: { value: "5", xp-cost: 80 }
 
   # ========================================
   # TOOL ENCHANTMENTS

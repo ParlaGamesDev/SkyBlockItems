@@ -16,8 +16,10 @@ dev\agam\skyblockitems\stats\DisableAnvilStat.class
 dev\agam\skyblockitems\listeners\InfiniteReservoirListener$1.class
 dev\agam\skyblockitems\enchantsystem\gui\XPCostEditorGUI.class
 dev\agam\skyblockitems\abilities\booleans\NightVisionStat.class
+dev\agam\skyblockitems\commands\AnvilCommand.class
 dev\agam\skyblockitems\enchantsystem\managers\EnchantManager$EnchantConfig.class
 dev\agam\skyblockitems\enchantsystem\gui\StatEditorGUI.class
+dev\agam\skyblockitems\commands\EnchantCommand.class
 dev\agam\skyblockitems\enchantsystem\managers\ChatInputManager.class
 dev\agam\skyblockitems\enchantsystem\managers\EnchantManager$1.class
 dev\agam\skyblockitems\abilities\booleans\UnderwaterStat.class

@@ -56,7 +56,47 @@ commands:
     player-not-found: "<#e74c3c>✖ השחקן <#ffeaa7>{player} <#e74c3c>לא נמצא."
     invalid-level: "<#e74c3c>✖ רמה לא תקינה."
     enchant-not-found: "<#e74c3c>✖ כישוף לא נמצא: <#ffeaa7>{id}"
+  sbi:
+    usage: "<#f39c12>שימוש: <#ffeaa7>{usage}"
+  mmoenchants:
+    prompt-id: "<#f39c12>הזן מזהה כישוף:"
 
+# Editor GUI
+editor:
+  list-title: "&8עריכת כישופים"
+  main-title: "&8עריכת כישוף: {enchant}"
+  xp-cost-title: "&8עריכת עלות XP"
+  target-selector-title: "&8בחירת יעדים"
+  stat-editor-title: "&8עריכת סטטיסטיקות"
+  conflict-selector-title: "&8בחירת התנגשויות"
+  id-label: "<#636e72>מזהה: <#ffeaa7>{id}"
+  max-level-label: "<#636e72>רמה מקסימלית: <#a29bfe>{max}"
+  targets-label: "<#636e72>יעדים: <#74b9ff>{targets}"
+  stats-label: "<#636e72>סטטיסטיקות:"
+  left-click-edit: "<#ffeaa7>▶ לחץ שמאלי לעריכה"
+  shift-right-delete: "<#e74c3c>✖ Shift + ימני למחיקה"
+
+# GUI Elements
+gui:
+  xp-editor:
+    level-label: "<#a29bfe>רמה {level}"
+    current-cost: "<#636e72>עלות נוכחית: <#2ecc71>{cost} XP"
+  target-selector:
+    selected: "<#2ecc71>✔ נבחר"
+    not-selected: "<#e74c3c>✖ לא נבחר"
+    click-toggle: "<#ffeaa7>▶ לחץ להחלפה"
+  stat-editor:
+    description-label: "<#636e72>תיאור:"
+    value-label: "<#636e72>ערך: <#ffeaa7>{value}"
+    status-enabled: "<#2ecc71>✔ מופעל"
+    not-enabled: "<#e74c3c>✖ לא מופעל"
+    click-toggle: "<#ffeaa7>▶ לחץ להחלפה"
+    click-enable: "<#ffeaa7>▶ לחץ להפעלה"
+    middle-click-remove: "<#e74c3c>✖ גלגלת להסרה"
+  conflict-selector:
+    selected: "<#e74c3c>⚠ מתנגש"
+    not-selected: "<#636e72>• לא מתנגש"
+    click-toggle: "<#ffeaa7>▶ לחץ להחלפה"
 # ========================================
 # ממשק הכישוף הראשי (Enchanting Table)
 # ========================================
@@ -66,6 +106,7 @@ enchanting:
   unlocked-alert: "<#2ecc71>✦ <#a29bfe>NEW ENCHANT UNLOCKED! <#dfe6e9>{enchant}"
   upgrade-fail: "<#e74c3c>✖ כבר יש לך את הרמה הזו או גבוהה יותר!"
   too-expensive: "<#e74c3c>✖ יקר מדי! (מקסימום {max} רמות)"
+  too-expensive-lore: "<#e74c3c>✖ יקר מדי! (מקסימום {max} רמות)"
   item-returned: "<#2ecc71>✔ החפץ הוחזר למלאי."
   info-label: "<#ffeaa7>&lמידע על כישופים"
   put-item-label: "<#e74c3c>&lשים פריט לכישוף"
