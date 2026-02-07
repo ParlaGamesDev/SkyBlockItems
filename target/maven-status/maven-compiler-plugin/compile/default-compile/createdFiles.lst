@@ -6,9 +6,7 @@ dev\agam\skyblockitems\enchantsystem\hooks\MMOItemsHook.class
 dev\agam\skyblockitems\enchantsystem\gui\CustomAnvilGUI.class
 dev\agam\skyblockitems\enchantsystem\gui\EnchantEditorGUI.class
 dev\agam\skyblockitems\enchantsystem\managers\EnchantManager.class
-dev\agam\skyblockitems\rarity\ItemRarityCommand.class
 dev\agam\skyblockitems\enchantsystem\gui\EnchantListGUI.class
-dev\agam\skyblockitems\rarity\RarityListener.class
 dev\agam\skyblockitems\enchantsystem\gui\BaseGUI.class
 dev\agam\skyblockitems\enchantsystem\managers\CustomEnchantManager.class
 dev\agam\skyblockitems\enchantsystem\gui\ConflictSelectionGUI.class
@@ -16,18 +14,13 @@ dev\agam\skyblockitems\enchantsystem\gui\EnchantmentGuideGUI$SortOrder.class
 dev\agam\skyblockitems\enchantsystem\gui\LevelSelectionGUI.class
 dev\agam\skyblockitems\stats\DisableAnvilStat.class
 dev\agam\skyblockitems\listeners\InfiniteReservoirListener$1.class
-dev\agam\skyblockitems\rarity\ItemRarityConfigManager$RarityDefinition.class
 dev\agam\skyblockitems\enchantsystem\gui\XPCostEditorGUI.class
-dev\agam\skyblockitems\rarity\ItemRarityConfigManager$CustomRule.class
 dev\agam\skyblockitems\abilities\booleans\NightVisionStat.class
 dev\agam\skyblockitems\enchantsystem\managers\EnchantManager$EnchantConfig.class
-dev\agam\skyblockitems\rarity\ItemRarityConfigManager.class
-dev\agam\skyblockitems\rarity\RarityManager.class
 dev\agam\skyblockitems\enchantsystem\gui\StatEditorGUI.class
 dev\agam\skyblockitems\enchantsystem\managers\ChatInputManager.class
 dev\agam\skyblockitems\enchantsystem\managers\EnchantManager$1.class
 dev\agam\skyblockitems\abilities\booleans\UnderwaterStat.class
-dev\agam\skyblockitems\rarity\RarityUpdateTask.class
 dev\agam\skyblockitems\listeners\InfiniteReservoirListener.class
 dev\agam\skyblockitems\enchantsystem\gui\LevelSelectionGUI$1.class
 dev\agam\skyblockitems\enchantsystem\listeners\GuiListener.class
@@ -39,7 +32,6 @@ dev\agam\skyblockitems\abilities\utility\GrapplingHookAbility$1.class
 dev\agam\skyblockitems\enchantsystem\gui\EnchantingGUI$SortOrder.class
 dev\agam\skyblockitems\enchantsystem\listeners\AuraSkillsListener.class
 dev\agam\skyblockitems\enchantsystem\hooks\AuraSkillsHook.class
-dev\agam\skyblockitems\rarity\RarityCommand.class
 dev\agam\skyblockitems\enchantsystem\CustomEnchant.class
 dev\agam\skyblockitems\enchantsystem\CustomEnchant$EnchantStat.class
 dev\agam\skyblockitems\abilities\utility\GrapplingHookAbility$2.class

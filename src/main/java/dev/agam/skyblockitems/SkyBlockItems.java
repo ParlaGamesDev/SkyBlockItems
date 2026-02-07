@@ -15,7 +15,7 @@ public class SkyBlockItems extends JavaPlugin {
 
     private static SkyBlockItems instance;
     private AbilityManager abilityManager;
-    private dev.agam.skyblockitems.rarity.RarityManager rarityManager;
+
     private dev.agam.skyblockitems.integration.MMOItemsHook mmoItemsStatHook;
     private org.bukkit.configuration.file.FileConfiguration abilitiesConfig;
     private org.bukkit.configuration.file.FileConfiguration messagesConfig;
@@ -38,10 +38,6 @@ public class SkyBlockItems extends JavaPlugin {
 
     public AbilityManager getAbilityManager() {
         return abilityManager;
-    }
-
-    public dev.agam.skyblockitems.rarity.RarityManager getRarityManager() {
-        return rarityManager;
     }
 
     @Override
@@ -78,9 +74,6 @@ public class SkyBlockItems extends JavaPlugin {
             this.abilityManager = new AbilityManager();
             this.abilityManager.registerAbilities();
             getLogger().info("Abilities registered.");
-
-            // Initialize Rarity Manager
-            this.rarityManager = new dev.agam.skyblockitems.rarity.RarityManager(this);
 
             // Initialize Integration Hooks
             // Initialize Integration Hooks
@@ -133,12 +126,6 @@ public class SkyBlockItems extends JavaPlugin {
                 getServer().getPluginManager().registerEvents(
                         new dev.agam.skyblockitems.enchantsystem.listeners.AuraSkillsListener(this), this);
             }
-            // Rarity System Listener
-            getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.rarity.RarityListener(this), this);
-            long checkerTime = getConfig().getLong("checker-time", 100L);
-            new dev.agam.skyblockitems.rarity.RarityUpdateTask(this).runTaskTimer(this, checkerTime, checkerTime);
-
-            getLogger().info("Rarity checker task started (every " + checkerTime + " ticks).");
 
             // Start Passive Tasks
             getLogger().info("Starting passive tasks...");
@@ -150,11 +137,6 @@ public class SkyBlockItems extends JavaPlugin {
             SkyBlockItemsCommand sbiCommand = new SkyBlockItemsCommand(this);
             getCommand("skyblockitems").setExecutor(sbiCommand);
             getCommand("skyblockitems").setTabCompleter(sbiCommand);
-
-            dev.agam.skyblockitems.rarity.ItemRarityCommand irCmd = new dev.agam.skyblockitems.rarity.ItemRarityCommand(
-                    this);
-            getCommand("ir").setExecutor(irCmd);
-            getCommand("ir").setTabCompleter(irCmd);
 
             getLogger().info("Commands registered.");
 
