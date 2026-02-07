@@ -75,10 +75,20 @@ public class SkyBlockItems extends JavaPlugin {
             getLogger().info("Abilities registered.");
 
             // Initialize Integration Hooks
-            getLogger().info("Hooking into MMOItems stats...");
-            this.mmoItemsStatHook = new dev.agam.skyblockitems.integration.MMOItemsHook();
-            this.mmoItemsStatHook.registerStats();
-            getLogger().info("MMOItems stats hooked.");
+            // Initialize Integration Hooks
+            if (Bukkit.getPluginManager().isPluginEnabled("MMOItems")) {
+                try {
+                    getLogger().info("Hooking into MMOItems stats...");
+                    this.mmoItemsStatHook = new dev.agam.skyblockitems.integration.MMOItemsHook();
+                    this.mmoItemsStatHook.registerStats();
+                    getLogger().info("MMOItems stats hooked.");
+                } catch (Throwable e) {
+                    getLogger().severe("Failed to hook into MMOItems stats! Is the version compatible?");
+                    e.printStackTrace();
+                }
+            } else {
+                getLogger().warning("MMOItems not found or not enabled! Stat bonuses will not work.");
+            }
 
             // Enchant System Hooks
             if (Bukkit.getPluginManager().getPlugin("AuraSkills") != null) {

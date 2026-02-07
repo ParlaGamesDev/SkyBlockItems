@@ -87,15 +87,16 @@ custom-abilities:
     name: "כורת עצים"
     trigger: ON_BLOCK_BREAK
     description:
-      - "&7כורת עצים שלמים בבת אחת עד"
-      - "&7מגבלה של &b{damage} &7בלוקים."
+      - "&7בעזרת <#5B9BD5>{mana} &7מאנה, כורת את <#FFD700>{damage} &7הבלוקים הראשונים"
+      - "&7מהעץ, זמן ההמתנה לאחר השימוש הוא <#FF6B6B>{cooldown} &7שניות"
 
   BOOMERANG:
     name: "בומרנג"
     trigger: RIGHT_CLICK
     description:
-      - "&7בעזרת &b{mana} מאנה&7, משליך את הפריט למרחק &b{damage}"
-      - "&7הגורם &c{power} &7נזק וחוזר לידך, זמן המתנה של &c{cooldown} שניות&7."
+      - "&7בעזרת <#5B9BD5>{mana} &7מאנה, משליך את הפריט למרחק <#FFD700>{damage}"
+      - "&7בלוקים וגורם <#FF8C42>{power} &7נזק למי שנפגע בדרך וחוזר לידך"
+      - "&7זמן ההמתנה לאחר השימוש הוא <#FF6B6B>{cooldown} &7שניות"
 
   HAWK_EYE:
     name: "עין הנץ"
@@ -198,29 +199,33 @@ custom-abilities:
     name: "מכת ברק"
     trigger: RIGHT_CLICK
     description:
-      - "&7מזמן מכת ברק אדירה שהורסת"
-      - "&7את כל העץ בבת אחת, ללא מאמץ."
+      - "&7בעזרת <#5B9BD5>{mana} &7מאנה מזמן מכת ברק אדירה שהורסת"
+      - "&7את כל העץ בבת אחת, ללא מאמץ"
+      - "&7זמן ההמתנה לאחר השימוש הוא <#FF6B6B>{cooldown} &7שניות"
 
   CHARCOAL_CONVERTER:
     name: "ממיר פחם"
     trigger: ON_BLOCK_BREAK
     description:
       - "&7הופך כל גזע עץ שאתה חוצב ישירות"
-      - "&7לגוש פחם עץ (Charcoal) באופן אוטומטי."
+      - "&7לפחם עץ באופן אוטומטי, עולה <#5B9BD5>{mana} &7מאנה"
+      - "&7זמן ההמתנה לאחר השימוש הוא <#FF6B6B>{cooldown} &7שניות"
 
   BUTCHERS_BLADE:
     name: "להב הקצבים"
     trigger: ON_KILL
     description:
-      - "&7מגדיל את כמות הבשר שנפלט מחיות"
-      - "&7פי &b{amplifier} &7מהרגיל."
+      - "&7סיכוי של <#FFE300>{damage}% &7להגדיל את כמות הבשר מחיות"
+      - "&7פי &b{amplifier} &7מהרגיל, עולה <#5B9BD5>{mana} &7מאנה"
+      - "&7זמן ההמתנה לאחר השימוש הוא <#FF6B6B>{cooldown} &7שניות"
 
   GOLDEN_LEAF:
     name: "עלה מוזהב"
     trigger: ON_BLOCK_BREAK
     description:
-      - "&7מעניק &a{damage}% &7סיכוי לקבל &6תפוח מוזהב"
-      - "&7בזמן חציבת עלים של עצים."
+      - "&7מעניק <#FFE300>{damage}% &7סיכוי לקבל <#FFE300>תפוח מוזהב"
+      - "&7בזמן חציבת עלים של עצים, עולה <#5B9BD5>{mana} &7מאנה"
+      - "&7זמן ההמתנה לאחר השימוש הוא <#FF6B6B>{cooldown} &7שניות"
 
   # FLIGHT_SKILL removed by user request
 

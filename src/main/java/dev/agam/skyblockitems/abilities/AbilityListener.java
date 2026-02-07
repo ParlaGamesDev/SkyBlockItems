@@ -2,6 +2,7 @@ package dev.agam.skyblockitems.abilities;
 
 import dev.agam.skyblockitems.SkyBlockItems;
 import io.lumine.mythic.lib.api.item.NBTItem;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
@@ -9,7 +10,6 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -22,6 +22,7 @@ import java.util.Map;
 
 /**
  * Main listener for handling ability activations.
+ * Updated to support MMOItems Set Bonuses via PlayerData.
  */
 public class AbilityListener implements Listener {
 
@@ -40,8 +41,6 @@ public class AbilityListener implements Listener {
 
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (item == null || item.getType().isAir())
-            return;
 
         TriggerType trigger;
         if (event.getAction().name().contains("RIGHT_CLICK")) {
@@ -70,9 +69,6 @@ public class AbilityListener implements Listener {
             return;
 
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (item == null || item.getType().isAir())
-            return;
-
         tryActivateAbilities(player, item, TriggerType.ON_HIT, event);
     }
 
@@ -82,25 +78,27 @@ public class AbilityListener implements Listener {
             return;
         Player player = (Player) event.getEntity();
 
+        // Check Armor (Legacy/NBT check)
         for (ItemStack armorPiece : player.getInventory().getArmorContents()) {
             if (armorPiece == null || armorPiece.getType().isAir())
                 continue;
             tryActivateAbilities(player, armorPiece, TriggerType.ON_HIT_TAKEN, event);
         }
 
-        // Also check main hand for retaliation shield/sword effects
+        // Check Main Hand (Legacy/NBT check)
         ItemStack main = player.getInventory().getItemInMainHand();
         if (main != null && !main.getType().isAir()) {
             tryActivateAbilities(player, main, TriggerType.ON_HIT_TAKEN, event);
         }
+
+        // Check Stats (Set Bonuses) - This covers Retaliation from Set Bonuses
+        checkArmorForSetBonus(player, TriggerType.ON_HIT_TAKEN, event);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (item == null || item.getType().isAir())
-            return;
 
         tryActivateAbilities(player, item, TriggerType.ON_BLOCK_BREAK, event);
 
@@ -126,15 +124,11 @@ public class AbilityListener implements Listener {
         Player player = (Player) arrow.getShooter();
 
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (item == null || item.getType().isAir())
-            return;
-
         tryActivateAbilities(player, item, TriggerType.ON_ARROW_HIT, event);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockPlace(org.bukkit.event.block.BlockPlaceEvent event) {
-        // Tag blocks placed by players to prevent Lucky Treasure dupes
         event.getBlock().setMetadata("PLACED_BY_PLAYER",
                 new org.bukkit.metadata.FixedMetadataValue(plugin, true));
     }
@@ -146,9 +140,6 @@ public class AbilityListener implements Listener {
             return;
 
         ItemStack item = killer.getInventory().getItemInMainHand();
-        if (item == null || item.getType().isAir())
-            return;
-
         tryActivateAbilities(killer, item, TriggerType.ON_KILL, event);
     }
 
@@ -158,15 +149,69 @@ public class AbilityListener implements Listener {
             return;
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
+
+        // Item check
         if (item != null && !item.getType().isAir()) {
             tryActivateAbilities(player, item, TriggerType.ON_SNEAK, event);
         }
+
+        // Stat check (Set Bonuses) - for Farmer Aura
+        checkArmorForSetBonus(player, TriggerType.ON_SNEAK, event);
+    }
+
+    // Check Armor for Set Bonuses (Farmer Aura, Retaliation)
+    private void checkArmorForSetBonus(Player player, TriggerType trigger, Event event) {
+        for (Map.Entry<String, SkyBlockAbility> entry : abilityManager.getAbilities().entrySet()) {
+            String abilityId = entry.getKey();
+            SkyBlockAbility ability = entry.getValue();
+
+            if (ability.getDefaultTrigger() != trigger)
+                continue;
+
+            // Only specific abilities are treated as "Set Bonuses" requiring full armor
+            if (!isSetBonusAbility(abilityId))
+                continue;
+
+            String params = getFullSetParams(player, abilityId);
+            if (params != null) {
+                activateAbility(player, ability, params, event);
+            }
+        }
+    }
+
+    private boolean isSetBonusAbility(String abilityId) {
+        String id = abilityId.toUpperCase();
+        return id.startsWith("FARMER_AURA") || id.startsWith("RETALIATION");
+    }
+
+    private String getFullSetParams(Player player, String abilityId) {
+        ItemStack[] armor = player.getInventory().getArmorContents();
+        int chunksFound = 0;
+        String validParams = null;
+        String nbtKey = "SKYBLOCK_" + abilityId.toUpperCase().replace("-", "_");
+
+        for (ItemStack piece : armor) {
+            if (piece == null || piece.getType().isAir())
+                return null; // Must check all slots, if one is empty -> not full set
+
+            NBTItem nbt = NBTItem.get(piece);
+            if (!nbt.hasTag(nbtKey))
+                return null; // Missing tag on one piece -> not full set
+
+            // Capture params from the first valid piece (assuming they are uniform)
+            if (validParams == null) {
+                validParams = nbt.getString(nbtKey);
+            }
+            chunksFound++;
+        }
+
+        return (chunksFound == 4) ? validParams : null;
     }
 
     private void tryActivateAbilities(Player player, ItemStack item, TriggerType trigger, Event event) {
-        NBTItem nbtItem = NBTItem.get(item);
-        if (nbtItem == null || !nbtItem.hasType())
-            return;
+        NBTItem nbtItem = (item != null && !item.getType().isAir()) ? NBTItem.get(item) : null;
+        if (nbtItem != null && !nbtItem.hasType())
+            nbtItem = null;
 
         // WorldGuard Check
         if (!dev.agam.skyblockitems.integration.WorldGuardHook.isAbilitiesEnabled(player, player.getLocation())) {
@@ -177,83 +222,99 @@ public class AbilityListener implements Listener {
             String abilityId = entry.getKey();
             SkyBlockAbility ability = entry.getValue();
 
-            String nbtKey = "SKYBLOCK_" + abilityId.toUpperCase();
-            if (!nbtItem.hasTag(nbtKey))
-                continue;
-
-            String value = nbtItem.getString(nbtKey);
-            if (value == null || value.isEmpty())
-                continue;
-
-            String[] params = value.trim().split("\\s+");
-            double cooldown = 0, mana = 0, damage = 0, range = 0;
-
-            try {
-                if (params.length > 0)
-                    cooldown = Double.parseDouble(params[0]);
-                if (params.length > 1)
-                    mana = Double.parseDouble(params[1]);
-                if (params.length > 2)
-                    damage = Double.parseDouble(params[2]);
-                if (params.length > 3)
-                    range = Double.parseDouble(params[3]);
-            } catch (Exception ignored) {
-            }
-
             if (ability.getDefaultTrigger() != trigger)
                 continue;
 
-            if (CooldownManager.isOnCooldown(player.getUniqueId(), abilityId)) {
-                double remaining = CooldownManager.getRemainingCooldown(player.getUniqueId(), abilityId);
-                String msg = plugin.getConfigManager().getMessage("players.cooldown",
-                        "{ability}", ability.getDisplayName(),
-                        "{remaining}", String.format("%.1f", remaining));
-                dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
+            // SPECIAL FIX: Prevent Set Bonus abilities from activating on individual Armor
+            // pieces
+            // They must ONLY be activated via checkArmorForSetBonus() which enforces the
+            // full set
+            if (isSetBonusAbility(abilityId) && item != null && isArmor(item.getType())) {
                 continue;
             }
 
-            // The PvP/NPC check is now handled globally in MMOItemsAbilityListener
-            // via MetadataDamageEvent to ensure it works for all abilities and blocks
-            // damage/knockback.
+            String params = null;
 
-            if (mana > 0) {
-                try {
-                    dev.aurelium.auraskills.api.AuraSkillsApi auraApi = dev.aurelium.auraskills.api.AuraSkillsApi.get();
-                    if (auraApi != null) {
-                        dev.aurelium.auraskills.api.user.SkillsUser user = auraApi.getUser(player.getUniqueId());
-                        if (user.getMana() < mana) {
-                            String msg = plugin.getConfigManager().getMessage("players.no-mana",
-                                    "{current}", String.valueOf((int) user.getMana()),
-                                    "{required}", String.valueOf((int) mana));
-                            dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
-                            continue;
-                        }
-                        user.setMana(user.getMana() - mana);
-                    }
-                } catch (NoClassDefFoundError | Exception ignored) {
+            // 1. Check Item NBT
+            if (nbtItem != null) {
+                String nbtKey = "SKYBLOCK_" + abilityId.toUpperCase().replace("-", "_");
+                if (nbtItem.hasTag(nbtKey)) {
+                    params = nbtItem.getString(nbtKey);
                 }
             }
 
-            if (ability.activate(player, event, cooldown, mana, damage, range)) {
-                if (cooldown > 0) {
-                    CooldownManager.setCooldown(player.getUniqueId(), abilityId, cooldown);
-                }
+            if (params != null && !params.isEmpty()) {
+                activateAbility(player, ability, params, event);
             }
         }
     }
 
-    /**
-     * Handle fall damage negation (e.g. for SkySmash)
-     */
-    /**
-     * Handle fall damage negation
-     */
+    private boolean isArmor(org.bukkit.Material mat) {
+        String name = mat.name();
+        return name.endsWith("_HELMET") || name.endsWith("_CHESTPLATE") || name.endsWith("_LEGGINGS")
+                || name.endsWith("_BOOTS");
+    }
+
+    private void activateAbility(Player player, SkyBlockAbility ability, String paramsStr, Event event) {
+        String[] params = paramsStr.trim().split("\\s+");
+
+        // Start with defaults
+        double cooldown = ability.getDefaultCooldown();
+        double mana = ability.getDefaultManaCost();
+        double damage = ability.getDefaultDamage();
+        double range = ability.getDefaultRange();
+
+        try {
+            if (params.length > 0)
+                cooldown = Double.parseDouble(params[0]);
+            if (params.length > 1)
+                mana = Double.parseDouble(params[1]);
+            if (params.length > 2)
+                damage = Double.parseDouble(params[2]);
+            if (params.length > 3)
+                range = Double.parseDouble(params[3]);
+        } catch (Exception ignored) {
+        }
+
+        if (CooldownManager.isOnCooldown(player.getUniqueId(), ability.getId())) {
+            double remaining = CooldownManager.getRemainingCooldown(player.getUniqueId(), ability.getId());
+            String msg = plugin.getConfigManager().getMessage("players.cooldown",
+                    "{ability}", ability.getDisplayName(),
+                    "{remaining}", String.format("%.1f", remaining));
+            dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
+            return;
+        }
+
+        if (mana > 0) {
+            try {
+                dev.aurelium.auraskills.api.AuraSkillsApi auraApi = dev.aurelium.auraskills.api.AuraSkillsApi.get();
+                if (auraApi != null) {
+                    dev.aurelium.auraskills.api.user.SkillsUser user = auraApi.getUser(player.getUniqueId());
+                    if (user.getMana() < mana) {
+                        String msg = plugin.getConfigManager().getMessage("players.not-enough-mana",
+                                "{max}", String.valueOf((int) user.getMana()),
+                                "{need}", String.valueOf((int) mana));
+                        dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
+                        return;
+                    }
+                    user.setMana(user.getMana() - mana);
+                }
+            } catch (NoClassDefFoundError | Exception ignored) {
+            }
+        }
+
+        if (ability.activate(player, event, cooldown, mana, damage, range)) {
+            if (cooldown > 0) {
+                CooldownManager.setCooldown(player.getUniqueId(), ability.getId(), cooldown);
+            }
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onFall(EntityDamageEvent event) {
         if (event.getCause() != EntityDamageEvent.DamageCause.FALL)
             return;
 
-        // 1. Handle Player Fall Damage (SkySmash)
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
             if (dev.agam.skyblockitems.abilities.combat.SkySmashAbility.isFalling(player.getUniqueId())) {
@@ -261,7 +322,6 @@ public class AbilityListener implements Listener {
             }
         }
 
-        // 2. Handle Pet Fall Damage (Dog Whistle teleportation)
         if (event.getEntity().hasMetadata("NEGATE_FALL_DAMAGE")) {
             event.setCancelled(true);
             event.getEntity().removeMetadata("NEGATE_FALL_DAMAGE", plugin);
