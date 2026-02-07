@@ -10,3 +10,14 @@ disable-abilities-on-npcs: true
 # --- הגדרות מתקדמות ---
 # ניתוב הודעות גלובלי (CHAT או ACTION_BAR)
 message-routing: CHAT
+
+# --- ItemRarity Settings ---
+# Time in ticks between checks (if needed)
+checker-time: 20
+# Enable debug mode for rarity allocation
+debug-mode: false
+# Lore format for rarity display
+lore-format:
+  - "{lore}"
+  - ""
+  - "{rarity-prefix}"

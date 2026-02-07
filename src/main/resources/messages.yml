@@ -268,3 +268,12 @@ players:
   cleanse-fail: "<#636e72>אין אפקטים שליליים להסיר."
   grappling-hook-cooldown: "<#f39c12>⚠ המתינו {remaining} שניות לפני שימוש נוסף."
 
+# ========================================
+# מערכת נדירויות (Rarity System)
+# ========================================
+rarities:
+  COMMON: "&fCOMMON"
+  UNCOMMON: "&aUNCOMMON"
+  RARE: "&9RARE"
+  EPIC: "&5EPIC"
+  LEGENDARY: "&6LEGENDARY"

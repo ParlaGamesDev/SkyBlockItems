@@ -9,4 +9,8 @@ commands:
   skyblockitems:
     description: Main command for SkyBlockItems
     aliases: [sbi, se, enchants, mmoe, skyblockenchants, mmoenchants]
-    usage: /<command> [args]
+  ir:
+    description: ItemRarity main command
+    usage: /ir <set|test|reload>
+    aliases: [itemrarity]
+    permission: ir.admin
