@@ -83,6 +83,16 @@ public class TargetSelectorGUI implements BaseGUI {
                 plugin.getConfig().getConfigurationSection("gui.items.back"), Material.ARROW));
         inventory.setItem(size - 5, ColorUtils.getItemFromConfig(
                 plugin.getConfig().getConfigurationSection("gui.items.close"), Material.EMERALD));
+
+        // Fill remaining empty slots with configured glass pane
+        Material fillerMat = Material.getMaterial(
+                plugin.getConfig().getString("gui.target-selector.filler-material", "YELLOW_STAINED_GLASS_PANE"));
+        ItemStack filler = ColorUtils.createFillerItem(fillerMat);
+        for (int i = 0; i < inventory.getSize(); i++) {
+            if (inventory.getItem(i) == null || inventory.getItem(i).getType() == Material.AIR) {
+                inventory.setItem(i, filler);
+            }
+        }
     }
 
     private Material getTargetMaterial(String target) {

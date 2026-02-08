@@ -100,6 +100,16 @@ public class LevelSelectionGUI implements BaseGUI {
         backMeta.setDisplayName(plugin.getConfigManager().getMessage("guide.back"));
         backButton.setItemMeta(backMeta);
         inventory.setItem(plugin.getConfig().getInt("gui.level-select.back-slot", 49), backButton);
+
+        // Fill remaining empty slots with configured glass pane
+        Material fillerMat = Material.getMaterial(
+                plugin.getConfig().getString("gui.level-select.filler-material", "GRAY_STAINED_GLASS_PANE"));
+        ItemStack filler = ColorUtils.createFillerItem(fillerMat);
+        for (int i = 0; i < inventory.getSize(); i++) {
+            if (inventory.getItem(i) == null || inventory.getItem(i).getType() == Material.AIR) {
+                inventory.setItem(i, filler);
+            }
+        }
     }
 
     private ItemStack createLevelIcon(int level, LevelConfig levelConfig, int currentLevel) {

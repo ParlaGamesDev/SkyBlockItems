@@ -71,6 +71,20 @@ public class CustomAnvilGUI implements BaseGUI {
 
         // Initial indicators
         updateIndicators(false);
+
+        // Fill remaining empty slots with configured glass pane
+        Material fillerMat = Material
+                .getMaterial(plugin.getConfig().getString("gui.anvil.filler-material", "GRAY_STAINED_GLASS_PANE"));
+        ItemStack filler = ColorUtils.createFillerItem(fillerMat);
+        for (int i = 0; i < inventory.getSize(); i++) {
+            // Don't fill the input slots, even if they are null
+            if (i == ITEM_1_SLOT || i == ITEM_2_SLOT)
+                continue;
+
+            if (inventory.getItem(i) == null || inventory.getItem(i).getType() == Material.AIR) {
+                inventory.setItem(i, filler);
+            }
+        }
     }
 
     private void updateIndicators(boolean valid) {

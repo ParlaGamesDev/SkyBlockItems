@@ -104,4 +104,17 @@ public class ColorUtils {
         }
         return item;
     }
+
+    /**
+     * Creates a decorative filler item (usually a glass pane) with no name.
+     */
+    public static ItemStack createFillerItem(Material material) {
+        ItemStack item = new ItemStack(material != null ? material : Material.GRAY_STAINED_GLASS_PANE);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(" ");
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
 }

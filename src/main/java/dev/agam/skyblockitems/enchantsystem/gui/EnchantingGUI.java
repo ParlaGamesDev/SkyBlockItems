@@ -231,6 +231,16 @@ public class EnchantingGUI implements BaseGUI {
         // Enchantment Guide Button (Slot 49)
         inv.setItem(49, ColorUtils.getItemFromConfig(
                 plugin.getConfig().getConfigurationSection("gui.items.guide-open"), Material.BOOK));
+
+        // Fill remaining empty slots with configured glass pane
+        Material fillerMat = Material
+                .getMaterial(plugin.getConfig().getString("gui.main.filler-material", "PURPLE_STAINED_GLASS_PANE"));
+        ItemStack filler = ColorUtils.createFillerItem(fillerMat);
+        for (int i = 0; i < inv.getSize(); i++) {
+            if (inv.getItem(i) == null || inv.getItem(i).getType() == Material.AIR) {
+                inv.setItem(i, filler);
+            }
+        }
     }
 
     private void updateEnchantments() {

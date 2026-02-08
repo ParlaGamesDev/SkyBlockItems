@@ -174,6 +174,16 @@ public class EnchantmentGuideGUI implements BaseGUI {
             sortItem.setItemMeta(sortMeta);
         }
         inventory.setItem(51, sortItem);
+
+        // Fill remaining empty slots with configured glass pane
+        Material fillerMat = Material.getMaterial(
+                plugin.getConfig().getString("gui.guide.filler-material", "LIGHT_BLUE_STAINED_GLASS_PANE"));
+        ItemStack filler = ColorUtils.createFillerItem(fillerMat);
+        for (int i = 0; i < inventory.getSize(); i++) {
+            if (inventory.getItem(i) == null || inventory.getItem(i).getType() == Material.AIR) {
+                inventory.setItem(i, filler);
+            }
+        }
     }
 
     private ItemStack createGuideIcon(EnchantConfig enchant) {

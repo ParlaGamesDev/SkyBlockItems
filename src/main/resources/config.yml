@@ -54,6 +54,7 @@ gui:
     title: "<#aa55ff>&lשולחן כישופים"
     size: 54
     item-slot: 4
+    filler-material: PURPLE_STAINED_GLASS_PANE
 
   # ממשק בחירת רמה (Level Selection)
   level-select:
@@ -61,33 +62,58 @@ gui:
     size: 54
     back-slot: 49
     back-material: BARRIER
+    filler-material: GRAY_STAINED_GLASS_PANE
 
-  # ממשק רשימת כישופים (MMOEnchants List)
+  # ממשק רשימת כישופים (Enchants List)
   list:
-    title: "<#aa55ff>&lMMOEnchants - רשימה"
+    title: "<#aa55ff>&lרשימת כישופים"
     size: 54
+    filler-material: PURPLE_STAINED_GLASS_PANE
 
   # ממשק עורך כישוף (Enchant Editor)
   editor:
     title: "<#aa55ff>עורך: <#ffffff>{enchant}"
     size: 45
+    filler-material: PURPLE_STAINED_GLASS_PANE
 
   # ממשק עריכת סטאטים (Stat Editor)
   stat-editor:
     title: "<#d455ff>&lעריכת נתונים (Stats)"
     size: 54
+    filler-material: MAGENTA_STAINED_GLASS_PANE
 
   # ממשק עריכת עלויות XP
   xp-editor:
     title: "<#55ff55>&lעריכת עלויות נסיון"
     size: 27
+    filler-material: LIME_STAINED_GLASS_PANE
 
   # ממשק בחירת יעדים (Target Selector)
   target-selector:
     title: "<#ffff55>&lבחירת יעדים"
     size: 36
+    filler-material: YELLOW_STAINED_GLASS_PANE
+
+  # ממשק בחירת התנגשויות (Conflict Selector)
+  conflict-selector:
+    title: "&8בחירת התנגשויות"
+    size: 54
+    filler-material: RED_STAINED_GLASS_PANE
+
+  # ממשק מדריך כישופים (Enchantment Guide)
+  guide:
+    title: "&8מדריך כישופים"
+    size: 54
+    filler-material: LIGHT_BLUE_STAINED_GLASS_PANE
+
+  # ממשק סדן (Custom Anvil)
+  anvil:
+    title: "&8⚒ Anvil"
+    size: 54
+    filler-material: GRAY_STAINED_GLASS_PANE
 
   # הגדרות פריטי GUI (Button Customization)
+  # הערה: ניתן להוסיף 'custom-model-data: <מספר>' לכל פריט כאן כדי להגדיר לו מודל מותאם אישית.
   items:
     back:
       material: BARRIER

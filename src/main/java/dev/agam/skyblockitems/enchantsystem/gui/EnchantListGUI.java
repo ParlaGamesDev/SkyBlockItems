@@ -75,6 +75,16 @@ public class EnchantListGUI implements BaseGUI {
         // Create new button
         inventory.setItem(size - 5, ColorUtils.getItemFromConfig(
                 plugin.getConfig().getConfigurationSection("gui.items.create-new"), Material.EMERALD));
+
+        // Fill remaining empty slots with configured glass pane
+        Material fillerMat = Material
+                .getMaterial(plugin.getConfig().getString("gui.list.filler-material", "PURPLE_STAINED_GLASS_PANE"));
+        ItemStack filler = ColorUtils.createFillerItem(fillerMat);
+        for (int i = 0; i < inventory.getSize(); i++) {
+            if (inventory.getItem(i) == null || inventory.getItem(i).getType() == Material.AIR) {
+                inventory.setItem(i, filler);
+            }
+        }
     }
 
     private ItemStack createEnchantIcon(CustomEnchant enchant) {
