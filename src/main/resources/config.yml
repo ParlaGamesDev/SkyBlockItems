@@ -1,4 +1,19 @@
-# קובץ קונפיגורציה כללי - SkyBlockItems
+# ======================================================
+#
+#    ███████╗██████╗ ███████╗
+#    ██╔════╝██╔══██╗██╔════╝
+#    ███████╗██████╔╝█████╗  
+#    ╚════██║██╔══██╗██╔══╝  
+#    ███████║██████╔╝███████╗
+#    ╚══════╝╚═════╝ ╚══════╝  programmed by Agam!
+#
+# SkyBlockItems - הקונפיגורציה המרכזית
+# כאן תוכלו להגדיר את כל ההגדרות הכלליות של הפלאגין.
+# ======================================================
+
+# ========================================
+# הגדרות כלליות (General Settings)
+# ========================================
 
 # --- הגדרות קרב ---
 # אם זה true, אביליטיז לא ישפיעו על שחקנים אחרים
@@ -7,6 +22,212 @@ disable-abilities-on-players: true
 # אם זה true, אביליטיז לא ישפיעו על NPCs
 disable-abilities-on-npcs: true
 
-# --- הגדרות מתקדמות ---
 # ניתוב הודעות גלובלי (CHAT או ACTION_BAR)
 message-routing: CHAT
+
+# רשימה שחורה של בלוקים/חפצים שלא ניתן לכשף
+# ניתן להוסיף חפצים דרך הפקודה /sbi blacklist add תוך כדי החזקת החפץ
+blacklist: []
+
+# ========================================
+# הגדרות מערכת (System Settings)
+# ========================================
+anvil:
+  max-repair-cost: 40
+  limit-enabled: true
+  bypass-limits-on-op: true
+  too-expensive-message: "&cיקר מדי!"
+  search-limit: 25
+
+enchanting:
+  max-cost: 50
+  limit-enabled: true
+  bypass-limits-on-op: true
+
+# ========================================
+# הגדרות GUI - ממשק המשתמש (GUI Settings)
+# ========================================
+
+gui:
+  # ממשק הכישוף הראשי (Enchanting Table)
+  main:
+    title: "<#aa55ff>&lשולחן כישופים"
+    size: 54
+    item-slot: 4
+
+  # ממשק בחירת רמה (Level Selection)
+  level-select:
+    title: "&8בחירת רמה: {enchant}"
+    size: 54
+    back-slot: 49
+    back-material: BARRIER
+
+  # ממשק רשימת כישופים (MMOEnchants List)
+  list:
+    title: "<#aa55ff>&lMMOEnchants - רשימה"
+    size: 54
+
+  # ממשק עורך כישוף (Enchant Editor)
+  editor:
+    title: "<#aa55ff>עורך: <#ffffff>{enchant}"
+    size: 45
+
+  # ממשק עריכת סטאטים (Stat Editor)
+  stat-editor:
+    title: "<#d455ff>&lעריכת נתונים (Stats)"
+    size: 54
+
+  # ממשק עריכת עלויות XP
+  xp-editor:
+    title: "<#55ff55>&lעריכת עלויות נסיון"
+    size: 27
+
+  # ממשק בחירת יעדים (Target Selector)
+  target-selector:
+    title: "<#ffff55>&lבחירת יעדים"
+    size: 36
+
+  # הגדרות פריטי GUI (Button Customization)
+  items:
+    back:
+      material: BARRIER
+      name: "&c&lחזרה"
+      lore:
+        - "&7לחץ כדי לחזור לתפריט הקודם"
+    next-page:
+      material: ARROW
+      name: "&a&lעמוד הבא"
+    prev-page:
+      material: ARROW
+      name: "&a&lעמוד הקודם"
+    close:
+      material: EMERALD
+      name: "&c&lסגור"
+    save:
+      material: EMERALD_BLOCK
+      name: "&a&lשמור וסגור"
+    sort:
+      material: HOPPER
+      name: "&e&lמיון"
+    search:
+      material: OAK_SIGN
+      name: "&b&lחיפוש"
+    create-new:
+      material: EMERALD
+      name: "&a&lצור כישוף חדש"
+      lore:
+        - "&7לחץ כדי ליצור כישוף חדש"
+    guide-open:
+      material: BOOK
+      name: "&b&lמדריך כישופים"
+      lore:
+        - "&7לחץ כדי לפתוח את המדריך"
+    enchant-table-decorative:
+      material: ENCHANTING_TABLE
+      name: "&d&lשולחן כישופים"
+    anvil-result-placeholder:
+      material: GRAY_DYE
+      name: "&7תוצאה"
+    anvil-indicator-valid:
+      material: LIME_STAINED_GLASS_PANE
+      name: " "
+    anvil-indicator-invalid:
+      material: RED_STAINED_GLASS_PANE
+      name: " "
+    anvil-combine-valid:
+      material: ANVIL
+      name: "&a&lשלב חפצים"
+      lore:
+        - "&7עלות: &6{cost} רמות אקספי"
+        - ""
+        - "&eלחץ כדי לשלב!"
+    anvil-combine-invalid:
+      material: ANVIL
+      name: "&c&lלא ניתן לשלב"
+    guide-search:
+      material: OAK_SIGN
+      name: "&b&lחיפוש"
+      lore:
+        - "&7לחץ כדי לחפש"
+        - "&7קליק ימני לביטול חיפוש"
+    editor-name:
+      material: NAME_TAG
+      name: "&e&lשם"
+      lore:
+        - "&7נוכחי: &f{value}"
+        - ""
+        - "&eלחץ כדי לערוך"
+    editor-description:
+      material: WRITABLE_BOOK
+      name: "&e&lתיאור"
+      lore:
+        - "&7נוכחי: &f{value}"
+        - ""
+        - "&eלחץ כדי לערוך"
+    editor-icon:
+      material: BOOK
+      name: "&e&lאייקון"
+      lore:
+        - "&7נוכחי: &f{value}"
+        - ""
+        - "&eלחץ כדי להחליף (דרך הצ'אט)"
+    editor-targets:
+      material: IRON_SWORD
+      name: "&e&lמטרות"
+      lore:
+        - "&7נוכחי: &f{value}"
+        - ""
+        - "&eלחץ כדי לערוך"
+    editor-max-level:
+      material: EXPERIENCE_BOTTLE
+      name: "&e&lרמה מקסימלית"
+      lore:
+        - "&7נוכחי: &f{value}"
+        - ""
+        - "&eלחץ כדי לערוך"
+    editor-xp-costs:
+      material: ENCHANTED_BOOK
+      name: "&e&lעלויות XP"
+      lore:
+        - "&7לחץ כדי לערוך עלויות"
+    editor-conflicts:
+      material: BARRIER
+      name: "&e&lקונפליקטים"
+      lore:
+        - "&7נוכחי: &f{value}"
+        - ""
+        - "&eלחץ כדי לערוך"
+    editor-required-level:
+      material: BOOKSHELF
+      name: "&e&lרמת כישוף נדרשת (AuraSkills)"
+      lore:
+        - "&7נוכחי: &f{value}"
+        - ""
+        - "&eלחץ כדי לערוך"
+    editor-stats:
+      material: DIAMOND_SWORD
+      name: "&e&lנתוני כישוף"
+      lore:
+        - "&7לחץ כדי לערוך נתונים"
+
+  target-icons:
+    SWORD: IRON_SWORD
+    BOW: BOW
+    CROSSBOW: CROSSBOW
+    TRIDENT: TRIDENT
+    MACE: MACE
+    ARMOR: IRON_CHESTPLATE
+    HELMET: IRON_HELMET
+    CHESTPLATE: IRON_CHESTPLATE
+    LEGGINGS: IRON_LEGGINGS
+    BOOTS: IRON_BOOTS
+    TOOL: IRON_PICKAXE
+    AXE: IRON_AXE
+    FISHING_ROD: FISHING_ROD
+    GLOBAL: NETHER_STAR
+
+  # סאונדים (Sound Effects)
+  sounds:
+    click: UI_BUTTON_CLICK
+    success: ENTITY_PLAYER_LEVELUP
+    error: ENTITY_VILLAGER_NO
