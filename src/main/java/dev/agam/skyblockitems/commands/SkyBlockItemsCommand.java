@@ -174,7 +174,7 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
             }
             case "remove" -> {
                 if (item == null || item.getType().isAir()) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("errors.must-hold-item"));
+                    player.sendMessage(plugin.getConfigManager().getMessage("general.must-hold-item"));
                     return;
                 }
                 plugin.getConfigManager().removeFromBlacklist(item.getType().name());

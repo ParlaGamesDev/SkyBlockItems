@@ -1,185 +1,252 @@
 package dev.agam.skyblockitems;
 
 import dev.agam.skyblockitems.abilities.AbilityManager;
-import dev.agam.skyblockitems.commands.SkyBlockItemsCommand;
-import dev.agam.skyblockitems.enchantsystem.hooks.AuraSkillsHook;
-import dev.agam.skyblockitems.enchantsystem.hooks.MMOItemsHook;
-import dev.agam.skyblockitems.enchantsystem.managers.ChatInputManager;
 import dev.agam.skyblockitems.enchantsystem.config.ConfigManager;
+import dev.agam.skyblockitems.enchantsystem.managers.ChatInputManager;
 import dev.agam.skyblockitems.enchantsystem.managers.CustomEnchantManager;
 import dev.agam.skyblockitems.enchantsystem.managers.EnchantManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+/**
+ * Main class for SkyBlockItems.
+ * Refactored for maximum stability:
+ * - No external API imports in the main class (except Bukkit).
+ * - All hooks are accessed via reflection-safe wrappers.
+ * - Granular logging for every step.
+ */
 public class SkyBlockItems extends JavaPlugin {
+
+    static {
+        System.out.println("[SkyBlockItems] [JVM] Class loaded successfully.");
+    }
 
     private static SkyBlockItems instance;
     private AbilityManager abilityManager;
-
-    private dev.agam.skyblockitems.integration.MMOItemsHook mmoItemsStatHook;
-    private org.bukkit.configuration.file.FileConfiguration abilitiesConfig;
-    private org.bukkit.configuration.file.FileConfiguration messagesConfig;
-
-    // Enchantment System Managers
+    private dev.agam.skyblockitems.rarity.RarityManager rarityManager;
     private ConfigManager enchantConfigManager;
     private EnchantManager enchantManager;
     private CustomEnchantManager customEnchantManager;
     private ChatInputManager chatInputManager;
 
-    // Enchantment System Hooks
-    private AuraSkillsHook auraSkillsHook;
-    private MMOItemsHook mmoEnchantHook;
+    private Object mmoItemsStatHook;
+    private Object auraSkillsHook;
+    private Object mmoEnchantHook;
+
     private boolean auraSkillsEnabled = false;
     private boolean mmoItemsEnabled = false;
+    private boolean mythicLibEnabled = false;
+
+    private org.bukkit.configuration.file.FileConfiguration abilitiesConfig;
 
     public static SkyBlockItems getInstance() {
         return instance;
     }
 
-    public AbilityManager getAbilityManager() {
-        return abilityManager;
-    }
-
     @Override
     public void onLoad() {
-        // Register WorldGuard flags (must be done in onLoad)
+        System.out.println("[SkyBlockItems] [BOOT] onLoad triggered.");
         try {
             if (getServer().getPluginManager().getPlugin("WorldGuard") != null) {
+                System.out.println("[SkyBlockItems] [BOOT] WorldGuard detected, preparing flags...");
                 dev.agam.skyblockitems.integration.WorldGuardHook.registerFlags();
             }
-        } catch (NoClassDefFoundError ignored) {
+        } catch (Throwable e) {
+            System.err.println("[SkyBlockItems] [ERROR] onLoad hook error: " + e.getMessage());
         }
     }
 
     @Override
     public void onEnable() {
         instance = this;
-        getLogger().info("Starting SkyBlockItems initialization...");
+        System.out.println("[SkyBlockItems] [BOOT] onEnable starting...");
 
         try {
-            // Initialize Enchantment System Managers
-            getLogger().info("Initializing managers...");
+            // 1. Configs
+            System.out.println("[SkyBlockItems] [BOOT] Step 1/7: Loading Configurations...");
             this.enchantConfigManager = new ConfigManager(this);
+            loadCustomConfigs();
+            System.out.println("[SkyBlockItems] [BOOT] Step 1/7 complete.");
+
+            // 2. Core Managers
+            System.out.println("[SkyBlockItems] [BOOT] Step 2/7: Initializing Managers...");
             this.chatInputManager = new ChatInputManager();
             this.enchantManager = new EnchantManager(this);
             this.customEnchantManager = new CustomEnchantManager(this);
-            getLogger().info("Managers initialized.");
-
-            getLogger().info("Loading configs...");
-            loadCustomConfigs();
-            getLogger().info("Configs loaded.");
-
-            // Initialize Ability Manager
-            getLogger().info("Registering abilities...");
             this.abilityManager = new AbilityManager();
             this.abilityManager.registerAbilities();
-            getLogger().info("Abilities registered.");
+            System.out.println("[SkyBlockItems] [BOOT] Step 2/7 complete.");
 
-            // Initialize Integration Hooks
-            // Initialize Integration Hooks
-            if (Bukkit.getPluginManager().isPluginEnabled("MMOItems")) {
-                try {
-                    getLogger().info("Hooking into MMOItems stats...");
-                    this.mmoItemsStatHook = new dev.agam.skyblockitems.integration.MMOItemsHook();
-                    this.mmoItemsStatHook.registerStats();
-                    getLogger().info("MMOItems stats hooked.");
-                } catch (Throwable e) {
-                    getLogger().severe("Failed to hook into MMOItems stats! Is the version compatible?");
-                    e.printStackTrace();
-                }
-            } else {
-                getLogger().warning("MMOItems not found or not enabled! Stat bonuses will not work.");
-            }
+            // 3. Plugin Integration
+            System.out.println("[SkyBlockItems] [BOOT] Step 3/7: Hooking External APIs...");
+            this.mythicLibEnabled = Bukkit.getPluginManager().isPluginEnabled("MythicLib");
+            setupHooks();
+            System.out.println("[SkyBlockItems] [BOOT] Step 3/7 complete.");
 
-            // Enchant System Hooks
-            if (Bukkit.getPluginManager().getPlugin("AuraSkills") != null) {
-                getLogger().info("Hooking into AuraSkills...");
-                this.auraSkillsHook = new AuraSkillsHook();
-                this.auraSkillsEnabled = true;
-                getLogger().info("Hooked into AuraSkills!");
-            }
+            // 4. Listeners
+            System.out.println("[SkyBlockItems] [BOOT] Step 4/7: Registering Listeners...");
+            registerAllListeners();
+            System.out.println("[SkyBlockItems] [BOOT] Step 4/7 complete.");
 
-            if (Bukkit.getPluginManager().getPlugin("MMOItems") != null) {
-                getLogger().info("Hooking into MMOItems (Enchant System)...");
-                this.mmoEnchantHook = new MMOItemsHook(this);
+            // 5. Rarity System
+            System.out.println("[SkyBlockItems] [BOOT] Step 5/7: Starting Rarity System...");
+            startRaritySystem();
+            System.out.println("[SkyBlockItems] [BOOT] Step 5/7 complete.");
+
+            // 6. Commands
+            System.out.println("[SkyBlockItems] [BOOT] Step 6/7: Registering Commands...");
+            registerAllCommands();
+            System.out.println("[SkyBlockItems] [BOOT] Step 6/7 complete.");
+
+            // 7. Background Tasks
+            System.out.println("[SkyBlockItems] [BOOT] Step 7/7: Starting Passive Tasks...");
+            new dev.agam.skyblockitems.tasks.PassiveAbilityTask().runTaskTimer(this, 20L, 20L);
+            new dev.agam.skyblockitems.tasks.CooldownLoreTask().runTaskTimer(this, 10L, 10L);
+            System.out.println("[SkyBlockItems] [BOOT] Step 7/7 complete.");
+
+            getLogger().info("SkyBlockItems v" + getDescription().getVersion() + " enriched and enabled!");
+
+        } catch (Throwable e) {
+            System.err.println("[SkyBlockItems] [CRITICAL] Enable sequence failed!");
+            e.printStackTrace();
+        }
+    }
+
+    private void setupHooks() {
+        // MMOItems Stats
+        if (Bukkit.getPluginManager().isPluginEnabled("MMOItems")) {
+            try {
+                dev.agam.skyblockitems.integration.MMOItemsHook hook = new dev.agam.skyblockitems.integration.MMOItemsHook();
+                hook.registerStats();
+                this.mmoItemsStatHook = hook;
                 this.mmoItemsEnabled = true;
-                getLogger().info("Hooked into MMOItems (Enchant System)!");
+
+                // MMOItems Enchantment Hook
+                this.mmoEnchantHook = new dev.agam.skyblockitems.enchantsystem.hooks.MMOItemsHook(this);
+            } catch (Throwable e) {
+                System.err.println("[SkyBlockItems] [ERROR] MMOItems integration failed: " + e.getMessage());
             }
+        }
 
-            // Register Listeners
-            getLogger().info("Registering listeners...");
-            getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.abilities.AbilityListener(), this);
-            getServer().getPluginManager().registerEvents(
-                    new dev.agam.skyblockitems.integration.MMOItemsAbilityListener(),
-                    this);
-            getServer().getPluginManager().registerEvents(
-                    new dev.agam.skyblockitems.listeners.InfiniteReservoirListener(),
-                    this);
+        // AuraSkills
+        if (Bukkit.getPluginManager().isPluginEnabled("AuraSkills")) {
+            try {
+                this.auraSkillsHook = new dev.agam.skyblockitems.enchantsystem.hooks.AuraSkillsHook();
+                this.auraSkillsEnabled = true;
+            } catch (Throwable e) {
+                System.err.println("[SkyBlockItems] [ERROR] AuraSkills integration failed: " + e.getMessage());
+            }
+        }
+    }
 
-            // Enchantment System Listeners
-            getServer().getPluginManager().registerEvents(
-                    new dev.agam.skyblockitems.enchantsystem.listeners.GuiListener(this),
-                    this);
-            getServer().getPluginManager().registerEvents(
-                    new dev.agam.skyblockitems.enchantsystem.listeners.CustomEnchantListener(this), this);
-            if (auraSkillsEnabled) {
+    private void registerAllListeners() {
+        if (mythicLibEnabled) {
+            try {
+                getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.abilities.AbilityListener(),
+                        this);
+            } catch (Throwable e) {
+                System.err.println("[SkyBlockItems] [ERROR] Failed to register AbilityListener: " + e.getMessage());
+            }
+        } else {
+            System.err.println("[SkyBlockItems] [WARNING] MythicLib not found! Core abilities will be disabled.");
+        }
+
+        if (mmoItemsEnabled) {
+            try {
+                getServer().getPluginManager().registerEvents(
+                        new dev.agam.skyblockitems.integration.MMOItemsAbilityListener(),
+                        this);
+                getServer().getPluginManager().registerEvents(
+                        new dev.agam.skyblockitems.integration.AbilityLoreListener(),
+                        this);
+            } catch (Throwable e) {
+                System.err.println("[SkyBlockItems] [ERROR] Failed to register MMOItems listeners: " + e.getMessage());
+            }
+        }
+
+        if (mythicLibEnabled) {
+            try {
+                getServer().getPluginManager().registerEvents(
+                        new dev.agam.skyblockitems.listeners.InfiniteReservoirListener(),
+                        this);
+            } catch (Throwable e) {
+                System.err.println("[SkyBlockItems] [ERROR] Failed to register MythicLib listeners: " + e.getMessage());
+            }
+        }
+
+        getServer().getPluginManager()
+                .registerEvents(new dev.agam.skyblockitems.enchantsystem.listeners.GuiListener(this), this);
+        getServer().getPluginManager()
+                .registerEvents(new dev.agam.skyblockitems.enchantsystem.listeners.CustomEnchantListener(this), this);
+
+        if (auraSkillsEnabled) {
+            try {
                 getServer().getPluginManager().registerEvents(
                         new dev.agam.skyblockitems.enchantsystem.listeners.AuraSkillsListener(this), this);
+            } catch (Throwable ignored) {
             }
-
-            // Start Passive Tasks
-            getLogger().info("Starting passive tasks...");
-            new dev.agam.skyblockitems.tasks.PassiveAbilityTask().runTaskTimer(this, 20L, 20L);
-            getLogger().info("Passive tasks started.");
-
-            // Register Commands
-            getLogger().info("Registering commands...");
-            SkyBlockItemsCommand sbiCommand = new SkyBlockItemsCommand(this);
-            getCommand("sbi").setExecutor(sbiCommand);
-            getCommand("sbi").setTabCompleter(sbiCommand);
-
-            // /enchant command
-            getCommand("enchant").setExecutor(new dev.agam.skyblockitems.commands.EnchantCommand(this));
-            // /anvil command
-            getCommand("anvil").setExecutor(new dev.agam.skyblockitems.commands.AnvilCommand(this));
-
-            getLogger().info("Commands registered.");
-
-            getLogger().info("SkyBlockItems has been enabled successfully!");
-        } catch (Throwable e) {
-            getLogger().severe("CRITICAL ERROR DURING PLUGIN ENABLE:");
-            e.printStackTrace();
-            getServer().getPluginManager().disablePlugin(this);
         }
+    }
+
+    private void registerAllCommands() {
+        dev.agam.skyblockitems.commands.SkyBlockItemsCommand sbi = new dev.agam.skyblockitems.commands.SkyBlockItemsCommand(
+                this);
+        getCommand("sbi").setExecutor(sbi);
+        getCommand("sbi").setTabCompleter(sbi);
+        getCommand("enchant").setExecutor(new dev.agam.skyblockitems.commands.EnchantCommand(this));
+        getCommand("anvil").setExecutor(new dev.agam.skyblockitems.commands.AnvilCommand(this));
+        getCommand("rarity").setExecutor(new dev.agam.skyblockitems.rarity.RarityCommand(this));
+    }
+
+    private void startRaritySystem() {
+        try {
+            this.rarityManager = new dev.agam.skyblockitems.rarity.RarityManager(this);
+            getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.rarity.RarityListener(this), this);
+            int interval = rarityManager.getCheckerTime();
+            if (interval < 1)
+                interval = 200;
+            new dev.agam.skyblockitems.rarity.RarityTask(this).runTaskTimer(this, 100L, interval);
+        } catch (Throwable e) {
+            System.err.println("[SkyBlockItems] [ERROR] Rarity system start failure: " + e.getMessage());
+        }
+    }
+
+    public void reloadAllConfigs() {
+        // 1. Core Configs (messages, enchants, config.yml)
+        enchantConfigManager.reload();
+
+        // 2. Main plugin abilities.yml
+        loadCustomConfigs();
+
+        // 3. Rarity system
+        if (rarityManager != null) {
+            rarityManager.loadConfig();
+        }
+
+        getLogger().info("All configurations reloaded successfully!");
+    }
+
+    private void loadCustomConfigs() {
+        // abilities.yml
+        java.io.File file = new java.io.File(getDataFolder(), "abilities.yml");
+        if (!file.exists())
+            saveResource("abilities.yml", false);
+        this.abilitiesConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
     }
 
     @Override
     public void onDisable() {
-        // Cancel all active tasks to prevent task execution after unload
         getServer().getScheduler().cancelTasks(this);
-        getLogger().info("SkyBlockItems has been disabled!");
+        System.out.println("[SkyBlockItems] [BOOT] Plugin disabled.");
     }
 
-    private void loadCustomConfigs() {
-        // Load abilities.yml
-        java.io.File abilitiesFile = new java.io.File(getDataFolder(), "abilities.yml");
-        if (!abilitiesFile.exists()) {
-            saveResource("abilities.yml", false);
-        }
-        abilitiesConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(abilitiesFile);
-
-        // messagesConfig is now managed by ConfigManager
-        if (enchantConfigManager != null) {
-            messagesConfig = enchantConfigManager.getMessagesConfig();
-        }
+    // Accessors
+    public AbilityManager getAbilityManager() {
+        return abilityManager;
     }
 
-    public org.bukkit.configuration.file.FileConfiguration getAbilitiesConfig() {
-        return abilitiesConfig;
-    }
-
-    public org.bukkit.configuration.file.FileConfiguration getMessagesConfig() {
-        return messagesConfig;
+    public dev.agam.skyblockitems.rarity.RarityManager getRarityManager() {
+        return rarityManager;
     }
 
     public ConfigManager getConfigManager() {
@@ -198,12 +265,13 @@ public class SkyBlockItems extends JavaPlugin {
         return chatInputManager;
     }
 
-    public AuraSkillsHook getAuraSkillsHook() {
-        return auraSkillsHook;
+    // Safety Casting for Hooks
+    public dev.agam.skyblockitems.enchantsystem.hooks.AuraSkillsHook getAuraSkillsHook() {
+        return (dev.agam.skyblockitems.enchantsystem.hooks.AuraSkillsHook) auraSkillsHook;
     }
 
-    public MMOItemsHook getMMOEnchantHook() {
-        return mmoEnchantHook;
+    public dev.agam.skyblockitems.enchantsystem.hooks.MMOItemsHook getMMOEnchantHook() {
+        return (dev.agam.skyblockitems.enchantsystem.hooks.MMOItemsHook) mmoEnchantHook;
     }
 
     public boolean isAuraSkillsEnabled() {
@@ -214,14 +282,7 @@ public class SkyBlockItems extends JavaPlugin {
         return mmoItemsEnabled;
     }
 
-    /**
-     * Reloads all configuration files (config.yml, abilities.yml, messages.yml)
-     */
-    public void reloadAllConfigs() {
-        reloadConfig(); // Reload config.yml
-        if (enchantConfigManager != null)
-            enchantConfigManager.reload();
-        loadCustomConfigs(); // Reload abilities.yml and update messagesConfig
-        getLogger().info("All configurations reloaded!");
+    public org.bukkit.configuration.file.FileConfiguration getAbilitiesConfig() {
+        return abilitiesConfig;
     }
 }

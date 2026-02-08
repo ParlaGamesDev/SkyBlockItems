@@ -53,6 +53,16 @@ public class ColorUtils {
         return builder.toString();
     }
 
+    /**
+     * Strips all color codes from the given message.
+     */
+    public static String stripColor(String message) {
+        if (message == null) {
+            return null;
+        }
+        return org.bukkit.ChatColor.stripColor(message);
+    }
+
     private static String applyGradient(String text, String color1, String color2) {
         java.awt.Color start = java.awt.Color.decode(color1);
         java.awt.Color end = java.awt.Color.decode(color2);

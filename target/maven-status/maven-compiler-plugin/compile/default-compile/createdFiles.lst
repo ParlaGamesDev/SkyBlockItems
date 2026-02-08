@@ -41,3 +41,4 @@ dev\agam\skyblockitems\enchantsystem\managers\EnchantManager$LevelConfig.class
 dev\agam\skyblockitems\stats\DisableEnchantingStat.class
 dev\agam\skyblockitems\enchantsystem\gui\EnchantingGUI.class
 dev\agam\skyblockitems\enchantsystem\gui\EnchantmentGuideGUI.class
+dev\agam\skyblockitems\rarity\RarityManager$ItemMappingData.class

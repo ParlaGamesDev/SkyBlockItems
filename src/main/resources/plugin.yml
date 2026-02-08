@@ -1,9 +1,8 @@
 name: SkyBlockItems
-version: '${project.version}'
+version: 1.2.0
 main: dev.agam.skyblockitems.SkyBlockItems
-api-version: 1.21
-depend: [MMOItems, MythicLib]
-softdepend: [AuraSkills]
+api-version: '1.21'
+softdepend: [MMOItems, MythicLib, AuraSkills, WorldGuard, PlaceholderAPI, ProtocolLib, NBTAPI]
 authors: [Agam]
 commands:
   sbi:
@@ -16,3 +15,7 @@ commands:
   anvil:
     description: Opens the Custom Anvil GUI
     permission: skyblock.anvil
+  rarity:
+    description: Manage item rarities
+    permission: skyblockitems.rarity
+    aliases: [ir]

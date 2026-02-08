@@ -311,3 +311,17 @@ players:
   cleanse-success: "<#2ecc71>✨ כל האפקטים השליליים הוסרו!"
   cleanse-fail: "<#636e72>אין אפקטים שליליים להסיר."
   grappling-hook-cooldown: "<#f39c12>⚠ המתינו {remaining} שניות לפני שימוש נוסף."
+
+# ========================================
+# מערכת נדירות (Rarity System)
+# ========================================
+rarity:
+  set-success: "<#2ecc71>✔ הנדירות הוגדרה ל-{rarity} עבור הפריט ביד."
+  custom-success: "<#2ecc71>✔ הפריט סומן כקאסטום עם נדירות {rarity} - לא ישתנה אוטומטית."
+  removed: "<#e74c3c>✔ הנדירות הוסרה מהפריט."
+  invalid-rarity: "<#e74c3c>✖ נדירות לא ידועה: {id}"
+  no-item: "<#e74c3c>✖ עליך להחזיק פריט ביד!"
+  reloaded: "<#2ecc71>✔ קונפיגורציית הנדירות נטענה מחדש."
+  usage: "<#f39c12>שימוש: <#ffeaa7>/rarity <set|custom|remove>"
+  set-usage: "<#f39c12>שימוש: <#ffeaa7>/rarity set <rarity_id>"
+  custom-usage: "<#f39c12>שימוש: <#ffeaa7>/rarity custom <rarity_id>"

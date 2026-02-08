@@ -1,0 +1,164 @@
+# =============================================================================
+#                         SkyBlockItems - Rarity System
+# =============================================================================
+# This file defines all item rarities and their automatic assignment rules.
+# 
+# Rarity Format:
+#   <priority>:
+#     identifier: <unique_id>   # Used in commands and NBT
+#     name: '<display_name>'    # Supports hex colors (&#FFFFFF) and & codes
+#     weight: <number>          # Higher = rarer
+#
+# Item Assignment Formats:
+#   MATERIAL: <rarity_id>
+#   MATERIAL:CustomModelData: <rarity_id>
+#   ENCHANTED_BOOK:ENCHANT_NAME:LEVEL: <rarity_id>
+#   POTION:EFFECT:EXTENDED:UPGRADED: <rarity_id>
+#
+# Special Identifiers:
+#   DEFAULT - Applied to items not in the Items list
+#   NONE    - Removes rarity from item (use in /rarity remove)
+# =============================================================================
+
+Config:
+  # Backup scanner interval (ticks). Primary detection is event-based.
+  checkerTime: 200
+  
+  # Enable debug logging
+  debug-mode: false
+  
+  # Lore format when rarity is applied
+  lore-format:
+    - "{item-lore}"
+    - ""
+    - "&7Rarity: {rarity-prefix}"
+
+  # Inventories where rarity updates ARE allowed (beside PLAYER)
+  allowed-inventories:
+    - "CHEST"
+    - "BARREL"
+    - "SHULKER_BOX"
+    - "HOPPER"
+    - "DISPENSER"
+    - "DROPPER"
+    - "ENDER_CHEST"
+
+# =============================================================================
+#                              Rarity Definitions
+# =============================================================================
+# Priority (1, 2, 3...) determines display order. Lower = more common.
+# Weight is used for comparison and sorting.
+
+Rarities:
+  1:
+    identifier: Common
+    name: '&f&lCOMMON'
+    weight: 1
+    default: true  # This is the default rarity for unspecified items
+  2:
+    identifier: Uncommon
+    name: '&a&lUNCOMMON'
+    weight: 2
+  3:
+    identifier: Rare
+    name: '&9&lRARE'
+    weight: 3
+  4:
+    identifier: Epic
+    name: '&5&lEPIC'
+    weight: 4
+  5:
+    identifier: Legendary
+    name: '&6&lLEGENDARY'
+    weight: 5
+
+# =============================================================================
+#                              Item Assignments
+# =============================================================================
+# Map items to rarities. Items not listed will receive the DEFAULT rarity.
+# Command-assigned rarities (/rarity set) take priority over these rules.
+
+Items:
+  # ---------------------------------------------------------------------------
+  # Swords
+  # ---------------------------------------------------------------------------
+  WOODEN_SWORD: Common
+  STONE_SWORD: Common
+  IRON_SWORD: Uncommon
+  GOLDEN_SWORD: Uncommon
+  DIAMOND_SWORD: Rare
+  NETHERITE_SWORD: Epic
+  
+  # ---------------------------------------------------------------------------
+  # Tools
+  # ---------------------------------------------------------------------------
+  WOODEN_PICKAXE: Common
+  STONE_PICKAXE: Common
+  IRON_PICKAXE: Uncommon
+  GOLDEN_PICKAXE: Uncommon
+  DIAMOND_PICKAXE: Rare
+  NETHERITE_PICKAXE: Epic
+  
+  WOODEN_AXE: Common
+  STONE_AXE: Common
+  IRON_AXE: Uncommon
+  GOLDEN_AXE: Uncommon
+  DIAMOND_AXE: Rare
+  NETHERITE_AXE: Epic
+  
+  # ---------------------------------------------------------------------------
+  # Armor
+  # ---------------------------------------------------------------------------
+  LEATHER_HELMET: Common
+  LEATHER_CHESTPLATE: Common
+  LEATHER_LEGGINGS: Common
+  LEATHER_BOOTS: Common
+  
+  CHAINMAIL_HELMET: Uncommon
+  CHAINMAIL_CHESTPLATE: Uncommon
+  CHAINMAIL_LEGGINGS: Uncommon
+  CHAINMAIL_BOOTS: Uncommon
+  
+  IRON_HELMET: Uncommon
+  IRON_CHESTPLATE: Uncommon
+  IRON_LEGGINGS: Uncommon
+  IRON_BOOTS: Uncommon
+  
+  DIAMOND_HELMET: Rare
+  DIAMOND_CHESTPLATE: Rare
+  DIAMOND_LEGGINGS: Rare
+  DIAMOND_BOOTS: Rare
+  
+  NETHERITE_HELMET: Epic
+  NETHERITE_CHESTPLATE: Epic
+  NETHERITE_LEGGINGS: Epic
+  NETHERITE_BOOTS: Epic
+  
+  # ---------------------------------------------------------------------------
+  # Special Items
+  # ---------------------------------------------------------------------------
+  ELYTRA: Legendary
+  TRIDENT: Epic
+  MACE: Legendary
+  TOTEM_OF_UNDYING: Legendary
+  ENCHANTED_GOLDEN_APPLE: Legendary
+  NETHER_STAR: Legendary
+  DRAGON_EGG: Legendary
+  
+  # ---------------------------------------------------------------------------
+  # Example: CustomModelData-based assignment
+  # ---------------------------------------------------------------------------
+  # DIAMOND_SWORD:1001: Legendary
+  # DIAMOND_SWORD:1002: Mythic
+  
+  # ---------------------------------------------------------------------------
+  # Example: Enchanted Book assignments
+  # ---------------------------------------------------------------------------
+  # ENCHANTED_BOOK:SHARPNESS:5: Epic
+  # ENCHANTED_BOOK:MENDING:1: Legendary
+  
+  # ---------------------------------------------------------------------------
+  # Example: Potion assignments (EFFECT:EXTENDED:UPGRADED)
+  # ---------------------------------------------------------------------------
+  # POTION:SPEED:true:false: Uncommon
+  # POTION:STRENGTH:false:true: Rare
