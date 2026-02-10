@@ -211,3 +211,19 @@ gui:
     click: UI_BUTTON_CLICK
     success: ENTITY_PLAYER_LEVELUP
     error: ENTITY_VILLAGER_NO
+    reforge-success: BLOCK_ANVIL_USE
+    reforge-fail: ENTITY_VILLAGER_NO
+
+  reforge:
+    title: "<#aa55ff>&lשולחן חישול"
+    size: 27
+    item-slot: 13
+    roll-button-slot: 16
+    filler-material: PURPLE_STAINED_GLASS_PANE
+
+  items:
+    reforge-roll:
+      material: ANVIL
+      name: "<#2ecc71>&lחשל!"
+      lore:
+        - "<#636e72>לחץ כדי לקבל חישול אקראי"

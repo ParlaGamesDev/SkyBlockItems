@@ -19,6 +19,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
@@ -367,10 +368,35 @@ public class CustomAnvilGUI implements BaseGUI {
         }
 
         ItemStack result = target.clone();
+        boolean changed = false;
+
+        // 1. Durability Repair (Vanilla logic)
+        if (!targetIsBook && !sacrificeIsBook && target.getType() == sacrifice.getType()) {
+            ItemMeta targetMeta = result.getItemMeta();
+            ItemMeta sacrificeMeta = sacrifice.getItemMeta();
+
+            if (targetMeta instanceof Damageable targetDmg && sacrificeMeta instanceof Damageable sacrificeDmg) {
+                int maxDurability = result.getType().getMaxDurability();
+                if (maxDurability > 0) {
+                    int currentDamage = targetDmg.getDamage();
+                    if (currentDamage > 0) {
+                        // Amount repaired = (Max - SacrificeDamage) + 12% of Max
+                        int repairAmount = (maxDurability - sacrificeDmg.getDamage()) + (int) (maxDurability * 0.12);
+                        int newDamage = Math.max(0, currentDamage - repairAmount);
+
+                        if (newDamage < currentDamage) {
+                            targetDmg.setDamage(newDamage);
+                            result.setItemMeta(targetDmg);
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        }
+
         Map<String, Integer> targetEnchants = getEnchantMap(target);
         Map<String, Integer> sacrificeEnchants = getEnchantMap(sacrifice);
 
-        boolean changed = false;
         for (Map.Entry<String, Integer> entry : sacrificeEnchants.entrySet()) {
             String id = entry.getKey();
             int sacrificeLevel = entry.getValue();
@@ -427,6 +453,9 @@ public class CustomAnvilGUI implements BaseGUI {
         for (Map.Entry<String, Integer> entry : targetEnchants.entrySet()) {
             plugin.getEnchantManager().applyEnchantment(result, entry.getKey(), entry.getValue());
         }
+
+        // 4. Final Processing (Rarity, Lore Formatting)
+        result = plugin.getRarityManager().processItem(result);
 
         return result;
     }
@@ -486,14 +515,26 @@ public class CustomAnvilGUI implements BaseGUI {
         // Update result's RepairCost NBT (Prior Work Penalty)
         updateRepairCost(result, inventory.getItem(ITEM_1_SLOT), inventory.getItem(ITEM_2_SLOT));
 
-        // Clear inputs and keep result where it is so they can grab it
+        // Clear inputs
         inventory.setItem(ITEM_1_SLOT, null);
         inventory.setItem(ITEM_2_SLOT, null);
+
+        // Give item to player directly (ensures it doesn't vanish)
+        HashMap<Integer, ItemStack> leftover = player.getInventory().addItem(result);
+        if (!leftover.isEmpty()) {
+            for (ItemStack item : leftover.values()) {
+                player.getWorld().dropItemNaturally(player.getLocation(), item);
+            }
+        }
 
         // Success feedback
         player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 1, 1);
         player.sendMessage(plugin.getConfigManager().getMessage("anvil.combine-success"));
 
+        // Ensure Rarity and Spacing are applied
+        plugin.getRarityManager().processItem(result);
+
+        // Reset GUI state safely
         updateResult();
     }
 
@@ -560,9 +601,6 @@ public class CustomAnvilGUI implements BaseGUI {
         if (original != null) {
             for (String line : original) {
                 String clean = ChatColor.stripColor(line).toLowerCase();
-                if (clean.trim().isEmpty())
-                    continue;
-
                 boolean hasEnchant = false;
                 for (String name : enchantNames) {
                     if (clean.contains(name)) {
@@ -713,6 +751,13 @@ public class CustomAnvilGUI implements BaseGUI {
         // 1. Prior Work Penalty
         cost += plugin.getEnchantManager().getPriorWorkPenalty(item1);
         cost += plugin.getEnchantManager().getPriorWorkPenalty(item2);
+
+        // 2. Repair Cost (Vanilla: 2 levels if repaired)
+        if (item1.getItemMeta() instanceof Damageable d1 && result.getItemMeta() instanceof Damageable dr) {
+            if (dr.getDamage() < d1.getDamage()) {
+                cost += 2;
+            }
+        }
 
         // 2. Enchantment Merging Cost
         ItemMeta meta1 = item1.getItemMeta();

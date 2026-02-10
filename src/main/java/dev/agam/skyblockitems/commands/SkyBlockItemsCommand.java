@@ -46,7 +46,7 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 0) {
             player.sendMessage(plugin.getConfigManager().getMessage("commands.sbi.usage",
-                    "{usage}", "/sbi <reload|givebook|blacklist|admin|edit>"));
+                    "{usage}", "/sbi <reload|givebook|blacklist|admin|edit|reforges|editreforge>"));
             return true;
         }
 
@@ -82,6 +82,19 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 new EnchantEditorGUI(plugin, player, enchant).open();
+            }
+
+            case "reforges" -> {
+                new dev.agam.skyblockitems.reforge.gui.ReforgeListGUI(plugin, player).open();
+            }
+
+            case "editreforge" -> {
+                if (args.length < 2) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("commands.editreforge.usage", "{usage}",
+                            "/sbi editreforge <id>"));
+                    return true;
+                }
+                new dev.agam.skyblockitems.reforge.gui.ReforgeEditorGUI(plugin, player, args[1], false).open();
             }
 
             default -> {
@@ -196,7 +209,8 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            List<String> subs = Arrays.asList("reload", "givebook", "blacklist", "admin", "edit");
+            List<String> subs = Arrays.asList("reload", "givebook", "blacklist", "admin", "edit", "reforges",
+                    "editreforge");
             return filterCompletions(subs, args[0]);
         }
 
@@ -211,6 +225,12 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
                 case "edit" -> {
                     for (CustomEnchant enchant : plugin.getCustomEnchantManager().getAllEnchants()) {
                         completions.add(enchant.getId());
+                    }
+                    return filterCompletions(completions, args[1]);
+                }
+                case "editreforge" -> {
+                    for (dev.agam.skyblockitems.reforge.Reforge reforge : plugin.getReforgeManager().getAllReforges()) {
+                        completions.add(reforge.getId());
                     }
                     return filterCompletions(completions, args[1]);
                 }

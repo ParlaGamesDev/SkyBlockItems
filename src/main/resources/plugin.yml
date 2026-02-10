@@ -2,7 +2,7 @@ name: SkyBlockItems
 version: 1.2.0
 main: dev.agam.skyblockitems.SkyBlockItems
 api-version: '1.21'
-softdepend: [MMOItems, MythicLib, AuraSkills, WorldGuard, PlaceholderAPI, ProtocolLib, NBTAPI]
+softdepend: [MMOItems, MythicLib, AuraSkills, WorldGuard, PlaceholderAPI, ProtocolLib, NBTAPI, Vault]
 authors: [Agam]
 commands:
   sbi:
@@ -19,3 +19,7 @@ commands:
     description: Manage item rarities
     permission: skyblockitems.rarity
     aliases: [ir]
+  reforge:
+    description: Opens the Reforge GUI
+    permission: skyblock.reforge
+    aliases: [rf]

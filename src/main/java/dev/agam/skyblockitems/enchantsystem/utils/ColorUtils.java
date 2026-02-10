@@ -54,13 +54,17 @@ public class ColorUtils {
     }
 
     /**
-     * Strips all color codes from the given message.
+     * Strips all color codes from the given message, including HEX and gradients.
      */
     public static String stripColor(String message) {
         if (message == null) {
             return null;
         }
-        return org.bukkit.ChatColor.stripColor(message);
+        // First strip standard bukkit colors
+        String stripped = org.bukkit.ChatColor.stripColor(message);
+        // Then strip HEX and gradient patterns
+        return stripped.replaceAll("(?i)(&[0-9A-FK-OR]|&#[0-9A-F]{6}|<#([A-Fa-f0-9]{6})>|<gradient:[^>]+>|</gradient>)",
+                "");
     }
 
     private static String applyGradient(String text, String color1, String color2) {

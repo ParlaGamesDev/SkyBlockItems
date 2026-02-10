@@ -30,8 +30,13 @@ public class GuiListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getInventory().getHolder() instanceof BaseGUI gui) {
+        Object holder = event.getInventory().getHolder();
+        if (holder instanceof BaseGUI gui) {
             gui.onClick(event);
+        } else if (holder instanceof dev.agam.skyblockitems.reforge.gui.ReforgeListGUI listGui) {
+            listGui.onClick(event);
+        } else if (holder instanceof dev.agam.skyblockitems.reforge.gui.ReforgeEditorGUI editorGui) {
+            editorGui.onClick(event);
         }
     }
 

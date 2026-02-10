@@ -148,6 +148,11 @@ public class RarityCommand implements CommandExecutor, TabCompleter {
         // Remove mapping globally (removes from config + refreshes online players)
         rarityManager.removeMapping(item);
 
+        // Update current item in hand immediately for the caller
+        ItemStack updatedItem = rarityManager.processItem(item);
+        player.getInventory().setItemInMainHand(updatedItem);
+        player.updateInventory();
+
         player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("rarity.removed")));
     }
 

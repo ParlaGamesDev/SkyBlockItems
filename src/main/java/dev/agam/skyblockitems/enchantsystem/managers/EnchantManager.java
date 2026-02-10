@@ -323,7 +323,7 @@ public class EnchantManager {
                         break;
                     }
                 }
-                if (!isEnchant && !clean.isEmpty())
+                if (!isEnchant)
                     nonEnchantLines.add(line);
             }
         }

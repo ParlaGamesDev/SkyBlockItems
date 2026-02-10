@@ -45,6 +45,7 @@ C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockite
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\abilities\utility\UnderwaterAbility.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\commands\AnvilCommand.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\commands\EnchantCommand.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\commands\ReforgeCommand.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\commands\SkyBlockItemsCommand.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\enchantsystem\config\ConfigManager.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\enchantsystem\CustomEnchant.java
@@ -72,6 +73,7 @@ C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockite
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\AbilityStat.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\MMOItemsAbilityListener.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\MMOItemsHook.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\VaultHook.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\WorldGuardHook.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\listeners\InfiniteReservoirListener.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\rarity\Rarity.java
@@ -79,6 +81,15 @@ C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockite
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\rarity\RarityListener.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\rarity\RarityManager.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\rarity\RarityTask.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\gui\ReforgeEditorGUI.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\gui\ReforgeGUI.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\gui\ReforgeListGUI.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\gui\ReforgeStatEditorGUI.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\Reforge.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\ReforgeApplier.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\ReforgeListener.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\ReforgeManager.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\StatApplier.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\SkyBlockItems.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\stats\DisableAnvilStat.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\stats\DisableEnchantingStat.java

@@ -1,0 +1,243 @@
+# =============================================================================
+#                       SkyBlockItems - Reforge System
+# =============================================================================
+# מערכת חישולים בסגנון Hypixel Skyblock
+#
+# פורמט הגדרת Reforge:
+# reforges:
+#   <id>:
+#     display-name: "שם החישול (תומך בגרדיאנטים והקסים)"
+#     item-types: [SWORD, BOW, PICKAXE, etc.]  # סוגי חפצים תואמים
+#     rarity-requirement: COMMON                # דרישת נדירות מינימלית
+#     rarity-upgrade: UNCOMMON                  # שדרוג נדירות שהחישול מעניק
+#     cost: 10000                               # עלות בכסף (Vault)
+#     stats:                                    # סטטיסטיקות לתוספת
+#       mmoitems_<stat_name>: <value>          # סטטיסטיקות MMOItems
+#       auraskills_<stat_name>: <value>        # סטטיסטיקות AuraSkills
+#     enchants:                                 # כישופים להוספה
+#       - "ENCHANT_NAME:LEVEL"
+#     abilities:                                # יכולות להוספה
+#       - "ABILITY_ID"
+#
+# סוגי פריטים נתמכים:
+# SWORD, BOW, CROSSBOW, TRIDENT, MACE (נשקים)
+# PICKAXE, AXE, SHOVEL, HOE (כלים)
+# HELMET, CHESTPLATE, LEGGINGS, BOOTS (שריון)
+# FISHING_ROD (חכת דיג)
+# ALL/GLOBAL (כל הסוגים)
+# =============================================================================
+
+reforges:
+  # ===================== חישולים לחרבות =====================
+  חד:
+    display-name: "<gradient:#fbff00:#ffae00>חד</gradient>"
+    item-types: [SWORD]
+    rarity-requirement: COMMON
+    rarity-upgrade: UNCOMMON
+    cost: 10000
+    stats:
+      mmoitems_attack_damage: 8
+      auraskills_strength: 3
+    enchants: []
+    abilities: []
+  
+  אדיר:
+    display-name: "&c&lאדיר"
+    item-types: [SWORD]
+    rarity-requirement: UNCOMMON
+    rarity-upgrade: RARE
+    cost: 35000
+    stats:
+      mmoitems_attack_damage: 15
+      mmoitems_critical_strike_chance: 10
+      auraskills_strength: 7
+    enchants:
+      - "SHARPNESS:4"
+    abilities: []
+  
+  אגדי:
+    display-name: "<gradient:#ff00ff:#aa00ff>אגדי</gradient>"
+    item-types: [SWORD]
+    rarity-requirement: EPIC
+    rarity-upgrade: LEGENDARY
+    cost: 500000
+    stats:
+      mmoitems_attack_damage: 35
+      mmoitems_critical_strike_chance: 20
+      mmoitems_critical_strike_power: 40
+      auraskills_strength: 15
+      auraskills_crit_damage: 12
+    enchants:
+      - "SHARPNESS:7"
+    abilities:
+      - "POISON"
+  
+  מהיר:
+    display-name: "&b&lמהיר"
+    item-types: [SWORD]
+    rarity-requirement: RARE
+    rarity-upgrade: EPIC
+    cost: 150000
+    stats:
+      mmoitems_attack_damage: 5
+      mmoitems_attack_speed: 25
+    enchants: []
+    abilities: []
+  
+  # ===================== חישולים לקשתות =====================
+  צלף:
+    display-name: "&a&lצלף"
+    item-types: [BOW, CROSSBOW]
+    rarity-requirement: COMMON
+    rarity-upgrade: UNCOMMON
+    cost: 12000
+    stats:
+      mmoitems_arrow_damage: 10
+    enchants:
+      - "POWER:3"
+    abilities: []
+  
+  רעם:
+    display-name: "<gradient:#55ffff:#0055ff>רעם</gradient>"
+    item-types: [BOW, CROSSBOW]
+    rarity-requirement: RARE
+    rarity-upgrade: EPIC
+    cost: 200000
+    stats:
+      mmoitems_arrow_damage: 25
+    enchants:
+      - "POWER:6"
+      - "PUNCH:2"
+    abilities:
+      - "LIGHTNING_ARROW"
+  
+  # ===================== חישולים למכוש =====================
+  כורה:
+    display-name: "&e&lכורה"
+    item-types: [PICKAXE]
+    rarity-requirement: COMMON
+    rarity-upgrade: UNCOMMON
+    cost: 8000
+    stats:
+      mmoitems_mining_speed: 40
+      auraskills_luck: 2
+    enchants:
+      - "EFFICIENCY:4"
+    abilities: []
+  
+  משופר:
+    display-name: "&6&lמשופר"
+    item-types: [PICKAXE]
+    rarity-requirement: UNCOMMON
+    rarity-upgrade: RARE
+    cost: 40000
+    stats:
+      mmoitems_mining_speed: 80
+      mmoitems_block_power: 20
+      auraskills_luck: 5
+      auraskills_fortune: 3
+    enchants:
+      - "EFFICIENCY:5"
+      - "FORTUNE:3"
+    abilities: []
+  
+  אוצר:
+    display-name: "<gradient:#ffd700:#ffaa00>אוצר</gradient>"
+    item-types: [PICKAXE]
+    rarity-requirement: EPIC
+    rarity-upgrade: LEGENDARY
+    cost: 600000
+    stats:
+      mmoitems_mining_speed: 150
+      mmoitems_block_power: 40
+      auraskills_luck: 12
+      auraskills_fortune: 8
+    enchants:
+      - "EFFICIENCY:7"
+      - "FORTUNE:5"
+    abilities:
+      - "MINERS_LUCK"
+  
+  # ===================== חישולים לגרזן =====================
+  חוטב:
+    display-name: "&2&lחוטב"
+    item-types: [AXE]
+    rarity-requirement: COMMON
+    rarity-upgrade: UNCOMMON
+    cost: 7500
+    stats:
+      mmoitems_mining_speed: 35
+    enchants:
+      - "EFFICIENCY:3"
+    abilities: []
+  
+  ענק:
+    display-name: "&c&lענק"
+    item-types: [AXE]
+    rarity-requirement: RARE
+    rarity-upgrade: EPIC
+    cost: 180000
+    stats:
+      mmoitems_attack_damage: 20
+      mmoitems_mining_speed: 60
+    enchants:
+      - "SHARPNESS:5"
+      - "EFFICIENCY:5"
+    abilities:
+      - "TREE_CAPITATOR"
+  
+  # ===================== חישולים לשריון =====================
+  מוגן:
+    display-name: "&7&lמוגן"
+    item-types: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+    rarity-requirement: COMMON
+    rarity-upgrade: UNCOMMON
+    cost: 9000
+    stats:
+      mmoitems_armor: 5
+    enchants:
+      - "PROTECTION:2"
+    abilities: []
+  
+  איתן:
+    display-name: "&9&lאיתן"
+    item-types: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+    rarity-requirement: RARE
+    rarity-upgrade: EPIC
+    cost: 250000
+    stats:
+      mmoitems_armor: 15
+      mmoitems_max_health: 20
+    enchants:
+      - "PROTECTION:5"
+      - "UNBREAKING:4"
+    abilities: []
+  
+  בלתי-מנוצח:
+    display-name: "<gradient:#ff0000:#aa0000>בלתי-מנוצח</gradient>"
+    item-types: [CHESTPLATE]
+    rarity-requirement: LEGENDARY
+    rarity-upgrade: LEGENDARY
+    cost: 1000000
+    stats:
+      mmoitems_armor: 40
+      mmoitems_max_health: 50
+      mmoitems_armor_toughness: 10
+    enchants:
+      - "PROTECTION:7"
+      - "UNBREAKING:6"
+    abilities:
+      - "RETALIATION_FREEZE"
+  
+  # ===================== חישול אוניברסלי =====================
+  מבורך:
+    display-name: "<gradient:#ffffff:#ffff00>מבורך</gradient>"
+    item-types: [ALL]
+    rarity-requirement: EPIC
+    rarity-upgrade: LEGENDARY
+    cost: 750000
+    stats:
+      auraskills_luck: 10
+    enchants:
+      - "UNBREAKING:5"
+    abilities: []

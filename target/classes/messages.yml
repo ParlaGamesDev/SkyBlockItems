@@ -121,10 +121,10 @@ anvil:
   invalid-combination: "<#636e72>לא ניתן לשלב פריטים אלה."
 
 rarity:
-  set-success: "<#2ecc71> הנדירות הוגדרה ל-{rarity} עבור הפריט ביד."
-  custom-success: "<#2ecc71> הפריט סומן כקאסטום עם נדירות {rarity} - לא ישתנה אוטומטית."
+  set-success: "<#2ecc71> נדירות <#ecf0f1>{rarity} <#2ecc71>הוגדרה בהצלחה."
+  custom-success: "<#2ecc71> נדירות מותאמת אישית <#ecf0f1>{rarity} <#2ecc71>הוגדרה בהצלחה."
   removed: "<#e74c3c> הנדירות הוסרה מהפריט."
-  invalid-rarity: "<#e74c3c> נדירות לא ידועה: {id}"
+  invalid-rarity: "<#e74c3c> מזהה נדירות לא תקין: <#ffeaa7>{id}"
   no-item: "<#e74c3c> עליך להחזיק פריט ביד!"
   reloaded: "<#2ecc71> קונפיגורציית הנדירות נטענה מחדש."
   usage: "<#f39c12>שימוש: <#ffeaa7>/rarity <set|custom|remove>"
@@ -132,6 +132,10 @@ rarity:
   custom-usage: "<#f39c12>שימוש: <#ffeaa7>/rarity custom <rarity_id>"
 
 commands:
+  unknown: "<#e74c3c> פקודה לא ידועה. הקלד <#ffeaa7>/sbi <#e74c3c>לעזרה."
+  reload-success: "<#2ecc71> כל הקבצים נטענו מחדש בהצלחה!"
+  sbi:
+    usage: "<#f39c12>שימוש: <#ffeaa7>{usage}"
   edit:
     usage: "<#f39c12>שימוש: <#ffeaa7>/sbi edit <enchant-id>"
     not-found: "<#e74c3c> כישוף לא נמצא: <#ffeaa7>{id}"
@@ -185,3 +189,104 @@ gui:
     selected: "<#e74c3c> מתנגש"
     not-selected: "<#636e72>• לא מתנגש"
     click-toggle: "<#ffeaa7>▶ לחץ להחלפה"
+
+reforge:
+  gui-title: "<#aa55ff>&lשולחן חישול"
+  success: "<#2ecc71>החפץ חושל בהצלחה! <#ffeaa7>{reforge}"
+  not-enough-money: "<#e74c3c>אין לך מספיק כסף! <#f8b739>(נדרש: {cost})"
+  invalid-item: "<#e74c3c>לא ניתן לחשל את החפץ הזה!"
+  same-reforge: "<#f39c12>התקבל אותו חישול, מנסה שוב..."
+  place-item: "<#ffeaa7>הנח חפץ לחישול"
+  current-reforge: "<#636e72>חישול נוכחי: <#ffeaa7>{reforge}"
+  no-reforge: "<#636e72>אין חישול"
+  cost-label: "<#636e72>עלות: <#2ecc71>{cost} מטבעות"
+  error: "<#e74c3c>שגיאה בהחלת החישול!"
+  place-item-lore: "<#636e72>הנח חפץ בסלוט כדי להתחיל"
+  invalid-item-lore: "<#e74c3c>לא ניתן לחשל את החפץ הזה!"
+  click-to-reforge: "<#ffeaa7>לחץ כדי לחשל!"
+  roll-button-name: "<#2ecc71>&lחשל!"
+  roll-button-lore:
+    - "<#636e72>לחץ כדי לקבל חישול אקראי"
+    - ""
+    - "<#636e72>עלות: <#2ecc71>{cost} מטבעות"
+  
+  editor:
+    list-title: "<#aa55ff>&lניהול חישולים"
+    editor-title: "<#d63aff>&lעריכת חישול: <#ffeaa7>{id}"
+    prompt-id: "<#f39c12>הזן ID לחישול החדש בצ'אט:"
+    already-exists: "<#e74c3c>חישול עם ID זה כבר קיים!"
+    deleted: "<#e74c3c>החישול נמחק: <#dfe6e9>{id}"
+    saved: "<#2ecc71>החישול נשמר!"
+    create-new: "<#2ecc71>&lצור חישול חדש"
+    create-new-lore: "<#636e72>לחץ כדי ליצור חישול חדש"
+    invalid-number: "<#e74c3c>מספר לא חוקי!"
+    prompt-prefix: "<#f39c12>{prompt}"
+    
+    properties:
+      display-name:
+        name: "<#ffeaa7>שם תצוגה"
+        click: "<#74b9ff>▶ לחץ לעריכה"
+        prompt: "הזן שם תצוגה חדש:"
+      item-types:
+        name: "<#ffeaa7>סוגי פריטים"
+        click: "<#74b9ff>▶ לחץ לעריכה"
+        prompt: "הזן סוגי פריטים (מופרדים בפסיק):"
+        example: "<#636e72>דוגמאות: SWORD, PICKAXE, BOW, ALL"
+      rarity-req:
+        name: "<#ffeaa7>דרישת נדירות"
+        click: "<#74b9ff>▶ לחץ לעריכה"
+        prompt: "הזן דרישת נדירות (COMMON/UNCOMMON/RARE/EPIC/LEGENDARY):"
+      rarity-upgrade:
+        name: "<#ffeaa7>שדרוג נדירות"
+        click: "<#74b9ff>▶ לחץ לעריכה"
+        prompt: "הזן שדרוג נדירות (COMMON/UNCOMMON/RARE/EPIC/LEGENDARY):"
+      cost:
+        name: "<#ffeaa7>עלות"
+        click: "<#74b9ff>▶ לחץ לעריכה"
+        prompt: "הזן עלות:"
+      stats:
+        name: "<#ffeaa7>סטטיסטיקות"
+        click: "<#74b9ff>▶ לחץ לעריכה"
+        prompt: "הזן סטטיסטיקות (פורמט: stat1:value1,stat2:value2):"
+        example: "<#636e72>פורמט: stat_name:value"
+        none: "<#636e72>אין סטטיסטיקות"
+      enchants:
+        name: "<#d63aff>כישופים"
+        click: "<#74b9ff>▶ לחץ לעריכה"
+        prompt: "הזן כישופים (פורמט: SHARPNESS:5,UNBREAKING:3):"
+        example: "<#636e72>פורמט: ENCHANT_NAME:LEVEL"
+        none: "<#636e72>אין כישופים"
+      abilities:
+        name: "<#00b894>יכולות"
+        click: "<#74b9ff>▶ לחץ לעריכה"
+        prompt: "הזן IDs של יכולות (מופרדים בפסיק):"
+        example: "<#636e72>רשימת IDs של יכולות"
+        none: "<#636e72>אין יכולות"
+      
+    buttons:
+      save: "<#2ecc71>&lשמור"
+      save-lore: "<#636e72>שמור את החישול וחזור לרשימה"
+      back: "<#e74c3c>&lחזור"
+      back-lore: "<#636e72>חזור לרשימת החישולים (ללא שמירה)"
+      left-click-edit: "<#ffeaa7>▶ לחיצה שמאלית לעריכה"
+      shift-right-delete: "<#e74c3c>▶ Shift + ימני למחיקה"
+    
+    labels:
+      current-value: "<#636e72>ערך נוכחי:"
+      id-label: "<#636e72>ID: <#ffeaa7>{id}"
+      cost-label: "<#636e72>עלות: <#2ecc71>{cost} מטבעות"
+      types-label: "<#636e72>סוגים: <#74b9ff>{types}"
+      rarity-label: "<#636e72>נדירות: <#a29bfe>{req} → {upgrade}"
+      stats-header: "<#ffeaa7>סטטיסטיקות:"
+      enchants-header: "<#d63aff>כישופים: <#dfe6e9>{enchants}"
+      abilities-header: "<#00b894>יכולות: <#dfe6e9>{abilities}"
+
+    stat-editor:
+      title: "<#d63aff>&lעריכת סטטיסטיקות: <#ffeaa7>{reforge}"
+      add-stat: "<#2ecc71>&lהוסף סטטיסטיקה"
+      add-stat-lore: "<#636e72>לחץ כדי להוסיף סטטיסטיקה חדשה"
+      edit-value-prompt: "הזן ערך חדש לסטטיסטיקה {stat}:"
+      new-stat-prompt: "הזן שם סטטיסטיקה (למשל mmoitems_attack_damage):"
+    
+    rarity-selector:
+      title: "בחר נדירות"

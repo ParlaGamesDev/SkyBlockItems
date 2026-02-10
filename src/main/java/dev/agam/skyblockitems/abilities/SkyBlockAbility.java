@@ -26,35 +26,56 @@ public abstract class SkyBlockAbility {
 
     private final String id;
     private final String displayName;
+    private final List<String> description;
     private final TriggerType defaultTrigger;
     private double defaultCooldown;
     private double defaultManaCost;
     private double defaultDamage;
     private double defaultRange;
+    private double defaultDuration;
+    private double defaultPower;
 
     public SkyBlockAbility(String id, String displayName, TriggerType defaultTrigger,
             double defaultCooldown, double defaultManaCost, double defaultDamage, double defaultRange) {
+        this(id, displayName, defaultTrigger, defaultCooldown, defaultManaCost, defaultDamage, defaultRange, 0, 0);
+    }
+
+    public SkyBlockAbility(String id, String displayName, TriggerType defaultTrigger,
+            double defaultCooldown, double defaultManaCost, double defaultDamage, double defaultRange,
+            double defaultDuration, double defaultPower) {
         this.id = id;
 
-        // Load name from config if available, otherwise use default
+        // Load name and description from config if available, otherwise use default
         org.bukkit.configuration.file.FileConfiguration config = dev.agam.skyblockitems.SkyBlockItems.getInstance()
                 .getAbilitiesConfig();
         String configPath = "custom-abilities." + id + ".name";
+        String descPath = "custom-abilities." + id + ".description";
+
         // Check for common ID formats in config if exact match fails
         if (!config.contains(configPath)) {
-            if (config.contains("custom-abilities." + id.toUpperCase() + ".name"))
+            if (config.contains("custom-abilities." + id.toUpperCase() + ".name")) {
                 configPath = "custom-abilities." + id.toUpperCase() + ".name";
-            else if (config.contains("custom-abilities." + id.toLowerCase() + ".name"))
+                descPath = "custom-abilities." + id.toUpperCase() + ".description";
+            } else if (config.contains("custom-abilities." + id.toLowerCase() + ".name")) {
                 configPath = "custom-abilities." + id.toLowerCase() + ".name";
+                descPath = "custom-abilities." + id.toLowerCase() + ".description";
+            }
         }
 
         this.displayName = config.getString(configPath, displayName);
+        this.description = config.getStringList(descPath);
 
         this.defaultTrigger = defaultTrigger;
         this.defaultCooldown = defaultCooldown;
         this.defaultManaCost = defaultManaCost;
         this.defaultDamage = defaultDamage;
         this.defaultRange = defaultRange;
+        this.defaultDuration = defaultDuration;
+        this.defaultPower = defaultPower;
+    }
+
+    public List<String> getDescription() {
+        return description;
     }
 
     public String getId() {
@@ -83,6 +104,14 @@ public abstract class SkyBlockAbility {
 
     public double getDefaultRange() {
         return defaultRange;
+    }
+
+    public double getDefaultDuration() {
+        return defaultDuration;
+    }
+
+    public double getDefaultPower() {
+        return defaultPower;
     }
 
     public void setDefaultCooldown(double defaultCooldown) {

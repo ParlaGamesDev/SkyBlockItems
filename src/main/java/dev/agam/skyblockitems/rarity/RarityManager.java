@@ -28,6 +28,7 @@ public class RarityManager {
 
     private static final String NBT_RARITY_KEY = "skyblock_rarity";
     private static final String NBT_CUSTOM_KEY = "skyblock_rarity_custom";
+    private static final String NBT_VERSION_KEY = "skyblock_rarity_v";
 
     private static final Rarity NONE_RARITY = new Rarity("NONE", "NONE", 0, 0, false);
 
@@ -43,6 +44,7 @@ public class RarityManager {
     private boolean debugMode = false;
     private List<String> loreFormat = new ArrayList<>();
     private List<String> allowedInventoryTypes = new ArrayList<>();
+    private double currentConfigVersion = 0;
 
     /**
      * Internal data for an item mapping.
@@ -74,6 +76,9 @@ public class RarityManager {
             plugin.saveResource("rarity.yml", false);
         }
         rarityConfig = YamlConfiguration.loadConfiguration(rarityFile);
+
+        // Refresh version on every reload
+        currentConfigVersion = (double) System.currentTimeMillis();
 
         // Load config settings
         ConfigurationSection configSection = rarityConfig.getConfigurationSection("Config");
@@ -277,6 +282,9 @@ public class RarityManager {
         NBTItem nbtItem = NBTItem.get(item);
         if (nbtItem.hasTag(NBT_RARITY_KEY)) {
             String rarityId = nbtItem.getString(NBT_RARITY_KEY);
+            if (rarityId != null && rarityId.equalsIgnoreCase("NONE")) {
+                return NONE_RARITY;
+            }
             return getRarity(rarityId);
         }
         return null;
@@ -311,6 +319,7 @@ public class RarityManager {
         NBTItem nbtItem = NBTItem.get(item);
         nbtItem.addTag(new ItemTag(NBT_RARITY_KEY, rarity.getIdentifier()));
         nbtItem.addTag(new ItemTag(NBT_CUSTOM_KEY, isCustom));
+        nbtItem.addTag(new ItemTag(NBT_VERSION_KEY, currentConfigVersion));
         item = nbtItem.toItem();
 
         // Update name and lore (using original item lore)
@@ -358,25 +367,22 @@ public class RarityManager {
             return item;
         }
 
-        // Skip if already has custom rarity
-        if (hasCustomRarity(item)) {
-            // Check if it was explicitly removed via custom tag or NONE state
-            Rarity current = getCurrentRarity(item);
-            if (current == null || current.getIdentifier().equalsIgnoreCase("NONE")) {
-                return item;
-            }
-            return item;
-        }
-
         // Check if item already has rarity
         Rarity currentRarity = getCurrentRarity(item);
         Rarity targetRarity = getRarityForItem(item);
 
-        // If target is NONE, we MUST remove any existing rarity
+        // If target is NONE, we MUST ensure color is stripped and NBT is marked
         if (targetRarity != null && targetRarity.getIdentifier().equalsIgnoreCase("NONE")) {
-            if (currentRarity != null) {
+            // Check if it's already "dirty" (has lore or wrong NBT)
+            if (currentRarity == null || !currentRarity.getIdentifier().equalsIgnoreCase("NONE")
+                    || hasRarityLore(item)) {
                 return removeRarity(item);
             }
+            return item;
+        }
+
+        // Skip if already has custom rarity (unless target was NONE, handled above)
+        if (hasCustomRarity(item)) {
             return item;
         }
 
@@ -385,17 +391,39 @@ public class RarityManager {
             return item;
         }
 
-        // If already has the correct rarity, skip
+        // If already has the correct rarity, check if design version matches
         if (currentRarity != null && currentRarity.getIdentifier().equalsIgnoreCase(targetRarity.getIdentifier())) {
-            // Note: We might still want to apply visual overrides if the name/lore changed
-            // in config
-            // but for performance we skip. If the user changed the config, they should
-            // reload.
-            return item;
+            NBTItem nbtItem = NBTItem.get(item);
+            double itemVersion = nbtItem.hasTag(NBT_VERSION_KEY) ? nbtItem.getDouble(NBT_VERSION_KEY) : -1.0;
+
+            // If and ONLY if the versions match exactly, we skip.
+            if (itemVersion == currentConfigVersion) {
+                return item;
+            }
         }
 
         // Apply the rarity
         return applyRarity(item, targetRarity, false);
+    }
+
+    /**
+     * Checks if the item lore contains any rarity-related lines.
+     */
+    private boolean hasRarityLore(ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasLore())
+            return false;
+        List<String> lore = meta.getLore();
+        for (String line : lore) {
+            String stripped = stripFullColor(line).toLowerCase().trim();
+            if (stripped.contains("rarity:") ||
+                    stripped.contains("נדירות:") ||
+                    stripped.contains("item-rarity") ||
+                    isRarityName(stripped)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -405,6 +433,11 @@ public class RarityManager {
         ItemMeta meta = item.getItemMeta();
         if (meta == null)
             return item;
+
+        // Ensure display name is colorized (Fixes &e&l showing as raw text)
+        if (meta.hasDisplayName()) {
+            meta.setDisplayName(ColorUtils.colorize(meta.getDisplayName()));
+        }
 
         // Get current lore, remove any existing rarity lines
         List<String> currentLore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
@@ -418,7 +451,28 @@ public class RarityManager {
             if (formatLine.contains("{item-lore}")) {
                 // Insert original lore here
                 for (String originalLine : currentLore) {
-                    newLore.add(ColorUtils.colorize(originalLine));
+                    newLore.add(originalLine);
+                }
+
+                // Enforce a gap if lore exists and format doesn't provide one
+                if (!currentLore.isEmpty()) {
+                    boolean nextIsAlreadyBlank = false;
+                    int currentIndex = -1;
+                    for (int i = 0; i < loreFormat.size(); i++) {
+                        if (loreFormat.get(i).contains("{item-lore}")) {
+                            currentIndex = i;
+                            break;
+                        }
+                    }
+                    if (currentIndex != -1 && currentIndex + 1 < loreFormat.size()) {
+                        if (stripFullColor(loreFormat.get(currentIndex + 1)).trim().isEmpty()) {
+                            nextIsAlreadyBlank = true;
+                        }
+                    }
+
+                    if (!nextIsAlreadyBlank) {
+                        newLore.add("");
+                    }
                 }
             } else {
                 String processedLine = formatLine.replace("{rarity-prefix}", coloredRarity);
@@ -426,7 +480,26 @@ public class RarityManager {
             }
         }
 
-        meta.setLore(newLore);
+        // Final reconstruction with safety gap
+        List<String> finalLore = new ArrayList<>();
+        boolean inGap = false;
+        for (int i = 0; i < newLore.size(); i++) {
+            String line = newLore.get(i);
+            boolean isBlank = stripFullColor(line).trim().isEmpty();
+
+            // If it's a blank line and we're nearing the rarity prefix...
+            if (isBlank) {
+                if (!inGap) {
+                    finalLore.add(line);
+                    inGap = true;
+                }
+            } else {
+                finalLore.add(line);
+                inGap = false;
+            }
+        }
+
+        meta.setLore(finalLore);
         item.setItemMeta(meta);
         return item;
     }
@@ -436,13 +509,20 @@ public class RarityManager {
      */
     private ItemStack removeRarityLore(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        if (meta == null || !meta.hasLore())
+        if (meta == null)
             return item;
 
-        List<String> currentLore = new ArrayList<>(meta.getLore());
-        currentLore = stripRarityLore(currentLore);
+        // Reset name color if needed (optional but good for consistency)
+        if (meta.hasDisplayName()) {
+            meta.setDisplayName(ColorUtils.colorize(meta.getDisplayName()));
+        }
 
-        meta.setLore(currentLore);
+        if (meta.hasLore()) {
+            List<String> currentLore = new ArrayList<>(meta.getLore());
+            currentLore = stripRarityLore(currentLore);
+            meta.setLore(currentLore);
+        }
+
         item.setItemMeta(meta);
         return item;
     }
@@ -452,37 +532,80 @@ public class RarityManager {
      */
     private List<String> stripRarityLore(List<String> lore) {
         List<String> result = new ArrayList<>();
-        boolean foundRarity = false;
 
         for (String line : lore) {
-            String stripped = org.bukkit.ChatColor.stripColor(line).toLowerCase();
+            String stripped = stripFullColor(line).toLowerCase().trim();
             // Check for various rarity indicators
             if (stripped.contains("rarity:") ||
                     stripped.contains("נדירות:") ||
                     stripped.contains("item-rarity") ||
                     isRarityName(stripped)) {
-                foundRarity = true;
                 continue;
             }
             result.add(line);
         }
 
-        // If we found a rarity, we also want to remove the empty line that we added
-        // Our format is: {item-lore}, "", "Rarity: ..."
-        // So we remove the last line if it's empty after stripping
-        if (foundRarity) {
-            while (!result.isEmpty() && result.get(result.size() - 1).trim().isEmpty()) {
-                result.remove(result.size() - 1);
-            }
+        // Always clean trailing empty lines to ensure the gap we add later is clean
+        while (!result.isEmpty() && stripFullColor(result.get(result.size() - 1)).trim().isEmpty()) {
+            result.remove(result.size() - 1);
         }
 
         return result;
     }
 
+    private String stripFullColor(String text) {
+        if (text == null)
+            return "";
+
+        // 1. Strip ChatColor § codes (including hex §x§r§r§g§g§b§b)
+        // We use a manual loop to be more reliable than stripColor for all hex
+        // variations
+        StringBuilder sb = new StringBuilder();
+        char[] chars = text.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            if (chars[i] == '§' || chars[i] == '&') {
+                if (i + 1 < chars.length) {
+                    char next = chars[i + 1];
+                    // Skip next char if it's a format code
+                    if ("0123456789abcdefklmnorx#".indexOf(Character.toLowerCase(next)) != -1) {
+                        i++;
+                        // If it's a hex start, skip more
+                        if (next == '#' || Character.toLowerCase(next) == 'x') {
+                            // Try to skip next 6 chars if hex
+                            int skip = 0;
+                            while (skip < 6 && i + 1 < chars.length) {
+                                char hex = chars[i + 1];
+                                if ("0123456789abcdef§".indexOf(Character.toLowerCase(hex)) != -1) {
+                                    i++;
+                                    skip++;
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                        continue;
+                    }
+                }
+            }
+            sb.append(chars[i]);
+        }
+        String stripped = sb.toString();
+
+        // 2. Final regex safety strip for any missed tags like <#RRGGBB>
+        return stripped
+                .replaceAll("(?i)<#[0-9a-f]{6}>", "")
+                .replaceAll("(?i)&#[0-9a-f]{6}", "")
+                .trim();
+    }
+
     private boolean isRarityName(String text) {
+        String strippedText = text.toLowerCase().trim();
+        if (strippedText.equals("none"))
+            return true;
         for (Rarity r : rarities.values()) {
-            String name = org.bukkit.ChatColor.stripColor(r.getDisplayName()).toLowerCase();
-            if (text.equals(name) || text.contains(name))
+            String id = r.getIdentifier().toLowerCase().trim();
+            String name = stripFullColor(r.getDisplayName()).toLowerCase().trim();
+            if (strippedText.equals(id) || strippedText.equals(name) || strippedText.contains(name))
                 return true;
         }
         return false;
@@ -493,7 +616,9 @@ public class RarityManager {
         if (key == null)
             return;
 
-        rarityConfig.set("Items." + key + ".rarity", rarityId);
+        // Use a safe key for YAML paths (escaping dots)
+        String safePath = "Items." + key.replace(".", "_") + ".rarity";
+        rarityConfig.set(safePath, rarityId);
 
         try {
             rarityConfig.save(rarityFile);
@@ -503,6 +628,7 @@ public class RarityManager {
             for (org.bukkit.entity.Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
                 refreshPlayer(player);
             }
+            plugin.getLogger().info("Successfully saved rarity mapping: " + key + " -> " + rarityId);
         } catch (java.io.IOException e) {
             plugin.getLogger().severe("Could not save rarity.yml: " + e.getMessage());
         }
@@ -514,7 +640,8 @@ public class RarityManager {
             return;
 
         // Set mapping to NONE to prevent auto-assignment
-        rarityConfig.set("Items." + key + ".rarity", "NONE");
+        String safePath = "Items." + key.replace(".", "_") + ".rarity";
+        rarityConfig.set(safePath, "NONE");
 
         try {
             rarityConfig.save(rarityFile);
@@ -524,6 +651,7 @@ public class RarityManager {
             for (org.bukkit.entity.Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
                 refreshPlayer(player);
             }
+            plugin.getLogger().info("Successfully removed rarity mapping (set to NONE): " + key);
         } catch (java.io.IOException e) {
             plugin.getLogger().severe("Could not save rarity.yml: " + e.getMessage());
         }
@@ -573,6 +701,7 @@ public class RarityManager {
      */
     private void refreshPlayer(org.bukkit.entity.Player player) {
         ItemStack[] contents = player.getInventory().getContents();
+        boolean changed = false;
         for (int i = 0; i < contents.length; i++) {
             ItemStack item = contents[i];
             if (item != null && !item.getType().isAir()) {
@@ -587,8 +716,12 @@ public class RarityManager {
                 ItemStack processed = processItem(item);
                 if (processed != item) {
                     player.getInventory().setItem(i, processed);
+                    changed = true;
                 }
             }
+        }
+        if (changed) {
+            player.updateInventory();
         }
     }
 

@@ -24,6 +24,7 @@ public class SkyBlockItems extends JavaPlugin {
     private static SkyBlockItems instance;
     private AbilityManager abilityManager;
     private dev.agam.skyblockitems.rarity.RarityManager rarityManager;
+    private dev.agam.skyblockitems.reforge.ReforgeManager reforgeManager;
     private ConfigManager enchantConfigManager;
     private EnchantManager enchantManager;
     private CustomEnchantManager customEnchantManager;
@@ -32,6 +33,7 @@ public class SkyBlockItems extends JavaPlugin {
     private Object mmoItemsStatHook;
     private Object auraSkillsHook;
     private Object mmoEnchantHook;
+    private dev.agam.skyblockitems.integration.VaultHook vaultHook;
 
     private boolean auraSkillsEnabled = false;
     private boolean mmoItemsEnabled = false;
@@ -75,6 +77,8 @@ public class SkyBlockItems extends JavaPlugin {
             this.customEnchantManager = new CustomEnchantManager(this);
             this.abilityManager = new AbilityManager();
             this.abilityManager.registerAbilities();
+            this.reforgeManager = new dev.agam.skyblockitems.reforge.ReforgeManager(this);
+            this.reforgeManager.loadConfig();
             System.out.println("[SkyBlockItems] [BOOT] Step 2/7 complete.");
 
             // 3. Plugin Integration
@@ -137,6 +141,13 @@ public class SkyBlockItems extends JavaPlugin {
                 System.err.println("[SkyBlockItems] [ERROR] AuraSkills integration failed: " + e.getMessage());
             }
         }
+
+        // Vault Economy
+        try {
+            this.vaultHook = new dev.agam.skyblockitems.integration.VaultHook();
+        } catch (Throwable e) {
+            System.err.println("[SkyBlockItems] [ERROR] Vault integration failed: " + e.getMessage());
+        }
     }
 
     private void registerAllListeners() {
@@ -152,13 +163,8 @@ public class SkyBlockItems extends JavaPlugin {
         }
 
         if (mmoItemsEnabled) {
-            try {
-                getServer().getPluginManager().registerEvents(
-                        new dev.agam.skyblockitems.integration.AbilityLoreListener(),
-                        this);
-            } catch (Throwable e) {
-                System.err.println("[SkyBlockItems] [ERROR] Failed to register MMOItems listeners: " + e.getMessage());
-            }
+            // AbilityLoreListener is deprecated and redundant (handled by
+            // NaturalAbilityLoreStat)
         }
 
         if (mythicLibEnabled) {
@@ -183,6 +189,10 @@ public class SkyBlockItems extends JavaPlugin {
             } catch (Throwable ignored) {
             }
         }
+
+        // Reforge Listener
+        getServer().getPluginManager()
+                .registerEvents(new dev.agam.skyblockitems.reforge.ReforgeListener(this), this);
     }
 
     private void registerAllCommands() {
@@ -193,6 +203,7 @@ public class SkyBlockItems extends JavaPlugin {
         getCommand("enchant").setExecutor(new dev.agam.skyblockitems.commands.EnchantCommand(this));
         getCommand("anvil").setExecutor(new dev.agam.skyblockitems.commands.AnvilCommand(this));
         getCommand("rarity").setExecutor(new dev.agam.skyblockitems.rarity.RarityCommand(this));
+        getCommand("reforge").setExecutor(new dev.agam.skyblockitems.commands.ReforgeCommand(this));
     }
 
     private void startRaritySystem() {
@@ -218,6 +229,11 @@ public class SkyBlockItems extends JavaPlugin {
         // 3. Rarity system
         if (rarityManager != null) {
             rarityManager.loadConfig();
+        }
+
+        // 4. Reforge system
+        if (reforgeManager != null) {
+            reforgeManager.reload();
         }
 
         getLogger().info("All configurations reloaded successfully!");
@@ -281,5 +297,13 @@ public class SkyBlockItems extends JavaPlugin {
 
     public org.bukkit.configuration.file.FileConfiguration getAbilitiesConfig() {
         return abilitiesConfig;
+    }
+
+    public dev.agam.skyblockitems.reforge.ReforgeManager getReforgeManager() {
+        return reforgeManager;
+    }
+
+    public dev.agam.skyblockitems.integration.VaultHook getVaultHook() {
+        return vaultHook;
     }
 }
