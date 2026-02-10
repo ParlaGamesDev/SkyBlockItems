@@ -164,47 +164,63 @@ public class CustomEnchant {
      * Available stat types for custom enchantments
      */
     public enum EnchantStat {
-        NONE("NONE", true),
-        MAX_HEALTH("MAX_HEALTH", false),
-        ATTACK_DAMAGE("ATTACK_DAMAGE", false),
-        MOVEMENT_SPEED("MOVEMENT_SPEED", false),
-        ARMOR("ARMOR", false),
-        LUCK("LUCK", false),
-        CRITICAL_STRIKE_CHANCE("CRITICAL_STRIKE_CHANCE", false),
-        CRITICAL_STRIKE_DAMAGE("CRITICAL_STRIKE_DAMAGE", false),
-        BLOCK_CHANCE("BLOCK_CHANCE", false),
-        DODGE_CHANCE("DODGE_CHANCE", false),
-        PARRY_CHANCE("PARRY_CHANCE", false),
-        XP_BOOST("XP_BOOST", false),
-        FISHING_REEL_SPEED("FISHING_REEL_SPEED", false),
-        KNOCKBACK_RESISTANCE("KNOCKBACK_RESISTANCE", false);
+        NONE("NONE", true, "ללא", "ללא", "אין סטטיסטיקה מוגדרת.", "&7ללא"),
+        MAX_HEALTH("MAX_HEALTH", false, "Max Health", "חיים מקסימליים", "מעלה את כמות החיים המקסימלית של השחקן.",
+                "&7חיים מקסימליים: &a+{value}"),
+        ATTACK_DAMAGE("ATTACK_DAMAGE", false, "Attack Damage", "נזק התקפה", "מעלה את הנזק הנגרם לאויבים.",
+                "&7נזק התקפה: &a+{value}"),
+        MOVEMENT_SPEED("MOVEMENT_SPEED", false, "Movement Speed", "מהירות תנועה", "מעלה את מהירות הריצה וההליכה.",
+                "&7מהירות תנועה: &a+{value}"),
+        ARMOR("ARMOR", false, "Armor", "שריון", "מעלה את ההגנה מפני נזק פיזי.", "&7שריון: &a+{value}"),
+        LUCK("LUCK", false, "Luck", "מזל", "משפר את הסיכוי לקבל שלל טוב יותר.", "&7מזל: &a+{value}"),
+        CRITICAL_STRIKE_CHANCE("CRITICAL_STRIKE_CHANCE", false, "Critical Strike Chance", "סיכוי למכה קריטית",
+                "מעלה את הסיכוי להנחית מכה קריטית.", "&7סיכוי לקריטי: &a+{value}%"),
+        CRITICAL_STRIKE_DAMAGE("CRITICAL_STRIKE_DAMAGE", false, "Critical Strike Damage", "נזק מכה קריטית",
+                "מעלה את הנזק שנגרם במכות קריטיות.", "&7נזק קריטי: &a+{value}%"),
+        BLOCK_CHANCE("BLOCK_CHANCE", false, "Block Chance", "סיכוי לחסימה", "מעלה את הסיכוי לחסום התקפות.",
+                "&7סיכוי לחסימה: &a+{value}%"),
+        DODGE_CHANCE("DODGE_CHANCE", false, "Dodge Chance", "סיכוי להתחמקות", "מעלה את סיכוי להתחמק מהתקפות.",
+                "&7סיכוי להתחמקות: &a+{value}%"),
+        PARRY_CHANCE("PARRY_CHANCE", false, "Parry Chance", "סיכוי להדיפה", "מעלה את הסיכוי להדוף התקפה ולהחזיר נזק.",
+                "&7סיכוי להדיפה: &a+{value}%"),
+        XP_BOOST("XP_BOOST", false, "XP Boost", "בוסט לנסיון", "מעלה את כמות ה-XP המתקבלת מפעולות.",
+                "&7XP Boost: &a+{value}%"),
+        FISHING_REEL_SPEED("FISHING_REEL_SPEED", false, "Fishing Reel Speed", "מהירות משיכת חכה",
+                "מעלה את המהירות שבה דגים נתפסים.", "&7מהירות דיג: &a+{value}"),
+        KNOCKBACK_RESISTANCE("KNOCKBACK_RESISTANCE", false, "Knockback Resistance", "עמידות להדיפה",
+                "מפחית את המרחק שאליו נהדפים כשחוטפים מכה.", "&7עמידות להדיפה: &a+{value}");
 
         private final String mmoItemsId;
         private final boolean isBoolean;
+        private final String displayName;
+        private final String hebrewName;
+        private final String description;
+        private final String loreFormat;
 
-        EnchantStat(String mmoItemsId, boolean isBoolean) {
+        EnchantStat(String mmoItemsId, boolean isBoolean, String displayName, String hebrewName, String description,
+                String loreFormat) {
             this.mmoItemsId = mmoItemsId;
             this.isBoolean = isBoolean;
+            this.displayName = displayName;
+            this.hebrewName = hebrewName;
+            this.description = description;
+            this.loreFormat = loreFormat;
         }
 
         public String getDisplayName() {
-            return dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
-                    .getMessageRaw("stats." + name().toLowerCase() + ".name");
+            return displayName;
         }
 
         public String getLoreFormat() {
-            return dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
-                    .getMessageRaw("stats." + name().toLowerCase() + ".lore-format");
+            return loreFormat;
         }
 
         public String getHebrewName() {
-            return dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
-                    .getMessageRaw("stats." + name().toLowerCase() + ".hebrew-name");
+            return hebrewName;
         }
 
         public String getDescription() {
-            return dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
-                    .getMessageRaw("stats." + name().toLowerCase() + ".description");
+            return description;
         }
 
         public String getMmoItemsId() {
@@ -216,11 +232,10 @@ public class CustomEnchant {
         }
 
         public String formatLore(double value) {
-            String format = getLoreFormat();
             if (isBoolean) {
-                return ColorUtils.colorize(format);
+                return ColorUtils.colorize(loreFormat);
             }
-            return ColorUtils.colorize(format.replace("{value}", String.format("%.1f", value)));
+            return ColorUtils.colorize(loreFormat.replace("{value}", String.format("%.1f", value)));
         }
     }
 }

@@ -99,16 +99,17 @@ public class RarityListener implements Listener {
         }
 
         // Check if the inventory being clicked is allowed
-        boolean isAllowed = rarityManager.isAllowedInventory(event.getView());
+        org.bukkit.inventory.Inventory clickedInv = event.getClickedInventory();
+        boolean isAllowed = (clickedInv != null) && rarityManager.isAllowedInventory(event.getView());
 
-        // Delay processing to avoid race conditions with the click event
+        // Use a 1-tick delay to allow the item to physically move before processing
         org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (!player.isOnline())
                 return;
 
-            // Process the clicked item (if still in slot)
-            if (isAllowed || event.getClickedInventory().getType() == InventoryType.PLAYER) {
-                ItemStack item = event.getCurrentItem();
+            // 1. Process the clicked slot if it's allowed or part of the player's inventory
+            if (clickedInv != null && (isAllowed || clickedInv.getType() == InventoryType.PLAYER)) {
+                ItemStack item = event.getClickedInventory().getItem(event.getSlot());
                 if (item != null && !item.getType().isAir()) {
                     ItemStack processed = rarityManager.processItem(item);
                     if (processed != item) {
@@ -117,7 +118,16 @@ public class RarityListener implements Listener {
                 }
             }
 
-            // Always process cursor item
+            // 2. Optimized: If the click moved items into the player's inventory (Shift,
+            // Hotbar, Collect)
+            // we scan the player's inventory immediately to ensure fast updates.
+            if (event.isShiftClick() ||
+                    event.getClick().name().contains("HOTBAR") ||
+                    event.getClick() == org.bukkit.event.inventory.ClickType.DOUBLE_CLICK) {
+                processInventory(player.getInventory());
+            }
+
+            // 3. Always process cursor item (for regular clicks taking items into hand)
             ItemStack cursor = player.getItemOnCursor();
             if (cursor != null && !cursor.getType().isAir()) {
                 ItemStack processed = rarityManager.processItem(cursor);

@@ -154,9 +154,6 @@ public class SkyBlockItems extends JavaPlugin {
         if (mmoItemsEnabled) {
             try {
                 getServer().getPluginManager().registerEvents(
-                        new dev.agam.skyblockitems.integration.MMOItemsAbilityListener(),
-                        this);
-                getServer().getPluginManager().registerEvents(
                         new dev.agam.skyblockitems.integration.AbilityLoreListener(),
                         this);
             } catch (Throwable e) {

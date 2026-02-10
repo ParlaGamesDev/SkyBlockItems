@@ -1,6 +1,5 @@
 ability-header-format: "&7<gradient:#C40000:#FF0000:#FF9B00><bold>{ability}</gradient> &f{trigger}"
 
-# --- יכולות מותאמות אישית (שלנו) ---
 custom-abilities:
   POISON:
     name: "רעל עוצמתי"
@@ -329,7 +328,6 @@ custom-abilities:
       - "&7לנקודת הפגיעה. מונע נזק נפילה."
       - "&7זמן המתנה של <#FF6B6B>5.0 &7שניות."
 
-# --- יכולות רגילות של MMOItems ---
 abilities:
   lightning-beam:
     - "&7משגר קרן ברק עוצמתית שגורמת <#FF8C42>{damage} &7נזק"

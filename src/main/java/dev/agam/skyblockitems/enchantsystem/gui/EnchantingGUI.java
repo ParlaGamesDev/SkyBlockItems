@@ -236,7 +236,15 @@ public class EnchantingGUI implements BaseGUI {
         Material fillerMat = Material
                 .getMaterial(plugin.getConfig().getString("gui.main.filler-material", "PURPLE_STAINED_GLASS_PANE"));
         ItemStack filler = ColorUtils.createFillerItem(fillerMat);
+
+        // List of slots that should NEVER have glass (item slot and enchantment grid)
+        List<Integer> functionalSlots = new ArrayList<>(availableSlots);
+        functionalSlots.add(ITEM_SLOT);
+
         for (int i = 0; i < inv.getSize(); i++) {
+            if (functionalSlots.contains(i))
+                continue;
+
             if (inv.getItem(i) == null || inv.getItem(i).getType() == Material.AIR) {
                 inv.setItem(i, filler);
             }

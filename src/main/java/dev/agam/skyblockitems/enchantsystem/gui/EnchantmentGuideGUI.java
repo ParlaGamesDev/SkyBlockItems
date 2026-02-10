@@ -119,19 +119,19 @@ public class EnchantmentGuideGUI implements BaseGUI {
 
         // Navigation
         if (page > 0) {
-            inventory.setItem(48, ColorUtils.getItemFromConfig(
+            inventory.setItem(47, ColorUtils.getItemFromConfig(
                     plugin.getConfig().getConfigurationSection("gui.items.prev-page"), Material.ARROW));
         }
         if (page < totalPages - 1) {
-            inventory.setItem(52, ColorUtils.getItemFromConfig(
+            inventory.setItem(51, ColorUtils.getItemFromConfig(
                     plugin.getConfig().getConfigurationSection("gui.items.next-page"), Material.ARROW));
         }
 
         // Back button
-        inventory.setItem(50, ColorUtils.getItemFromConfig(
+        inventory.setItem(49, ColorUtils.getItemFromConfig(
                 plugin.getConfig().getConfigurationSection("gui.items.back"), Material.BARRIER));
 
-        // Search button
+        // Search button (Slot 48)
         ItemStack searchItem = ColorUtils.getItemFromConfig(
                 plugin.getConfig().getConfigurationSection("gui.items.guide-search"), Material.OAK_SIGN);
         ItemMeta searchMeta = searchItem.getItemMeta();
@@ -139,14 +139,11 @@ public class EnchantmentGuideGUI implements BaseGUI {
             String searchName = searchQuery.isEmpty() ? plugin.getConfigManager().getMessage("guide.search.title")
                     : plugin.getConfigManager().getMessage("guide.search.current", "{query}", searchQuery);
             searchMeta.setDisplayName(ColorUtils.colorize(searchName));
-
-            // Re-apply lore from config but maybe append current search if needed
-            // For now, just setting name is enough as config has the general lore
             searchItem.setItemMeta(searchMeta);
         }
-        inventory.setItem(49, searchItem);
+        inventory.setItem(48, searchItem);
 
-        // Sort Toggle
+        // Sort Toggle (Slot 50)
         ItemStack sortItem = ColorUtils.getItemFromConfig(
                 plugin.getConfig().getConfigurationSection("gui.items.sort"), Material.HOPPER);
         ItemMeta sortMeta = sortItem.getItemMeta();
@@ -173,7 +170,7 @@ public class EnchantmentGuideGUI implements BaseGUI {
             sortMeta.setLore(sortLore);
             sortItem.setItemMeta(sortMeta);
         }
-        inventory.setItem(51, sortItem);
+        inventory.setItem(50, sortItem);
 
         // Fill remaining empty slots with configured glass pane
         Material fillerMat = Material.getMaterial(
@@ -287,7 +284,7 @@ public class EnchantmentGuideGUI implements BaseGUI {
         int slot = event.getSlot();
 
         // Back
-        if (slot == 50) {
+        if (slot == 49) {
             if (parent != null)
                 parent.open();
             else
@@ -296,13 +293,13 @@ public class EnchantmentGuideGUI implements BaseGUI {
         }
 
         // Navigation
-        if (slot == 48 && page > 0) {
+        if (slot == 47 && page > 0) {
             page--;
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             updateInventory();
             return;
         }
-        if (slot == 52) {
+        if (slot == 51) {
             page++;
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             updateInventory();
@@ -310,7 +307,7 @@ public class EnchantmentGuideGUI implements BaseGUI {
         }
 
         // Sort Toggle
-        if (slot == 51) {
+        if (slot == 50) {
             SortOrder[] allModes = SortOrder.values();
             int currentIdx = sortOrder.ordinal();
             if (event.isLeftClick()) {
@@ -324,7 +321,7 @@ public class EnchantmentGuideGUI implements BaseGUI {
         }
 
         // Search
-        if (slot == 49) {
+        if (slot == 48) {
             if (event.isRightClick() && !searchQuery.isEmpty()) {
                 searchQuery = "";
                 player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_BREAK, 1, 1);

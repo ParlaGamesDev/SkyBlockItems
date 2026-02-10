@@ -1,14 +1,8 @@
-# SkyBlockItems - הגדרות הכישופים
-# כאן תוכלו להגדיר כל כישוף, את הרמות שלו, העלויות והאפקטים.
-# לכל כישוף ניתן להוסיף 'enabled: false' כדי להשבית אותו לחלוטין.
-
 gui:
   size: 54
 
 enchants:
-  # ========================================
-  # SWORD ENCHANTMENTS
-  # ========================================
+
   sharpness:
     enabled: true
     display-name: "&cSharpness"
@@ -155,9 +149,6 @@ enchants:
       9: { value: "9", xp-cost: 45 }
       10: { value: "10", xp-cost: 50 }
 
-  # ========================================
-  # MACE ENCHANTMENTS (1.21+)
-  # ========================================
   density:
     display-name: "&5Density"
     description: "&7מגדיל את הנזק הכללי שנגרם מנפילה\nעם המייס, ככל שנופלים מגובה רב יותר."
@@ -220,9 +211,6 @@ enchants:
       9: { value: "9", xp-cost: 140 }
       10: { value: "10", xp-cost: 155 }
 
-  # ========================================
-  # TRIDENT ENCHANTMENTS
-  # ========================================
   loyalty:
     enabled: true
     display-name: "&3Loyalty"
@@ -301,9 +289,6 @@ enchants:
       9: { value: "9", xp-cost: 140 }
       10: { value: "10", xp-cost: 155 }
 
-  # ========================================
-  # CROSSBOW ENCHANTMENTS
-  # ========================================
   quick_charge:
     enabled: true
     display-name: "&eQuick Charge"
@@ -360,9 +345,6 @@ enchants:
       9: { value: "9", xp-cost: 74 }
       10: { value: "10", xp-cost: 82 }
 
-  # ========================================
-  # BOW ENCHANTMENTS
-  # ========================================
   power:
     enabled: true
     display-name: "&cPower"
@@ -428,9 +410,6 @@ enchants:
     levels:
       1: { value: "1", xp-cost: 40 }
 
-  # ========================================
-  # FISHING ROD ENCHANTMENTS
-  # ========================================
   lure:
     enabled: true
     display-name: "&bLure"
@@ -473,9 +452,6 @@ enchants:
       9: { value: "9", xp-cost: 95 }
       10: { value: "10", xp-cost: 105 }
 
-  # ========================================
-  # ARMOR ENCHANTMENTS
-  # ========================================
   protection:
     enabled: true
     display-name: "&9Protection"
@@ -584,9 +560,6 @@ enchants:
       9: { value: "9", xp-cost: 75 }
       10: { value: "10", xp-cost: 80 }
 
-  # ========================================
-  # HELMET SPECIFIC
-  # ========================================
   respiration:
     display-name: "&bRespiration"
     description: "&7מאפשר לנשום מתחת למים לזמן ארוך\nיותר ומשפר את הראות במים."
@@ -619,9 +592,6 @@ enchants:
     levels:
       1: { value: "1", xp-cost: 20 }
 
-  # ========================================
-  # BOOTS SPECIFIC
-  # ========================================
   feather_falling:
     display-name: "&fFeather Falling"
     description: "&7מפחית משמעותית את הנזק\nהנגרם מנפילה מגובה רב."
@@ -697,9 +667,6 @@ enchants:
       4: { value: "4", xp-cost: 70 }
       5: { value: "5", xp-cost: 85 }
 
-  # ========================================
-  # LEGGINGS SPECIFIC
-  # ========================================
   swift_sneak:
     enabled: true
     display-name: "&5Swift Sneak"
@@ -716,9 +683,6 @@ enchants:
       4: { value: "4", xp-cost: 65 }
       5: { value: "5", xp-cost: 80 }
 
-  # ========================================
-  # TOOL ENCHANTMENTS
-  # ========================================
   efficiency:
     enabled: true
     display-name: "&eEfficiency"
@@ -774,9 +738,6 @@ enchants:
     levels:
       1: { value: "1", xp-cost: 40 }
 
-  # ========================================
-  # AURASKILLS ENCHANTMENTS
-  # ========================================
   strength_boost:
     display-name: "&4Strength Boost"
     description: "&7מגדיל את כוח ההתקפה שלך, מה שמאפשר\nלהוריד יותר חיים לאויבים במכות חרב ומייס."

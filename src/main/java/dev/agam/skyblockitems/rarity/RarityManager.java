@@ -180,7 +180,16 @@ public class RarityManager {
         ItemMeta meta = item.getItemMeta();
         NBTItem nbtItem = NBTItem.get(item);
 
-        // 1. Check MMOItems specific mapping
+        // 1. Check for manual NBT override: skyblock.rarity
+        if (nbtItem.hasTag("skyblock.rarity")) {
+            String rarityId = nbtItem.getString("skyblock.rarity");
+            Rarity nbtRarity = getRarity(rarityId);
+            if (nbtRarity != null) {
+                return nbtRarity;
+            }
+        }
+
+        // 2. Check MMOItems specific mapping
         if (nbtItem.hasTag("MMOITEMS_ITEM_ID")) {
             String type = nbtItem.getString("MMOITEMS_ITEM_TYPE");
             String id = nbtItem.getString("MMOITEMS_ITEM_ID");
@@ -192,35 +201,40 @@ public class RarityManager {
                     return NONE_RARITY;
                 return getRarity(mapping.rarityId);
             }
-            // Fall through to other checks (like material or default)
+            // MMOItems NEVER fall through to material checks
+            return defaultRarity;
         }
 
-        // 2. Check CustomModelData format: MATERIAL:CMD
+        // 3. Check CustomModelData format: MATERIAL:CMD
         if (meta != null && meta.hasCustomModelData()) {
             String cmdKey = materialName + ":" + meta.getCustomModelData();
-            ItemMappingData mapping = itemMappings.get(cmdKey);
+            ItemMappingData mapping = itemMappings.get(cmdKey.toUpperCase());
             if (mapping != null) {
                 if (mapping.rarityId.equalsIgnoreCase("NONE"))
                     return NONE_RARITY;
                 return getRarity(mapping.rarityId);
             }
+            // CMD items NEVER fall through to material checks
+            return defaultRarity;
         }
 
-        // 3. Check Enchanted Book format: ENCHANTED_BOOK:ENCHANT:LEVEL
+        // 4. Check Enchanted Book format: ENCHANTED_BOOK:ENCHANT:LEVEL
         if (item.getType() == Material.ENCHANTED_BOOK && meta instanceof EnchantmentStorageMeta esm) {
             for (Map.Entry<Enchantment, Integer> entry : esm.getStoredEnchants().entrySet()) {
                 String bookKey = "ENCHANTED_BOOK:" + entry.getKey().getKey().getKey().toUpperCase() + ":"
                         + entry.getValue();
-                ItemMappingData mapping = itemMappings.get(bookKey);
+                ItemMappingData mapping = itemMappings.get(bookKey.toUpperCase());
                 if (mapping != null) {
                     if (mapping.rarityId.equalsIgnoreCase("NONE"))
                         return NONE_RARITY;
                     return getRarity(mapping.rarityId);
                 }
             }
+            // Books NEVER fall through to generic material checks
+            return defaultRarity;
         }
 
-        // 4. Check Potion format: POTION:EFFECT:EXTENDED:UPGRADED
+        // 5. Check Potion format: POTION:EFFECT:EXTENDED:UPGRADED
         if ((item.getType() == Material.POTION || item.getType() == Material.SPLASH_POTION ||
                 item.getType() == Material.LINGERING_POTION) && meta instanceof PotionMeta pm) {
             PotionType type = pm.getBasePotionType();
@@ -236,10 +250,12 @@ public class RarityManager {
                     return getRarity(mapping.rarityId);
                 }
             }
+            // Potions NEVER fall through to generic material checks
+            return defaultRarity;
         }
 
-        // 5. Check plain material
-        ItemMappingData mapping = itemMappings.get(materialName);
+        // 6. Check plain material (Only reached for pure Vanilla items)
+        ItemMappingData mapping = itemMappings.get(materialName.toUpperCase());
         if (mapping != null) {
             if (mapping.rarityId.equalsIgnoreCase("NONE"))
                 return NONE_RARITY;

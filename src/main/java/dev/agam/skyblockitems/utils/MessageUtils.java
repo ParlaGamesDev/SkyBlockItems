@@ -20,15 +20,8 @@ public class MessageUtils {
         if (message == null || message.isEmpty())
             return;
 
-        String routingStr = SkyBlockItems.getInstance().getConfig().getString("message-routing", "ACTION_BAR");
-        MessageType type;
-        try {
-            type = MessageType.valueOf(routingStr.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            type = MessageType.ACTION_BAR;
-        }
-
-        send(player, message, type);
+        // Default to ACTION_BAR as requested by removing config lookup
+        send(player, message, MessageType.ACTION_BAR);
     }
 
     /**
