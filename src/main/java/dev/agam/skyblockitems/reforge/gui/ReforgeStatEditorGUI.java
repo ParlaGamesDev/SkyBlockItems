@@ -12,8 +12,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * GUI for editing individual stats of a reforge.
@@ -62,9 +64,12 @@ public class ReforgeStatEditorGUI implements BaseGUI {
 
             ItemStack item = new ItemStack(Material.PAPER);
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(ColorUtils.colorize("§e" + entry.getKey()));
+
+            String cleanName = plugin.getReforgeManager().formatStatName(entry.getKey());
+            meta.setDisplayName(ColorUtils.colorize("&e" + cleanName));
             List<String> lore = new ArrayList<>();
-            lore.add(ColorUtils.colorize("§7Value: §a" + entry.getValue()));
+            lore.add(ColorUtils.colorize("&7ID: &8" + entry.getKey()));
+            lore.add(ColorUtils.colorize("&7Value: &a" + entry.getValue()));
             lore.add("");
             lore.add(ColorUtils.colorize("§e▶ לחיצה שמאלית לשינוי ערך"));
             lore.add(ColorUtils.colorize("§c▶ Shift + לחיצה ימנית למחיקה"));
@@ -117,33 +122,30 @@ public class ReforgeStatEditorGUI implements BaseGUI {
             return;
         }
 
-        // Add Stat
+        // Add Stat (Open Selector GUI)
         if (slot == 49) {
-            promptInput("reforge.editor.stat-editor.new-stat-prompt", (statName) -> {
-                promptInput("reforge.editor.stat-editor.edit-value-prompt", (valueStr) -> {
-                    try {
-                        double value = Double.parseDouble(valueStr);
-                        stats.put(statName.toLowerCase(), value);
-                        setupGUI();
-                    } catch (NumberFormatException ignored) {
-                    }
-                });
-            });
+            new ReforgeStatSelectorGUI(plugin, player, stats, this).open();
             return;
         }
 
         // Edit/Delete Stat
         if (slot >= 10 && slot <= 43 && clicked.getType() == Material.PAPER) {
-            String statName = ColorUtils.stripColor(clicked.getItemMeta().getDisplayName());
+            ItemMeta meta = clicked.getItemMeta();
+            if (meta == null || !meta.hasLore())
+                return;
+
+            // Extract original ID from lore (Line 0: "§7ID: §8ID_HERE")
+            String idLine = ColorUtils.stripColor(meta.getLore().get(0));
+            String statId = idLine.replace("ID: ", "").trim();
 
             if (event.isShiftClick() && event.isRightClick()) {
-                stats.remove(statName);
+                stats.remove(statId);
                 setupGUI();
             } else if (event.isLeftClick()) {
                 promptInput("reforge.editor.stat-editor.edit-value-prompt", (valueStr) -> {
                     try {
                         double value = Double.parseDouble(valueStr);
-                        stats.put(statName, value);
+                        stats.put(statId, value);
                         setupGUI();
                     } catch (NumberFormatException ignored) {
                     }

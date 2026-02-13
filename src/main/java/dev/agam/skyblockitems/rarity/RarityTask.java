@@ -22,7 +22,7 @@ public class RarityTask extends BukkitRunnable {
     @Override
     public void run() {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
-            processPlayerInventory(player);
+            rarityManager.processInventory(player);
         }
     }
 

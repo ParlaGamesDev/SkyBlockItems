@@ -75,10 +75,19 @@ public class SkyBlockItems extends JavaPlugin {
             this.chatInputManager = new ChatInputManager();
             this.enchantManager = new EnchantManager(this);
             this.customEnchantManager = new CustomEnchantManager(this);
-            this.abilityManager = new AbilityManager();
-            this.abilityManager.registerAbilities();
-            this.reforgeManager = new dev.agam.skyblockitems.reforge.ReforgeManager(this);
-            this.reforgeManager.loadConfig();
+            try {
+                this.abilityManager = new AbilityManager();
+                this.abilityManager.registerAbilities();
+            } catch (Throwable e) {
+                System.err.println("[SkyBlockItems] [ERROR] Failed to initialize AbilityManager: " + e.getMessage());
+            }
+
+            try {
+                this.reforgeManager = new dev.agam.skyblockitems.reforge.ReforgeManager(this);
+                this.reforgeManager.loadConfig();
+            } catch (Throwable e) {
+                System.err.println("[SkyBlockItems] [ERROR] Failed to initialize ReforgeManager: " + e.getMessage());
+            }
             System.out.println("[SkyBlockItems] [BOOT] Step 2/7 complete.");
 
             // 3. Plugin Integration

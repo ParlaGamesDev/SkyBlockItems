@@ -3,8 +3,9 @@ package dev.agam.skyblockitems.reforge;
 import dev.agam.skyblockitems.SkyBlockItems;
 import io.lumine.mythic.lib.api.item.ItemTag;
 import io.lumine.mythic.lib.api.item.NBTItem;
-import net.Indyuce.mmoitems.MMOItems;
-import net.Indyuce.mmoitems.api.item.mmoitem.MMOItem;
+import net.Indyuce.mmoitems.api.item.mmoitem.LiveMMOItem;
+import net.Indyuce.mmoitems.stat.data.DoubleData;
+import net.Indyuce.mmoitems.stat.type.ItemStat;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -12,7 +13,8 @@ import java.util.*;
 
 /**
  * Handles intelligent stat application to items.
- * Supports MMOItems stats and AuraSkills stat modifiers.
+ * Supports MMOItems stats and native Minecraft attributes.
+ * Refactored to use MMOItems' Data-Driven API (LiveMMOItem).
  */
 public class StatApplier {
 
@@ -22,25 +24,20 @@ public class StatApplier {
     private static final Set<String> COMBAT_STATS = Set.of(
             "mmoitems_attack_damage",
             "mmoitems_critical_strike_chance",
-            "mmoitems_critical_strike_power",
-            "auraskills_strength",
-            "auraskills_crit_chance",
-            "auraskills_crit_damage");
+            "mmoitems_critical_strike_power");
 
     // Tool stats - only for tools
     private static final Set<String> TOOL_STATS = Set.of(
             "mmoitems_mining_speed",
-            "mmoitems_block_power",
-            "auraskills_luck",
-            "auraskills_fortune");
+            "mmoitems_block_power");
 
     // Combat item types
     private static final Set<String> COMBAT_TYPES = Set.of(
-            "SWORD", "BOW", "CROSSBOW", "TRIDENT", "MACE");
+            "SWORD", "BOW", "CROSSBOW", "TRIDENT", "MACE", "DAGGER", "KATANA", "SCYTHE");
 
     // Tool item types
     private static final Set<String> TOOL_TYPES = Set.of(
-            "PICKAXE", "AXE", "SHOVEL", "HOE");
+            "PICKAXE", "AXE", "SHOVEL", "HOE", "FISHING_ROD", "DRILL");
 
     public StatApplier(SkyBlockItems plugin) {
         this.plugin = plugin;
@@ -48,154 +45,216 @@ public class StatApplier {
 
     /**
      * Applies stats from a reforge to an item.
-     * Uses smart lore display when stats already exist.
-     * 
-     * @param item     The item to apply stats to
-     * @param reforge  The reforge containing stats
-     * @param itemType The item type (for validation)
+     * Uses the Data-Driven MMOItems API when possible.
      */
     public void applyStats(ItemStack item, Reforge reforge, String itemType) {
-        if (item == null || reforge == null) {
+        if (item == null || reforge == null)
             return;
-        }
 
         Map<String, Double> stats = reforge.getStats();
-        if (stats.isEmpty()) {
+        if (stats.isEmpty())
             return;
-        }
 
+        if (dev.agam.skyblockitems.integration.MMOItemsStatIntegration.isMMOItem(item)) {
+            applyStatsToMMOItem(item, stats, itemType);
+        } else {
+            applyStatsManually(item, stats, itemType);
+        }
+    }
+
+    /**
+     * Data-Driven Approach for MMOItems.
+     */
+    private void applyStatsToMMOItem(ItemStack item, Map<String, Double> stats, String itemType) {
+        try {
+            LiveMMOItem mmoItem = new LiveMMOItem(item);
+            boolean modified = false;
+
+            for (Map.Entry<String, Double> entry : stats.entrySet()) {
+                String statKey = entry.getKey();
+                double value = entry.getValue();
+
+                if (!isStatValidForItemType(statKey, itemType))
+                    continue;
+
+                if (statKey.startsWith("mmoitems_")) {
+                    String cleanId = statKey.substring("mmoitems_".length());
+                    String mmoStatId = cleanId.toUpperCase().replace("-", "_");
+
+                    ItemStat stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats().get(mmoStatId);
+                    if (stat == null) {
+                        stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats()
+                                .get(cleanId.toUpperCase().replace("_", "-"));
+                    }
+
+                    if (stat != null && stat instanceof net.Indyuce.mmoitems.stat.type.DoubleStat) {
+                        double currentVal = 0;
+                        if (mmoItem.hasData(stat)) {
+                            currentVal = ((DoubleData) mmoItem.getData(stat)).getValue();
+                        }
+                        // Compatibility: Ensure mmoitem.setData is used correctly for DoubleStat types
+                        mmoItem.setData(stat, new DoubleData(currentVal + value));
+                        modified = true;
+                    }
+                }
+            }
+
+            if (modified) {
+                ItemStack rebuilt = mmoItem.newBuilder().buildSilently();
+                item.setItemMeta(rebuilt.getItemMeta());
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("[StatApplier] Failed to apply data-driven stats: " + e.getMessage());
+            applyStatsManually(item, stats, itemType);
+        }
+    }
+
+    /**
+     * Legacy/Vanilla item path.
+     */
+    private void applyStatsManually(ItemStack item, Map<String, Double> stats, String itemType) {
         NBTItem nbtItem = NBTItem.get(item);
+        boolean modified = false;
 
         for (Map.Entry<String, Double> entry : stats.entrySet()) {
             String statKey = entry.getKey();
-            double statValue = entry.getValue();
-
-            // Validate stat is appropriate for item type
-            if (!isStatValidForItemType(statKey, itemType)) {
-                plugin.getLogger().fine("Skipping stat " + statKey + " for item type " + itemType);
+            if (!isStatValidForItemType(statKey, itemType))
                 continue;
-            }
 
-            // Apply the stat based on its type
-            if (statKey.startsWith("mmoitems_")) {
-                applyMMOItemsStat(nbtItem, statKey, statValue);
-            } else if (statKey.startsWith("auraskills_")) {
-                applyAuraSkillsStat(nbtItem, statKey, statValue);
-            }
+            applyMMOItemsStatManually(nbtItem, statKey, entry.getValue());
+            modified = true;
         }
 
-        // Update the item with modified NBT
-        item.setItemMeta(nbtItem.toItem().getItemMeta());
-    }
-
-    /**
-     * Checks if a stat is valid for the given item type.
-     */
-    private boolean isStatValidForItemType(String stat, String itemType) {
-        // Universal stats are always valid
-        if (!COMBAT_STATS.contains(stat) && !TOOL_STATS.contains(stat)) {
-            return true;
-        }
-
-        // Combat stats only for combat items
-        if (COMBAT_STATS.contains(stat)) {
-            return COMBAT_TYPES.contains(itemType.toUpperCase());
-        }
-
-        // Tool stats only for tools
-        if (TOOL_STATS.contains(stat)) {
-            return TOOL_TYPES.contains(itemType.toUpperCase());
-        }
-
-        return true;
-    }
-
-    /**
-     * Applies an MMOItems stat.
-     */
-    private void applyMMOItemsStat(NBTItem nbtItem, String statKey, double value) {
-        // Remove "mmoitems_" prefix to get the actual stat name
-        String mmoStat = statKey.substring("mmoitems_".length()).toUpperCase().replace("_", "-");
-
-        try {
-            // Check if the item already has this stat
-            String nbtKey = "MMOITEMS_" + mmoStat;
-
-            if (nbtItem.hasTag(nbtKey)) {
-                // Stat exists - add to it
-                double currentValue = nbtItem.getDouble(nbtKey);
-                nbtItem.addTag(new ItemTag(nbtKey, currentValue + value));
-            } else {
-                // New stat - just set it
-                nbtItem.addTag(new ItemTag(nbtKey, value));
-            }
-
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to apply MMOItems stat: " + mmoStat + " - " + e.getMessage());
+        if (modified) {
+            item.setItemMeta(nbtItem.toItem().getItemMeta());
         }
     }
 
-    /**
-     * Applies an AuraSkills stat modifier.
-     */
-    private void applyAuraSkillsStat(NBTItem nbtItem, String statKey, double value) {
-        // Remove "auraskills_" prefix
-        String auraStat = statKey.substring("auraskills_".length());
-
-        try {
-            // AuraSkills uses attribute modifiers stored in NBT
-            // We'll use a custom NBT tag for reforge bonuses
-            String nbtKey = "REFORGE_" + auraStat.toUpperCase();
-
-            if (nbtItem.hasTag(nbtKey)) {
-                double currentValue = nbtItem.getDouble(nbtKey);
-                nbtItem.addTag(new ItemTag(nbtKey, currentValue + value));
-            } else {
-                nbtItem.addTag(new ItemTag(nbtKey, value));
-            }
-
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to apply AuraSkills stat: " + auraStat + " - " + e.getMessage());
-        }
+    private void applyMMOItemsStatManually(NBTItem nbtItem, String statKey, double value) {
+        String cleanId = statKey.substring("mmoitems_".length()).toUpperCase().replace("-", "_");
+        String nbtKey = "MMOITEMS_" + cleanId;
+        double current = nbtItem.getDouble(nbtKey);
+        nbtItem.addTag(new ItemTag(nbtKey, current + value));
     }
 
     /**
-     * Removes all reforge stats from an item.
-     * 
-     * @param item    The item to remove stats from
-     * @param reforge The reforge whose stats should be removed
+     * Removes stats from an item.
      */
     public void removeStats(ItemStack item, Reforge reforge) {
-        if (item == null || reforge == null) {
+        if (item == null || reforge == null)
             return;
+
+        if (dev.agam.skyblockitems.integration.MMOItemsStatIntegration.isMMOItem(item)) {
+            removeStatsFromMMOItem(item, reforge);
+        } else {
+            removeStatsManually(item, reforge.getStats());
         }
+    }
 
-        NBTItem nbtItem = NBTItem.get(item);
-        Map<String, Double> stats = reforge.getStats();
+    private void removeStatsFromMMOItem(ItemStack item, Reforge reforge) {
+        try {
+            LiveMMOItem mmoItem = new LiveMMOItem(item);
+            boolean modified = false;
 
-        for (String statKey : stats.keySet()) {
-            if (statKey.startsWith("mmoitems_")) {
-                String mmoStat = statKey.substring("mmoitems_".length()).toUpperCase().replace("_", "-");
-                String nbtKey = "MMOITEMS_" + mmoStat;
+            for (Map.Entry<String, Double> entry : reforge.getStats().entrySet()) {
+                String statKey = entry.getKey();
+                if (statKey.startsWith("mmoitems_")) {
+                    String cleanId = statKey.substring("mmoitems_".length());
+                    String mmoStatId = cleanId.toUpperCase().replace("-", "_");
 
-                if (nbtItem.hasTag(nbtKey)) {
-                    double currentValue = nbtItem.getDouble(nbtKey);
-                    double reforgeValue = stats.get(statKey);
-                    double newValue = currentValue - reforgeValue;
+                    ItemStat stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats().get(mmoStatId);
+                    if (stat == null) {
+                        stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats()
+                                .get(cleanId.toUpperCase().replace("_", "-"));
+                    }
 
-                    if (newValue <= 0) {
-                        nbtItem.removeTag(nbtKey);
-                    } else {
-                        nbtItem.addTag(new ItemTag(nbtKey, newValue));
+                    if (stat != null && mmoItem.hasData(stat)) {
+                        DoubleData current = (DoubleData) mmoItem.getData(stat);
+                        double newValue = current.getValue() - entry.getValue();
+                        if (newValue <= 0)
+                            mmoItem.removeData(stat);
+                        else {
+                            current.setValue(newValue);
+                            mmoItem.setData(stat, current);
+                        }
+                        modified = true;
                     }
                 }
-            } else if (statKey.startsWith("auraskills_")) {
-                String auraStat = statKey.substring("auraskills_".length());
-                String nbtKey = "REFORGE_" + auraStat.toUpperCase();
-                nbtItem.removeTag(nbtKey);
+            }
+
+            if (modified) {
+                ItemStack rebuilt = mmoItem.newBuilder().buildSilently();
+                item.setItemMeta(rebuilt.getItemMeta());
+            }
+        } catch (Exception e) {
+            removeStatsManually(item, reforge.getStats());
+        }
+    }
+
+    private void removeStatsManually(ItemStack item, Map<String, Double> stats) {
+        NBTItem nbtItem = NBTItem.get(item);
+        boolean modified = false;
+
+        for (Map.Entry<String, Double> entry : stats.entrySet()) {
+            String statKey = entry.getKey();
+            if (statKey.startsWith("mmoitems_")) {
+                String cleanId = statKey.substring("mmoitems_".length()).toUpperCase().replace("-", "_");
+                String nbtKey = "MMOITEMS_" + cleanId;
+                if (nbtItem.hasTag(nbtKey)) {
+                    double newValue = nbtItem.getDouble(nbtKey) - entry.getValue();
+                    if (newValue <= 0)
+                        nbtItem.removeTag(nbtKey);
+                    else
+                        nbtItem.addTag(new ItemTag(nbtKey, newValue));
+                    modified = true;
+                }
             }
         }
 
-        item.setItemMeta(nbtItem.toItem().getItemMeta());
+        if (modified) {
+            item.setItemMeta(nbtItem.toItem().getItemMeta());
+        }
+    }
+
+    /**
+     * Professional Subtraction: Removes stats listed in the "Receipt" map from a
+     * LiveMMOItem.
+     * 
+     * @param mmoItem The LiveMMOItem instance
+     * @param stats   The Map of <StatID, Value> to subtract
+     */
+    public void removeStatsFromReceipt(LiveMMOItem mmoItem, Map<String, Double> stats) {
+        if (mmoItem == null || stats == null || stats.isEmpty())
+            return;
+
+        for (Map.Entry<String, Double> entry : stats.entrySet()) {
+            String statId = entry.getKey();
+            double valueToSubtract = entry.getValue();
+
+            ItemStat stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats().get(statId);
+            if (stat != null && mmoItem.hasData(stat)) {
+                if (stat instanceof net.Indyuce.mmoitems.stat.type.DoubleStat) {
+                    DoubleData current = (DoubleData) mmoItem.getData(stat);
+                    double newValue = current.getValue() - valueToSubtract;
+
+                    if (newValue <= 0.0001) {
+                        mmoItem.removeData(stat);
+                    } else {
+                        // Compatibility: Ensure mmoitem.setData is used correctly for DoubleStat types
+                        mmoItem.setData(stat, new DoubleData(newValue));
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean isStatValidForItemType(String stat, String itemType) {
+        if (!COMBAT_STATS.contains(stat) && !TOOL_STATS.contains(stat))
+            return true;
+        if (COMBAT_STATS.contains(stat))
+            return COMBAT_TYPES.contains(itemType.toUpperCase());
+        if (TOOL_STATS.contains(stat))
+            return TOOL_TYPES.contains(itemType.toUpperCase());
+        return true;
     }
 }

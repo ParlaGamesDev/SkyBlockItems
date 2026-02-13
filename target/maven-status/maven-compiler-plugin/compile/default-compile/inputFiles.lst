@@ -73,6 +73,7 @@ C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockite
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\AbilityStat.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\MMOItemsAbilityListener.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\MMOItemsHook.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\MMOItemsStatIntegration.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\VaultHook.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\WorldGuardHook.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\listeners\InfiniteReservoirListener.java
@@ -81,10 +82,13 @@ C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockite
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\rarity\RarityListener.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\rarity\RarityManager.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\rarity\RarityTask.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\gui\ReforgeAbilitySelectorGUI.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\gui\ReforgeEditorGUI.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\gui\ReforgeEnchantSelectorGUI.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\gui\ReforgeGUI.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\gui\ReforgeListGUI.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\gui\ReforgeStatEditorGUI.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\gui\ReforgeStatSelectorGUI.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\Reforge.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\ReforgeApplier.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\reforge\ReforgeListener.java

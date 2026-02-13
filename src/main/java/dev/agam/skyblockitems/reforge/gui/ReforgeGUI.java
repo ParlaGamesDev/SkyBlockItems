@@ -13,10 +13,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * GUI for the reforge system.
@@ -25,6 +22,7 @@ import java.util.Map;
 public class ReforgeGUI {
 
     private static final Map<String, ReforgeGUI> activeGUIs = new HashMap<>();
+    private static final Map<UUID, Long> clickCooldowns = new HashMap<>();
 
     private final SkyBlockItems plugin;
     private final Player player;
@@ -171,13 +169,28 @@ public class ReforgeGUI {
             return;
         }
 
+        // Check for cooldown (1 second)
+        long now = System.currentTimeMillis();
+        long lastClick = clickCooldowns.getOrDefault(player.getUniqueId(), 0L);
+        if (now - lastClick < 1000) {
+            return; // Silent cancel to prevent spam
+        }
+        clickCooldowns.put(player.getUniqueId(), now);
+
         String itemType = getItemType(item);
-        String currentRarity = "COMMON"; // TODO: Get from RarityManager
+        String currentRarity = "COMMON";
+        if (plugin.getRarityManager() != null) {
+            dev.agam.skyblockitems.rarity.Rarity rarity = plugin.getRarityManager().getCurrentRarity(item);
+            if (rarity != null) {
+                currentRarity = rarity.getIdentifier();
+            }
+        }
 
         // Get applicable reforges
         ReforgeApplier applier = new ReforgeApplier(plugin);
         String currentReforgeId = applier.getCurrentReforge(item);
 
+        // Fixed Randomization: Ensure new reforge is different from current one
         Reforge newReforge = plugin.getReforgeManager().getRandomReforge(itemType, currentRarity, currentReforgeId);
 
         if (newReforge == null) {
@@ -221,6 +234,15 @@ public class ReforgeGUI {
      * Gets the item type from an ItemStack.
      */
     private String getItemType(ItemStack item) {
+        // 1. Check for MMOItems Type (Most accurate for custom items)
+        if (plugin.isMMOItemsEnabled()) {
+            String mmoType = dev.agam.skyblockitems.integration.MMOItemsStatIntegration.getMMOItemType(item);
+            if (mmoType != null && !mmoType.isEmpty()) {
+                return mmoType.toUpperCase();
+            }
+        }
+
+        // 2. Vanilla Fallback
         String materialName = item.getType().name();
 
         if (materialName.contains("SWORD"))

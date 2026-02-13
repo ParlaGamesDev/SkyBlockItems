@@ -1,6 +1,7 @@
 package dev.agam.skyblockitems.reforge;
 
 import dev.agam.skyblockitems.SkyBlockItems;
+import dev.agam.skyblockitems.enchantsystem.utils.ColorUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -39,38 +40,71 @@ public class ReforgeManager {
             plugin.saveResource("reforges.yml", false);
         }
 
-        reforgesConfig = YamlConfiguration.loadConfiguration(reforgesFile);
+        reforgesConfig = new YamlConfiguration();
+        try (java.io.BufferedReader reader = java.nio.file.Files.newBufferedReader(reforgesFile.toPath(),
+                java.nio.charset.StandardCharsets.UTF_8)) {
+            reforgesConfig.load(reader);
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to load reforges.yml with UTF-8 encoding!", e);
+        }
+
         loadReforges();
         loadMMOConfigs();
     }
 
+    /**
+     * Attempts to find and load MMOItems translation files.
+     */
     private void loadMMOConfigs() {
         if (!plugin.isMMOItemsEnabled())
             return;
         try {
-            java.io.File mmoFolder = org.bukkit.Bukkit.getPluginManager().getPlugin("MMOItems").getDataFolder();
+            java.io.File mmoFolder = new java.io.File(plugin.getDataFolder().getParentFile(), "MMOItems");
+            if (!mmoFolder.exists())
+                return;
+
             java.io.File languageFolder = new java.io.File(mmoFolder, "language");
 
-            // The user confirmed: MMOItems > language > stats.yml
-            java.io.File statsFile = new java.io.File(languageFolder, "stats.yml");
-            if (statsFile.exists()) {
-                this.mmoStatsConfig = YamlConfiguration.loadConfiguration(statsFile);
-                plugin.getLogger().info("Loaded MMOItems translations from language/stats.yml");
-            } else {
-                // Fallback to root or default language folders
-                statsFile = new java.io.File(mmoFolder, "stats.yml");
-                if (statsFile.exists()) {
-                    this.mmoStatsConfig = YamlConfiguration.loadConfiguration(statsFile);
-                    plugin.getLogger().info("Loaded MMOItems translations from stats.yml (root)");
+            // Prioritized list of files to search
+            java.util.List<java.io.File> possiblePaths = new java.util.ArrayList<>();
+
+            // 1. Root language folder (Highest Priority per user)
+            possiblePaths.add(new java.io.File(languageFolder, "stats.yml"));
+
+            // 2. Common language subfolders (Fallbacks)
+            String[] commonLangs = { "Hebrew", "hebrew", "HEBREW", "English", "english" };
+            for (String lang : commonLangs) {
+                possiblePaths.add(new java.io.File(languageFolder, lang + "/stats.yml"));
+            }
+
+            // 3. Root MMOItems folder (Extra Fallback)
+            possiblePaths.add(new java.io.File(mmoFolder, "stats.yml"));
+
+            // 4. Recursive scan (Search all subfolders for stats.yml)
+            if (languageFolder.exists() && languageFolder.isDirectory()) {
+                scanDirForStats(languageFolder, possiblePaths);
+            }
+
+            for (java.io.File statFile : possiblePaths) {
+                if (statFile.exists() && !statFile.isDirectory()) {
+                    this.mmoStatsConfig = YamlConfiguration.loadConfiguration(statFile);
+                    plugin.getLogger().info("[DEBUG] Loaded MMOItems stats from: " + statFile.getPath());
+                    break;
                 }
             }
 
-            // Check for additional translation files in the language folder if stats.yml
-            // didn't have everything
-            if (languageFolder.exists() && languageFolder.isDirectory()) {
-                java.io.File generalLangFile = new java.io.File(languageFolder, "language.yml");
-                if (generalLangFile.exists() && !generalLangFile.isDirectory()) {
-                    this.mmoLanguageConfig = YamlConfiguration.loadConfiguration(generalLangFile);
+            // Also load language.yml for general messages
+            java.io.File generalLangFile = new java.io.File(languageFolder, "language.yml");
+            if (generalLangFile.exists()) {
+                this.mmoLanguageConfig = YamlConfiguration.loadConfiguration(generalLangFile);
+            } else {
+                // Check in subfolders for language.yml as well
+                for (String lang : commonLangs) {
+                    java.io.File f = new java.io.File(languageFolder, lang + "/language.yml");
+                    if (f.exists()) {
+                        this.mmoLanguageConfig = YamlConfiguration.loadConfiguration(f);
+                        break;
+                    }
                 }
             }
 
@@ -79,61 +113,115 @@ public class ReforgeManager {
         }
     }
 
-    public String formatStatName(String raw) {
-        String searchId = raw.toUpperCase().replace("_", "-");
-        String lowerSearchId = searchId.toLowerCase();
-        String lowerRaw = raw.toLowerCase();
+    private void scanDirForStats(java.io.File dir, java.util.List<java.io.File> list) {
+        java.io.File[] files = dir.listFiles();
+        if (files == null)
+            return;
+        for (java.io.File f : files) {
+            if (f.isDirectory()) {
+                java.io.File stats = new java.io.File(f, "stats.yml");
+                if (stats.exists())
+                    list.add(stats);
+                scanDirForStats(f, list); // Recurse
+            }
+        }
+    }
 
-        // 1. Try direct reading from MMOItems stats.yml or language.yml
+    /**
+     * Formats a stat ID into its translated display name.
+     * Favors the MMOItems API for 100% accuracy.
+     */
+    public String formatStatName(String raw) {
+        if (raw == null || raw.isEmpty())
+            return raw;
+
+        String cleanId = raw.replace("mmoitems_", "");
+        String hyphenId = cleanId.toUpperCase().replace("_", "-");
+        String underscoreId = cleanId.toUpperCase().replace("-", "_");
+
+        // 1. Try Direct MMOItems API (Best performance and accuracy)
+        if (plugin.isMMOItemsEnabled()) {
+            try {
+                net.Indyuce.mmoitems.stat.type.ItemStat stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats()
+                        .get(hyphenId);
+                if (stat == null) {
+                    stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats().get(underscoreId);
+                }
+                if (stat != null) {
+                    return dev.agam.skyblockitems.enchantsystem.utils.ColorUtils.colorize(stat.getName());
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        // 2. Fallback to common mappings for GUI display
+        java.util.Map<String, String> commonMappings = new java.util.HashMap<>();
+        commonMappings.put("STRENGTH", "Strength");
+        commonMappings.put("CRIT_DAMAGE", "Crit Damage");
+        commonMappings.put("CRIT_CHANCE", "Crit Chance");
+        commonMappings.put("HEALTH", "Health");
+        commonMappings.put("DEFENSE", "Defense");
+        commonMappings.put("SPEED", "Speed");
+        commonMappings.put("INTELLIGENCE", "Intelligence");
+
+        if (commonMappings.containsKey(underscoreId)) {
+            return commonMappings.get(underscoreId);
+        }
+
+        // 3. Fallback to file-based scanning (legacy)
         FileConfiguration[] configs = { mmoStatsConfig, mmoLanguageConfig };
-        String[] keys = {
-                searchId + ".name",
-                lowerSearchId + ".name",
-                raw + ".name",
-                lowerRaw + ".name",
-                "stat." + raw + ".name",
-                "stat." + lowerRaw + ".name",
-                "stat." + searchId + ".name",
-                "stat." + lowerSearchId + ".name",
-                "stat-name." + searchId,
-                "stat-name." + lowerSearchId,
-                "stat-name." + raw,
-                "stat-name." + lowerRaw,
-                "stat-id." + searchId,
-                "stat-id." + raw,
-                "stat-name." + searchId.replace("-", "_"),
-                "stat-name." + searchId.replace("_", "-")
+        String[] searchKeys = {
+                hyphenId, underscoreId,
+                hyphenId + ".name", underscoreId + ".name",
+                "stat." + hyphenId + ".name", "stat." + underscoreId + ".name"
         };
 
         for (FileConfiguration cfg : configs) {
             if (cfg == null)
                 continue;
-            for (String key : keys) {
+            for (String key : searchKeys) {
                 String val = cfg.getString(key);
-                if (val != null && !val.isEmpty())
+                if (val != null && !val.isEmpty()) {
                     return dev.agam.skyblockitems.enchantsystem.utils.ColorUtils.colorize(val);
+                }
             }
         }
 
-        // 2. Fallback to API if available
-        if (plugin.isMMOItemsEnabled()) {
-            try {
-                net.Indyuce.mmoitems.stat.type.ItemStat stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats()
-                        .get(searchId);
-                if (stat == null)
-                    stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats().get(raw.toUpperCase());
-                if (stat != null)
-                    return dev.agam.skyblockitems.enchantsystem.utils.ColorUtils.colorize(stat.getName());
-            } catch (Exception ignored) {
-            }
-        }
-
-        // 3. Last fallback: Professional Title Case
-        String name = raw.replace("_", " ").replace("-", " ");
-        return Arrays.stream(name.split(" "))
-                .filter(w -> !w.isEmpty())
-                .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
+        // 4. Final fallback: Pretty name
+        return Arrays.stream(underscoreId.split("_"))
+                .map(s -> s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase())
                 .collect(Collectors.joining(" "));
+    }
+
+    /**
+     * Extracts a clean stat name from an MMOItems lore format string.
+     * E.g. "&7Attack Damage: &f<plus>{value}" -> "Attack Damage"
+     */
+    private String extractStatNameFromFormat(String format) {
+        if (format == null)
+            return null;
+
+        // Remove color codes (§ and &)
+        String stripped = format.replaceAll("[§&][0-9a-fA-Fk-orK-OR]", "");
+        // Remove hex color codes if present
+        stripped = stripped.replaceAll("&#[0-9a-fA-F]{6}", "");
+        stripped = stripped.replaceAll("<#[0-9a-fA-F]{6}>", "");
+
+        // If there's a colon, take everything before it (this is standard in MMOItems
+        // stats.yml)
+        if (stripped.contains(":")) {
+            return stripped.split(":")[0].trim();
+        }
+
+        // Otherwise, remove common MMOItems placeholders
+        String name = stripped
+                .replace("<plus>", "")
+                .replace("{value}", "")
+                .replace("#", "")
+                .replace("%", "")
+                .trim();
+
+        return name;
     }
 
     /**
@@ -178,7 +266,17 @@ public class ReforgeManager {
      * @return The Reforge object, or null if not found
      */
     public Reforge getReforge(String id) {
-        return reforges.get(id.toLowerCase());
+        if (id == null)
+            return null;
+
+        String cleanId = id.trim().toLowerCase();
+
+        // Alias handling for legacy Hebrew IDs or migration
+        if (cleanId.equals("אגדי")) {
+            return reforges.get("legendary_sword");
+        }
+
+        return reforges.get(cleanId);
     }
 
     /**
@@ -230,18 +328,29 @@ public class ReforgeManager {
     public Reforge getRandomReforge(String itemType, String currentRarity, String excludeReforgeId) {
         List<Reforge> applicable = getApplicableReforges(itemType, currentRarity);
 
-        // Relax rarity requirement or ignore it for randomness
-        // If we don't find enough applicable ones with strict rarity,
-        // fallback to all compatible ones for that item type
-        if (applicable.size() <= 1) {
-            applicable = getReforgesForItemType(itemType);
+        // Sharp Logic: Pool based excluded pool management
+        if (excludeReforgeId != null) {
+            String cleanExclude = excludeReforgeId.trim().toLowerCase();
+            List<Reforge> filtered = applicable.stream()
+                    .filter(r -> !r.getId().equalsIgnoreCase(cleanExclude))
+                    .collect(Collectors.toList());
+
+            // Only use filtered pool if it's not empty, otherwise fallback to full
+            // applicable pool
+            if (!filtered.isEmpty()) {
+                applicable = filtered;
+            }
         }
 
-        // Exclude the current reforge to ensure we get a different one
-        if (excludeReforgeId != null && applicable.size() > 1) {
-            applicable = applicable.stream()
-                    .filter(r -> !r.getId().equalsIgnoreCase(excludeReforgeId))
-                    .collect(Collectors.toList());
+        if (applicable.isEmpty()) {
+            // Fallback: If no reforges meet rarity req, try all for that item type
+            applicable = getReforgesForItemType(itemType);
+            if (excludeReforgeId != null) {
+                String cleanExclude = excludeReforgeId.trim().toLowerCase();
+                applicable = applicable.stream()
+                        .filter(r -> !r.getId().equalsIgnoreCase(cleanExclude))
+                        .collect(Collectors.toList());
+            }
         }
 
         if (applicable.isEmpty()) {
@@ -295,4 +404,50 @@ public class ReforgeManager {
         saveConfig();
         reload();
     }
+
+    /**
+     * Retrieves the symbol (icon) for a stat from MMOItems translation configs.
+     * 
+     * @param statIdRaw The raw stat ID
+     * @return The symbol, or "■" as fallback
+     */
+    public String getStatSymbol(String statIdRaw) {
+        if (mmoStatsConfig == null) {
+            // Hardcoded fallbacks for common SkyBlock stats if config is missing
+            String clean = statIdRaw.replace("mmoitems_", "").toUpperCase();
+            if (clean.contains("ATTACK_DAMAGE")) return "⚔";
+            if (clean.contains("HEALTH")) return "❤";
+            if (clean.contains("STRENGTH")) return "❁";
+            if (clean.contains("DEFENSE")) return "❈";
+            if (clean.contains("SPEED")) return "✦";
+            if (clean.contains("CRIT_CHANCE")) return "☣";
+            if (clean.contains("CRIT_DAMAGE")) return "☠";
+            if (clean.contains("INTELLIGENCE")) return "✎";
+            return "■";
+        }
+
+        String cleanId = statIdRaw.replace("mmoitems_", "").toUpperCase().replace("-", "_");
+        String hyphenId = cleanId.replace("_", "-");
+
+        // Try various keys in stats.yml
+        String[] keys = { hyphenId + ".symbol", cleanId + ".symbol", hyphenId + ".icon", cleanId + ".icon" };
+        for (String key : keys) {
+            String val = mmoStatsConfig.getString(key);
+            if (val != null && !val.isEmpty()) {
+                return val;
+            }
+        }
+
+        // Try extracting from name if it contains a weird character at the start
+        String name = formatStatName(statIdRaw);
+        if (name != null && name.length() > 2) {
+            String stripped = ColorUtils.stripColor(name).trim();
+            if (!stripped.isEmpty() && !Character.isLetterOrDigit(stripped.charAt(0))) {
+                return String.valueOf(stripped.charAt(0));
+            }
+        }
+
+        return "■";
+    }
 }
+

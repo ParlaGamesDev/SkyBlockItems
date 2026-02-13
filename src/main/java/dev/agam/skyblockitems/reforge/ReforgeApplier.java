@@ -7,549 +7,469 @@ import dev.agam.skyblockitems.rarity.Rarity;
 import dev.agam.skyblockitems.rarity.RarityManager;
 import io.lumine.mythic.lib.api.item.ItemTag;
 import io.lumine.mythic.lib.api.item.NBTItem;
+import net.Indyuce.mmoitems.ItemStats;
+import net.Indyuce.mmoitems.api.item.mmoitem.LiveMMOItem;
+import net.Indyuce.mmoitems.stat.data.AbilityData;
+import net.Indyuce.mmoitems.stat.data.AbilityListData;
+import net.Indyuce.mmoitems.stat.data.DoubleData;
+import net.Indyuce.mmoitems.stat.type.ItemStat;
+import io.lumine.mythic.lib.skill.handler.SkillHandler;
+import io.lumine.mythic.lib.skill.trigger.TriggerType;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * Handles the application and removal of reforges from items.
- * Manages item name changes, stat application, enchantments, abilities, and
- * rarity upgrades.
+ * Uses the MMOItems data-driven API: LiveMMOItem + StatData + build().
+ * Implements strict NBT tracking to ensuring only reforge-specific data is
+ * wiped.
  */
 public class ReforgeApplier {
 
     private static final String NBT_REFORGE_KEY = "skyblock.reforge";
+    private static final String NBT_ADDED_STATS = "skyblock.reforge.stats_map";
+    private static final String NBT_ADDED_ABILITIES = "skyblock_reforge_abilities"; // Using internal tag to track
+                                                                                    // reforge-added ones
     private static final String NBT_ORIGINAL_NAME_KEY = "skyblock.original_name";
     private static final Pattern COLOR_CODE_PATTERN = Pattern
             .compile("(&[0-9a-fk-or]|&#[0-9a-fA-F]{6}|<#[0-9a-fA-F]{6}>|<gradient:[^>]+>)");
 
     private final SkyBlockItems plugin;
     private final StatApplier statApplier;
-    private final NamespacedKey reforgeKey;
-    private final NamespacedKey originalNameKey;
 
     public ReforgeApplier(SkyBlockItems plugin) {
         this.plugin = plugin;
         this.statApplier = new StatApplier(plugin);
-        this.reforgeKey = new NamespacedKey(plugin, NBT_REFORGE_KEY);
-        this.originalNameKey = new NamespacedKey(plugin, NBT_ORIGINAL_NAME_KEY);
     }
 
     /**
-     * Applies a reforge to an item.
-     * 
-     * @param item     The item to reforge
-     * @param reforge  The reforge to apply
-     * @param itemType The type of item (for validation)
-     * @return true if the reforge was successfully applied
+     * Applies a reforge to an item using the MMOItems data-driven API.
      */
     public boolean applyReforge(ItemStack item, Reforge reforge, String itemType) {
         if (item == null || reforge == null || !item.hasItemMeta()) {
             return false;
         }
 
-        // Remove existing reforge if present
-        String currentReforge = getCurrentReforge(item);
-        if (currentReforge != null) {
-            Reforge oldReforge = plugin.getReforgeManager().getReforge(currentReforge);
-            if (oldReforge != null) {
-                removeReforge(item, oldReforge);
+        boolean isMMO = dev.agam.skyblockitems.integration.MMOItemsStatIntegration.isMMOItem(item);
+
+        // 1. Prepare NBT Data (Original Name)
+        NBTItem preNbt = NBTItem.get(item);
+        String originalName = "";
+        if (preNbt.hasTag(NBT_ORIGINAL_NAME_KEY)) {
+            originalName = preNbt.getString(NBT_ORIGINAL_NAME_KEY);
+        } else {
+            ItemMeta meta = item.getItemMeta();
+            originalName = meta.hasDisplayName() ? meta.getDisplayName() : "";
+            preNbt.addTag(new ItemTag(NBT_ORIGINAL_NAME_KEY, originalName));
+            item.setItemMeta(preNbt.toItem().getItemMeta());
+        }
+
+        // 2. Apply the New Reforge (Master Sequence inside)
+        if (isMMO && org.bukkit.Bukkit.getPluginManager().isPluginEnabled("MMOItems")) {
+            applyReforgeMMOItems(item, reforge, originalName);
+        } else {
+            // Legacy/Non-MMO path
+            if (hasReforge(item)) {
+                removeReforgeLegacy(item, null);
             }
+            applyReforgeLegacy(item, reforge, itemType);
+            upgradeRarity(item, reforge);
+            applyEnchantmentsLegacy(item, reforge);
         }
-
-        ItemMeta meta = item.getItemMeta();
-
-        // Store original name in NBT if not already present
-        PersistentDataContainer container = meta.getPersistentDataContainer();
-        if (!container.has(originalNameKey, PersistentDataType.STRING)) {
-            String originalName = meta.hasDisplayName() ? meta.getDisplayName() : "";
-            container.set(originalNameKey, PersistentDataType.STRING, originalName);
-        }
-
-        // Store reforge ID in PersistentDataContainer
-        container.set(reforgeKey, PersistentDataType.STRING, reforge.getId());
-
-        // Apply item name change with reforge prefix
-        updateItemName(meta, reforge);
-
-        // Apply item meta first (needed for NBT operations)
-        item.setItemMeta(meta);
-
-        // Apply stats
-        statApplier.applyStats(item, reforge, itemType);
-
-        // Apply enchantments
-        applyEnchantments(item, reforge);
-
-        // Apply abilities
-        applyAbilities(item, reforge);
-
-        // Handle rarity upgrade
-        upgradeRarity(item, reforge);
-
-        // Final lore update to show reforge effects
-        updateItemLore(item, reforge);
 
         return true;
     }
 
     /**
-     * Removes a reforge from an item.
-     * 
-     * @param item    The item to remove reforge from
-     * @param reforge The reforge to remove
+     * Data-Driven approach: Uses LiveMMOItem to inject stats, then rebuilds.
+     * STRICTER MERGE LOGIC implemented.
      */
-    public void removeReforge(ItemStack item, Reforge reforge) {
-        if (item == null || !item.hasItemMeta()) {
-            return;
-        }
+    private void applyReforgeMMOItems(ItemStack item, Reforge reforge, String savedOriginalName) {
+        try {
+            LiveMMOItem mmoItem = new LiveMMOItem(item);
+            NBTItem nbt = NBTItem.get(item);
 
-        ItemMeta meta = item.getItemMeta();
-
-        // Remove reforge ID from PersistentDataContainer
-        PersistentDataContainer container = meta.getPersistentDataContainer();
-        container.remove(reforgeKey);
-
-        // Restore original item name from NBT
-        restoreItemName(meta, reforge);
-
-        // Remove reforge lore
-        removeReforgeLore(meta);
-
-        item.setItemMeta(meta);
-
-        // Remove stats
-        statApplier.removeStats(item, reforge);
-
-        // Note: We don't remove enchantments/abilities as they may come from other
-        // sources
-    }
-
-    /**
-     * Gets the current reforge ID from an item.
-     * 
-     * @param item The item to check
-     * @return The reforge ID, or null if no reforge
-     */
-    public String getCurrentReforge(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) {
-            return null;
-        }
-
-        ItemMeta meta = item.getItemMeta();
-        PersistentDataContainer container = meta.getPersistentDataContainer();
-        return container.get(reforgeKey, PersistentDataType.STRING);
-    }
-
-    /**
-     * Checks if an item has a reforge.
-     * 
-     * @param item The item to check
-     * @return true if the item has a reforge
-     */
-    public boolean hasReforge(ItemStack item) {
-        return getCurrentReforge(item) != null;
-    }
-
-    /**
-     * Updates the item name to include the reforge prefix.
-     * Preserves the original color codes.
-     */
-    private void updateItemName(ItemMeta meta, Reforge reforge) {
-        String originalName = meta.hasDisplayName() ? meta.getDisplayName() : "";
-
-        // If the item already has a reforge in the name, remove it first
-        String cleanedName = removeReforgePrefix(originalName);
-
-        // Extract original color codes
-        String originalColors = extractLeadingColors(cleanedName);
-
-        // Remove leading colors from the cleaned name
-        String nameWithoutColors = cleanedName.replaceFirst("^(" + COLOR_CODE_PATTERN.pattern() + ")+", "");
-
-        // Build new name: [Reforge Color][Reforge Name] [Original Colors][Original
-        // Name]
-        String newName;
-        if (nameWithoutColors.isEmpty()) {
-            newName = reforge.getDisplayName();
-        } else {
-            newName = reforge.getDisplayName() + " " + originalColors + nameWithoutColors;
-        }
-
-        meta.setDisplayName(ColorUtils.colorize(newName));
-    }
-
-    /**
-     * Updates the item's lore to display reforge stats.
-     */
-    private void updateItemLore(ItemStack item, Reforge reforge) {
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null)
-            return;
-
-        // Clean up old reforge lore first
-        removeReforgeLore(meta);
-
-        List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
-
-        // Find the index of the rarity line to insert above it
-        int insertIndex = -1;
-        RarityManager rarityManager = plugin.getRarityManager();
-        List<String> rarityNames = new ArrayList<>();
-        if (rarityManager != null) {
-            for (Rarity r : rarityManager.getAllRarities()) {
-                rarityNames.add(ColorUtils.stripColor(ColorUtils.colorize(r.getDisplayName())).toUpperCase().trim());
-                rarityNames.add(r.getIdentifier().toUpperCase().trim());
+            // 1. SUBTRACT (The Purge)
+            // Use skyblock.reforge.stats_map to remembered what was added last and subtract
+            // from the base item
+            if (nbt.hasTag(NBT_ADDED_STATS)) {
+                Map<String, Double> receipt = deserializeStats(nbt.getString(NBT_ADDED_STATS));
+                statApplier.removeStatsFromReceipt(mmoItem, receipt);
             }
-        }
 
-        for (int i = 0; i < lore.size(); i++) {
-            String line = ColorUtils.stripColor(lore.get(i)).toUpperCase().trim();
-            if (line.isEmpty())
-                continue;
-
-            // Check against registered rarity names or common defaults
-            boolean isRarityLine = rarityNames.contains(line) ||
-                    line.equals("COMMON") || line.equals("UNCOMMON") || line.equals("RARE") ||
-                    line.equals("EPIC") || line.equals("LEGENDARY") || line.equals("MYTHIC");
-
-            if (isRarityLine) {
-                insertIndex = i;
-                break;
-            }
-        }
-
-        // If no rarity line found, append to end
-        if (insertIndex == -1) {
-            insertIndex = lore.size();
-        } else {
-            // Check if there is an empty line before rarity and move before it
-            if (insertIndex > 0 && ColorUtils.stripColor(lore.get(insertIndex - 1)).trim().isEmpty()) {
-                insertIndex--;
-            }
-        }
-
-        List<String> reforgeLore = new ArrayList<>();
-
-        // Add reforge stats to lore in Hypixel style: §7StatName: §a+Value
-        if (!reforge.getStats().isEmpty()) {
-            boolean firstStat = true;
-            for (Map.Entry<String, Double> entry : reforge.getStats().entrySet()) {
-                String rawName = entry.getKey().replace("mmoitems_", "").replace("auraskills_", "");
-                String statName = formatStatName(rawName);
-                String value = (entry.getValue() > 0 ? "+" : "") + formatValue(entry.getValue());
-
-                // Only add an empty line before the FIRST stat if we are inserting into
-                // existing lore
-                if (firstStat && insertIndex > 0 && !lore.isEmpty()) {
-                    reforgeLore.add("");
-                    firstStat = false;
+            // Clean up previous reforge abilities from AbilityListData (if any were added
+            // natively)
+            if (nbt.hasTag(NBT_ADDED_ABILITIES)) {
+                Set<String> prevAbilities = new HashSet<>(Arrays.asList(nbt.getString(NBT_ADDED_ABILITIES).split(",")));
+                if (mmoItem.hasData(ItemStats.ABILITIES)) {
+                    AbilityListData abilityList = (AbilityListData) mmoItem.getData(ItemStats.ABILITIES);
+                    abilityList.getAbilities()
+                            .removeIf(ad -> prevAbilities.contains(ad.getHandler().getId().toUpperCase()));
+                    mmoItem.setData(ItemStats.ABILITIES, abilityList);
                 }
-
-                // If statName already has color (from MMOItems API), we don't force §7
-                String colorPrefix = (statName.contains("§") || statName.contains("&")) ? "" : "§7";
-                reforgeLore.add(ColorUtils.colorize(colorPrefix + statName + ": §a" + value));
             }
-        }
 
-        // Add abilities to lore
-        if (!reforge.getAbilities().isEmpty()) {
+            // Apply NEW stats to LiveMMOItem
+            Map<String, Double> addedStats = new HashMap<>();
+            for (Map.Entry<String, Double> entry : reforge.getStats().entrySet()) {
+                String cleanId = entry.getKey().replace("mmoitems_", "");
+                String mmoStatId = cleanId.toUpperCase().replace("-", "_");
+                ItemStat<?, ?> stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats().get(mmoStatId);
+                if (stat == null) {
+                    stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats().get(cleanId.toUpperCase().replace("_", "-"));
+                }
+                if (stat != null && stat instanceof net.Indyuce.mmoitems.stat.type.DoubleStat) {
+                    double current = mmoItem.hasData(stat) ? ((DoubleData) mmoItem.getData(stat)).getValue() : 0;
+                    mmoItem.setData((ItemStat) stat, new DoubleData(current + entry.getValue()));
+                    addedStats.put(stat.getId(), entry.getValue());
+                }
+            }
+
+            // Functional Abilities
             for (String abilityId : reforge.getAbilities()) {
-                SkyBlockAbility ability = plugin.getAbilityManager().getAbility(abilityId);
-                if (ability != null) {
-                    reforgeLore.add("");
-                    reforgeLore.add(ColorUtils.colorize("§6Reforge Ability: " + ability.getDisplayName()));
-                    if (ability.getDescription() != null) {
-                        for (String desc : ability.getDescription()) {
-                            String processed = desc;
-                            // Replace placeholders with default values from the ability
-                            processed = processed.replace("{mana}", String.valueOf((int) ability.getDefaultManaCost()));
-                            processed = processed.replace("{cooldown}", formatValue(ability.getDefaultCooldown()));
-                            processed = processed.replace("{damage}", formatValue(ability.getDefaultDamage()));
-                            processed = processed.replace("{range}", formatValue(ability.getDefaultRange()));
-                            processed = processed.replace("{radius}", formatValue(ability.getDefaultRange()));
-                            processed = processed.replace("{duration}", formatValue(ability.getDefaultDuration()));
-                            processed = processed.replace("{amplifier}", formatValue(ability.getDefaultPower()));
-                            processed = processed.replace("{power}", formatValue(ability.getDefaultPower()));
+                String cleanId = abilityId.toUpperCase();
+                SkillHandler<?> handler = io.lumine.mythic.lib.MythicLib.plugin.getSkills().getHandler(cleanId);
+                if (handler != null) {
+                    AbilityListData list = mmoItem.hasData(ItemStats.ABILITIES)
+                            ? (AbilityListData) mmoItem.getData(ItemStats.ABILITIES)
+                            : new AbilityListData();
+                    list.add(new AbilityData(handler, TriggerType.RIGHT_CLICK));
+                    mmoItem.setData(ItemStats.ABILITIES, list);
+                }
+            }
 
-                            reforgeLore.add(ColorUtils.colorize("§7" + processed));
+            // 2. BUILD (The Pivot point)
+            // Call build() FIRST. MMOItems generates its own lore here.
+            ItemStack builtItem = mmoItem.newBuilder().build();
+            ItemMeta meta = builtItem.getItemMeta();
+            if (meta == null)
+                return;
+
+            // Get a mutable list of the build-generated lore
+            List<String> modifiedLore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
+
+            // 3. INJECT (The Injections)
+            // a) Restore name: [Reforge] [OriginalColors][OriginalName]
+            updateItemName(meta, reforge, savedOriginalName);
+
+            // b) Manual (+X) annotations injection into modifiedLore
+            applyManualBonusAnnotations(modifiedLore, reforge);
+
+            // c) Manual Ability injection (Name & Description from abilities.yml)
+            injectManualAbilityLore(modifiedLore, reforge);
+
+            // 4. FINAL GUARD
+            // The absolute final step for lore and meta
+            meta.setLore(modifiedLore);
+            builtItem.setItemMeta(meta);
+
+            // 5. NBT STAMPING (Post-injection)
+            NBTItem finalNbt = NBTItem.get(builtItem);
+            finalNbt.addTag(new ItemTag(NBT_REFORGE_KEY, reforge.getId()));
+            finalNbt.addTag(new ItemTag(NBT_ADDED_STATS, serializeStats(addedStats)));
+            finalNbt.addTag(new ItemTag(NBT_ADDED_ABILITIES, String.join(",", reforge.getAbilities())));
+            finalNbt.addTag(new ItemTag(NBT_ORIGINAL_NAME_KEY, savedOriginalName));
+
+            // Final Sync & Rarity/Enchants
+            ItemStack finalItem = finalNbt.toItem();
+            ItemMeta finalMeta = finalItem.getItemMeta();
+
+            // Rarity Upgrades
+            String upgrade = reforge.getRarityUpgrade();
+            if (upgrade != null && !upgrade.equalsIgnoreCase("NONE")) {
+                Rarity r = plugin.getRarityManager().getRarity(upgrade);
+                if (r != null) {
+                    plugin.getRarityManager().saveMapping(finalItem, upgrade, false);
+                    finalItem = plugin.getRarityManager().applyRarity(finalItem, r, true);
+                    finalMeta = finalItem.getItemMeta();
+                }
+            }
+
+            // Enchantments
+            for (String s : reforge.getEnchants()) {
+                try {
+                    String[] split = s.split(":");
+                    Enchantment e = Enchantment.getByName(split[0].toUpperCase());
+                    if (e == null)
+                        e = Enchantment.getByKey(NamespacedKey.minecraft(split[0].toLowerCase()));
+                    if (e != null)
+                        finalMeta.addEnchant(e, Integer.parseInt(split[1]), true);
+                } catch (Exception ignored) {
+                }
+            }
+            finalItem.setItemMeta(finalMeta);
+
+            // UPDATE ORIGINAL ITEM
+            item.setType(finalItem.getType());
+            item.setItemMeta(finalItem.getItemMeta());
+
+            plugin.getLogger()
+                    .info("[SkyBlock Reforge] Applied " + reforge.getId() + " - Manual Injection Master Sequence.");
+
+        } catch (Throwable e) {
+            plugin.getLogger().severe("[SkyBlock Reforge] Master Sequence Fail: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void resetMMOItem(ItemStack item) {
+        try {
+            NBTItem nbt = NBTItem.get(item);
+            if (!nbt.hasTag(NBT_ADDED_STATS) && !nbt.hasTag(NBT_ADDED_ABILITIES))
+                return;
+
+            LiveMMOItem mmoItem = new LiveMMOItem(item);
+
+            // 1. Remove Tracked Stats (Safe Subtraction)
+            if (nbt.hasTag(NBT_ADDED_STATS)) {
+                Map<String, Double> trackedStats = deserializeStats(nbt.getString(NBT_ADDED_STATS));
+                for (Map.Entry<String, Double> entry : trackedStats.entrySet()) {
+                    String statId = entry.getKey();
+                    double addedValue = entry.getValue();
+
+                    ItemStat stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats().get(statId);
+                    if (stat != null && mmoItem.hasData(stat)) {
+                        if (stat instanceof net.Indyuce.mmoitems.stat.type.DoubleStat) {
+                            DoubleData current = (DoubleData) mmoItem.getData(stat);
+                            // Prevent negative or zero if it was exactly that (floating point safe)
+                            double newValue = current.getValue() - addedValue;
+
+                            if (newValue <= 0.0001) {
+                                mmoItem.removeData(stat);
+                            } else {
+                                // Compatibility: Ensure mmoitem.setData is used correctly for DoubleStat types
+                                mmoItem.setData(stat, new DoubleData(newValue));
+                            }
                         }
                     }
                 }
             }
-        }
 
-        // Add one empty line after reforge section if not at the very end
-        if (!reforgeLore.isEmpty() && insertIndex < lore.size()) {
-            reforgeLore.add("");
-        }
+            // 2. Remove Tracked Abilities
+            if (nbt.hasTag(NBT_ADDED_ABILITIES) && mmoItem.hasData(ItemStats.ABILITIES)) {
+                String abilitiesStr = nbt.getString(NBT_ADDED_ABILITIES);
+                if (!abilitiesStr.isEmpty()) {
+                    Set<String> toRemove = Arrays.stream(abilitiesStr.split(",")).collect(Collectors.toSet());
+                    AbilityListData abilityList = (AbilityListData) mmoItem.getData(ItemStats.ABILITIES);
 
-        // Insert at the calculated index
-        lore.addAll(insertIndex, reforgeLore);
+                    // We must filter cleanly
+                    AbilityListData cleanedList = new AbilityListData();
+                    for (AbilityData ad : abilityList.getAbilities()) {
+                        if (!toRemove.contains(ad.getHandler().getId().toUpperCase())) {
+                            cleanedList.add(ad);
+                        }
+                    }
 
-        meta.setLore(lore);
-        item.setItemMeta(meta);
-    }
-
-    /**
-     * Restores the original item name by removing the reforge prefix.
-     */
-    private void restoreItemName(ItemMeta meta, Reforge reforge) {
-        PersistentDataContainer container = meta.getPersistentDataContainer();
-        if (container.has(originalNameKey, PersistentDataType.STRING)) {
-            String originalName = container.get(originalNameKey, PersistentDataType.STRING);
-            if (originalName == null || originalName.isEmpty()) {
-                meta.setDisplayName(null);
-            } else {
-                meta.setDisplayName(originalName);
+                    if (cleanedList.getAbilities().isEmpty()) {
+                        mmoItem.removeData(ItemStats.ABILITIES);
+                    } else {
+                        mmoItem.setData(ItemStats.ABILITIES, cleanedList);
+                    }
+                }
             }
+
+            // 3. Rebuild to clean lore/NBT
+            ItemStack cleaned = mmoItem.newBuilder().build();
+
+            // 4. Clean Reforge Tags
+            NBTItem finalNbt = NBTItem.get(cleaned);
+            finalNbt.removeTag(NBT_REFORGE_KEY);
+            finalNbt.removeTag(NBT_ADDED_STATS);
+            finalNbt.removeTag(NBT_ADDED_ABILITIES);
+
+            item.setType(cleaned.getType());
+            item.setItemMeta(finalNbt.toItem().getItemMeta());
+
+        } catch (Exception e) {
+            plugin.getLogger().warning("[Reforge] Reset failed: " + e.getMessage());
         }
     }
 
-    /**
-     * Removes any reforge prefix from a name.
-     */
-    private String removeReforgePrefix(String name) {
-        // Try to find and remove any reforge name prefix
-        // Assumes reforge names are one word followed by a space
-        String stripped = ColorUtils.stripColor(ColorUtils.colorize(name));
-
-        // If stripped name has at least 2 words, assume first is reforge
-        String[] parts = stripped.split(" ", 2);
-        if (parts.length >= 2) {
-            // Extract everything after the first word in the original colored name
-            int firstSpaceIndex = name.indexOf(" ");
-            if (firstSpaceIndex > 0 && firstSpaceIndex < name.length() - 1) {
-                return name.substring(firstSpaceIndex + 1);
-            }
+    private void updateItemName(ItemMeta meta, Reforge reforge, String originalName) {
+        if (originalName == null || originalName.isEmpty()) {
+            meta.setDisplayName(ColorUtils.colorize(reforge.getDisplayName()));
+            return;
         }
-
-        return name;
-    }
-
-    /**
-     * Extracts leading color codes from a string.
-     */
-    private String extractLeadingColors(String text) {
-        StringBuilder colors = new StringBuilder();
-        Matcher matcher = COLOR_CODE_PATTERN.matcher(text);
-
+        // Extract leading color codes (e.g. &a&l)
+        StringBuilder sb = new StringBuilder();
+        // Simple regex to grab all color/format codes at start
+        Matcher matcher = COLOR_CODE_PATTERN.matcher(originalName);
         int lastEnd = 0;
         while (matcher.find()) {
-            // Only collect consecutive color codes from the start
             if (matcher.start() == lastEnd) {
-                colors.append(matcher.group());
+                sb.append(matcher.group());
                 lastEnd = matcher.end();
-            } else {
+            } else
                 break;
+        }
+        // If no color found, default to &f (White) per request or keep it raw?
+        // User said: "Recover the original name's color codes."
+        String colors = sb.toString();
+        if (colors.isEmpty())
+            colors = "&f"; // Ensure not white-washed by Reforge Prefix
+
+        String cleanName = originalName.substring(lastEnd);
+        // [Reforge] [OriginalColors][OriginalName]
+        String finalName = reforge.getDisplayName() + " " + colors + cleanName;
+        meta.setDisplayName(ColorUtils.colorize(finalName));
+    }
+
+    private void applyManualBonusAnnotations(List<String> lore, Reforge reforge) {
+        // Map of display name components -> (StatID, bonus value)
+        Map<String, Map.Entry<String, Double>> bonuses = new HashMap<>();
+        for (Map.Entry<String, Double> entry : reforge.getStats().entrySet()) {
+            String statId = entry.getKey().replace("mmoitems_", "").toUpperCase().replace("-", "_");
+            String displayName = getStatDisplayName(statId);
+            if (displayName != null) {
+                bonuses.put(ColorUtils.stripColor(displayName).trim(),
+                        new AbstractMap.SimpleEntry<>(statId, entry.getValue()));
             }
         }
 
-        return colors.toString();
-    }
-
-    /**
-     * Applies enchantments from the reforge.
-     */
-    private void applyEnchantments(ItemStack item, Reforge reforge) {
-        for (String enchantString : reforge.getEnchants()) {
-            try {
-                String[] parts = enchantString.split(":");
-                if (parts.length != 2) {
-                    plugin.getLogger()
-                            .warning("Invalid enchant format in reforge " + reforge.getId() + ": " + enchantString);
-                    continue;
-                }
-
-                String enchantName = parts[0].toUpperCase();
-                int level = Integer.parseInt(parts[1]);
-
-                Enchantment enchant = Enchantment.getByName(enchantName);
-                if (enchant == null) {
-                    // Try to get it as a key
-                    enchant = Enchantment.getByKey(org.bukkit.NamespacedKey.minecraft(enchantName.toLowerCase()));
-                }
-
-                if (enchant != null) {
-                    item.addUnsafeEnchantment(enchant, level);
-                } else {
-                    plugin.getLogger()
-                            .warning("Unknown enchantment in reforge " + reforge.getId() + ": " + enchantName);
-                }
-
-            } catch (Exception e) {
-                plugin.getLogger().warning("Error applying enchantment from reforge " + reforge.getId() + ": "
-                        + enchantString + " - " + e.getMessage());
-            }
-        }
-    }
-
-    /**
-     * Applies abilities from the reforge by adding them to the item's NBT.
-     */
-    private void applyAbilities(ItemStack item, Reforge reforge) {
-        NBTItem nbtItem = NBTItem.get(item);
-
-        for (String abilityId : reforge.getAbilities()) {
-            SkyBlockAbility ability = plugin.getAbilityManager().getAbility(abilityId);
-            if (ability == null) {
-                plugin.getLogger().warning("Unknown ability in reforge " + reforge.getId() + ": " + abilityId);
-                continue;
-            }
-
-            // Add ability to the item using NBT
-            // This follows the same pattern as the existing ability system
-            nbtItem.addTag(new ItemTag("ABILITY_" + abilityId.toUpperCase(), abilityId));
-        }
-
-        item.setItemMeta(nbtItem.toItem().getItemMeta());
-    }
-
-    /**
-     * Upgrades the item's rarity if the reforge provides a higher rarity.
-     */
-    private void upgradeRarity(ItemStack item, Reforge reforge) {
-        RarityManager rarityManager = plugin.getRarityManager();
-        if (rarityManager == null) {
-            return;
-        }
-
-        // Get current rarity
-        Rarity currentRarity = rarityManager.getCurrentRarity(item);
-        String currentRarityId = (currentRarity != null) ? currentRarity.getIdentifier() : "COMMON";
-
-        // Get reforge rarity
-        Rarity reforgeRarity = rarityManager.getRarity(reforge.getRarityUpgrade());
-        if (reforgeRarity == null) {
-            return;
-        }
-
-        // Only upgrade if reforge rarity is higher
-        int currentWeight = getRarityWeight(currentRarityId);
-        int reforgeWeight = getRarityWeight(reforge.getRarityUpgrade());
-
-        if (reforgeWeight > currentWeight) {
-            rarityManager.applyRarity(item, reforgeRarity, false);
-        }
-    }
-
-    /**
-     * Gets the weight of a rarity for comparison.
-     */
-    private int getRarityWeight(String rarity) {
-        return switch (rarity.toUpperCase()) {
-            case "COMMON" -> 1;
-            case "UNCOMMON" -> 2;
-            case "RARE" -> 3;
-            case "EPIC" -> 4;
-            case "LEGENDARY" -> 5;
-            case "MYTHIC" -> 6;
-            default -> 1;
-        };
-    }
-
-    /**
-     * Removes reforge-related lines from the item's lore.
-     */
-    private void removeReforgeLore(ItemMeta meta) {
-        if (!meta.hasLore())
-            return;
-
-        List<String> lore = meta.getLore();
-        if (lore == null || lore.isEmpty())
-            return;
-
-        // Remove lines that look like reforge stats or abilities
-        // We look for patterns like "§7StatName: §a+Value" or "§6Reforge Ability:"
-        List<String> newLore = new ArrayList<>();
-        boolean inAbilitySection = false;
-
+        // Loop through each line of lore already built by MMOItems
         for (int i = 0; i < lore.size(); i++) {
             String line = lore.get(i);
             String stripped = ColorUtils.stripColor(line);
 
-            if (line.contains("§6Reforge Ability:")) {
-                inAbilitySection = true;
-                continue;
-            }
+            for (Map.Entry<String, Map.Entry<String, Double>> bonusEntry : bonuses.entrySet()) {
+                String statName = bonusEntry.getKey();
 
-            if (inAbilitySection) {
-                if (line.startsWith("§7")) {
-                    // This is an ability description line
-                    continue;
-                } else {
-                    inAbilitySection = false;
+                // if (line.contains(statDisplayName))
+                if (stripped.contains(statName)) {
+                    // Prevent double annotation
+                    if (stripped.contains("(+"))
+                        continue;
+
+                    String statId = bonusEntry.getValue().getKey();
+                    double val = bonusEntry.getValue().getValue();
+                    String strVal = (val % 1 == 0) ? String.valueOf((long) val) : String.valueOf(val);
+
+                    // Pull symbol
+                    String symbol = plugin.getReforgeManager().getStatSymbol(statId);
+                    String color = val >= 0 ? "§a" : "§c";
+                    String prefix = val >= 0 ? "+" : "";
+
+                    // Update the line: lore.set(i, line + " §a(" + symbol + " +" + value + ")");
+                    String annotation = " " + color + "(" + symbol + prefix + strVal + ")";
+                    lore.set(i, line + annotation);
+                    break;
                 }
             }
-
-            // Check if it's a stat line: §7[Stat]: §a[Value]
-            // We use a more flexible check for stats that might include icons/colors
-            if (line.contains(": §a+")) {
-                continue;
-            }
-
-            newLore.add(line);
         }
+    }
 
-        // Clean up double empty lines and spaces before rarity
-        List<String> cleanedLore = new ArrayList<>();
-        boolean lastWasEmpty = false;
-        for (int i = 0; i < newLore.size(); i++) {
-            String line = newLore.get(i);
-            boolean currentIsEmpty = ColorUtils.stripColor(line).trim().isEmpty();
+    private void injectManualAbilityLore(List<String> lore, Reforge reforge) {
+        List<String> abilityIds = reforge.getAbilities();
+        if (abilityIds == null || abilityIds.isEmpty())
+            return;
 
-            if (currentIsEmpty) {
-                if (lastWasEmpty)
-                    continue; // No double empty lines
+        // Gap
+        if (!lore.isEmpty())
+            lore.add("");
 
-                // If it's an empty line, don't add it if it's the LAST line or followed by
-                // rarity
-                if (i + 1 < newLore.size()) {
-                    String nextLine = ColorUtils.stripColor(newLore.get(i + 1)).toUpperCase().trim();
-                    boolean isRarity = nextLine.equals("COMMON") || nextLine.equals("UNCOMMON") ||
-                            nextLine.equals("RARE") || nextLine.equals("EPIC") ||
-                            nextLine.equals("LEGENDARY") || nextLine.equals("MYTHIC");
-                    if (!isRarity) {
-                        cleanedLore.add(line);
-                        lastWasEmpty = true;
-                    }
+        for (String id : abilityIds) {
+            SkyBlockAbility ability = plugin.getAbilityManager().getAbility(id);
+            if (ability != null) {
+                // Header: §6Ability: Name §e§lRIGHT CLICK
+                lore.add("§6Ability: " + ability.getDisplayName() + " §e§lRIGHT CLICK");
+                // Body: Description from abilities.yml
+                lore.addAll(ability.getDescription());
+            }
+        }
+    }
+
+    private String getStatDisplayName(String statIdRaw) {
+        try {
+            ItemStat stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats().get(statIdRaw);
+            if (stat != null)
+                return stat.getName();
+        } catch (Exception e) {
+        }
+        return plugin.getReforgeManager().formatStatName(statIdRaw);
+    }
+
+    // Standard Helpers...
+    public String getCurrentReforge(ItemStack item) {
+        if (item == null)
+            return null;
+        NBTItem nbt = NBTItem.get(item);
+        return nbt.hasTag(NBT_REFORGE_KEY) ? nbt.getString(NBT_REFORGE_KEY) : null;
+    }
+
+    public boolean hasReforge(ItemStack item) {
+        return getCurrentReforge(item) != null;
+    }
+
+    private void upgradeRarity(ItemStack item, Reforge reforge) {
+        if (plugin.getRarityManager() == null)
+            return;
+        Rarity target = plugin.getRarityManager().getRarity(reforge.getRarityUpgrade());
+        if (target != null)
+            plugin.getRarityManager().applyRarity(item, target, false);
+    }
+
+    private void applyReforgeLegacy(ItemStack item, Reforge reforge, String itemType) {
+        statApplier.applyStats(item, reforge, itemType);
+    }
+
+    private void applyEnchantmentsLegacy(ItemStack item, Reforge reforge) {
+        for (String s : reforge.getEnchants()) {
+            try {
+                String[] split = s.split(":");
+                Enchantment ench = Enchantment.getByName(split[0].toUpperCase());
+                if (ench == null)
+                    ench = Enchantment.getByKey(NamespacedKey.minecraft(split[0].toLowerCase()));
+                if (ench != null)
+                    item.addUnsafeEnchantment(ench, Integer.parseInt(split[1]));
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    private void removeReforgeLegacy(ItemStack item, Reforge dummy) {
+        NBTItem nbt = NBTItem.get(item);
+        nbt.removeTag(NBT_REFORGE_KEY);
+        if (nbt.hasTag(NBT_ORIGINAL_NAME_KEY)) {
+            String orig = nbt.getString(NBT_ORIGINAL_NAME_KEY);
+            ItemMeta meta = nbt.toItem().getItemMeta();
+            meta.setDisplayName(orig);
+            item.setItemMeta(meta);
+        }
+        statApplier.removeStats(item, dummy);
+    }
+
+    public void removeReforge(ItemStack item, Reforge reforge) {
+        if (dev.agam.skyblockitems.integration.MMOItemsStatIntegration.isMMOItem(item)) {
+            resetMMOItem(item);
+        } else {
+            removeReforgeLegacy(item, reforge);
+        }
+    }
+
+    private String serializeStats(Map<String, Double> stats) {
+        return stats.entrySet().stream().map(e -> e.getKey() + ":" + e.getValue()).collect(Collectors.joining(";"));
+    }
+
+    private Map<String, Double> deserializeStats(String data) {
+        Map<String, Double> map = new HashMap<>();
+        if (data == null || data.isEmpty())
+            return map;
+        for (String pair : data.split(";")) {
+            String[] kv = pair.split(":");
+            if (kv.length == 2) {
+                try {
+                    map.put(kv[0], Double.parseDouble(kv[1]));
+                } catch (Exception e) {
                 }
-            } else {
-                cleanedLore.add(line);
-                lastWasEmpty = false;
             }
         }
-
-        // Final trimming of trailing empty lines
-        while (!cleanedLore.isEmpty()
-                && ColorUtils.stripColor(cleanedLore.get(cleanedLore.size() - 1)).trim().isEmpty()) {
-            cleanedLore.remove(cleanedLore.size() - 1);
-        }
-
-        meta.setLore(cleanedLore);
+        return map;
     }
-
-    private String formatStatName(String raw) {
-        return plugin.getReforgeManager().formatStatName(raw);
-    }
-
-    private String formatValue(double value) {
-        if (value == (long) value)
-            return String.format("%d", (long) value);
-        else
-            return String.format("%.1f", value);
-    }
-
 }

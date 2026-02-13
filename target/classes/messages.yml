@@ -136,6 +136,8 @@ commands:
   reload-success: "<#2ecc71> כל הקבצים נטענו מחדש בהצלחה!"
   sbi:
     usage: "<#f39c12>שימוש: <#ffeaa7>{usage}"
+  editreforge:
+    usage: "<#f39c12>שימוש: <#ffeaa7>{usage}"
   edit:
     usage: "<#f39c12>שימוש: <#ffeaa7>/sbi edit <enchant-id>"
     not-found: "<#e74c3c> כישוף לא נמצא: <#ffeaa7>{id}"
@@ -287,6 +289,22 @@ reforge:
       add-stat-lore: "<#636e72>לחץ כדי להוסיף סטטיסטיקה חדשה"
       edit-value-prompt: "הזן ערך חדש לסטטיסטיקה {stat}:"
       new-stat-prompt: "הזן שם סטטיסטיקה (למשל mmoitems_attack_damage):"
+    
+    enchant-selector:
+      title: "<#d63aff>&lבחר כישופים"
+      selected: "<#2ecc71>✔ נבחר"
+      not-selected: "<#e74c3c>✖ לא נבחר"
+      click-toggle: "<#ffeaa7>▶ לחץ להחלפת מצב"
+      set-level: "<#74b9ff>▶ Shift + לחיצה להגדרת רמה"
+      level-prompt: "הזן רמת כישוף עבור {enchant}:"
+      current-level: "<#636e72>רמה נוכחית: <#a29bfe>{level}"
+      
+    ability-selector:
+      title: "<#00b894>&lבחר יכולות"
+      selected: "<#2ecc71>✔ נבחר"
+      not-selected: "<#e74c3c>✖ לא נבחר"
+      click-toggle: "<#ffeaa7>▶ לחץ להחלפת מצב"
+      description: "<#636e72>{description}"
     
     rarity-selector:
       title: "בחר נדירות"

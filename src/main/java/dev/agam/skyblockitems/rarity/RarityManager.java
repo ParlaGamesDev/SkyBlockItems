@@ -26,9 +26,9 @@ import java.util.logging.Level;
  */
 public class RarityManager {
 
-    private static final String NBT_RARITY_KEY = "skyblock_rarity";
-    private static final String NBT_CUSTOM_KEY = "skyblock_rarity_custom";
-    private static final String NBT_VERSION_KEY = "skyblock_rarity_v";
+    public static final String NBT_RARITY_KEY = "skyblock_rarity";
+    public static final String NBT_CUSTOM_KEY = "skyblock_custom_rarity";
+    public static final String NBT_VERSION_KEY = "skyblock_rarity_version";
 
     private static final Rarity NONE_RARITY = new Rarity("NONE", "NONE", 0, 0, false);
 
@@ -138,8 +138,10 @@ public class RarityManager {
             }
         }
 
-        plugin.getLogger()
-                .info("Loaded " + rarities.size() + " rarities and " + itemMappings.size() + " item mappings.");
+        if (debugMode) {
+            plugin.getLogger()
+                    .info("Loaded " + rarities.size() + " rarities and " + itemMappings.size() + " item mappings.");
+        }
     }
 
     /**
@@ -148,6 +150,8 @@ public class RarityManager {
     public Rarity getRarity(String identifier) {
         if (identifier == null)
             return null;
+        if (identifier.equalsIgnoreCase("NONE"))
+            return NONE_RARITY;
         return rarities.get(identifier.toLowerCase());
     }
 
@@ -181,11 +185,30 @@ public class RarityManager {
             return null;
         }
 
+        // 1. SHARP: Check for specific UUID-locked mapping in rarity.yml
+        String itemKey = getItemKey(item);
+        String safeKey = itemKey != null ? itemKey.replace(".", "_") : null;
+
+        if (safeKey != null && rarityConfig.contains("Items." + safeKey)) {
+            String rarityId = rarityConfig.getString("Items." + safeKey);
+            if (rarityId == null && rarityConfig.isConfigurationSection("Items." + safeKey)) {
+                rarityId = rarityConfig.getString("Items." + safeKey + ".rarity");
+            }
+
+            if (rarityId != null) {
+                Rarity savedRarity = getRarity(rarityId);
+                // If savedRarity is NONE_RARITY, we return it to indicate explicit removal
+                if (savedRarity != null) {
+                    return savedRarity;
+                }
+            }
+        }
+
         String materialName = item.getType().name();
         ItemMeta meta = item.getItemMeta();
         NBTItem nbtItem = NBTItem.get(item);
 
-        // 1. Check for manual NBT override: skyblock.rarity
+        // 2. Check for manual NBT override: skyblock.rarity (Legacy/Manual)
         if (nbtItem.hasTag("skyblock.rarity")) {
             String rarityId = nbtItem.getString("skyblock.rarity");
             Rarity nbtRarity = getRarity(rarityId);
@@ -325,34 +348,56 @@ public class RarityManager {
         // Update name and lore (using original item lore)
         item = updateRarityLore(item, rarity);
 
+        // CRITICAL FIX: Save to rarity.yml if this is a custom rarity assignment
+        // This ensures the rarity persists even if NBT is wiped or on server restart
+        if (isCustom) {
+            String key = getItemKey(item);
+            if (key != null) {
+                saveMapping(item, rarity.getIdentifier());
+            }
+        }
+
         debug("Applied rarity " + rarity.getIdentifier() + " to " + item.getType() + " (custom: " + isCustom + ")");
         return item;
     }
 
     /**
      * Removes rarity from an item (NBT and lore).
-     * Sets rarity to "NONE" and marks as custom to prevent auto-assignment.
+     * Sets rarity to "NONE".
+     *
+     * @param isCustom If true, marks as custom (prevent auto-assign). If false,
+     *                 it's just cleanup.
      */
-    public ItemStack removeRarity(ItemStack item) {
+    public ItemStack removeRarity(ItemStack item, boolean isCustom) {
         if (item == null || item.getType() == Material.AIR) {
             return item;
         }
 
         // Apply NBT marks
         NBTItem nbtItem = NBTItem.get(item);
-        nbtItem.addTag(new ItemTag(NBT_RARITY_KEY, "NONE"));
-        nbtItem.addTag(new ItemTag(NBT_CUSTOM_KEY, true));
-        item = nbtItem.toItem();
 
-        // 1. Clear any item-specifically saved name/lore from config if we are doing a
-        // manual hand removal
-        // (Wait, this is removeRarity which is usually called for online updates)
-        // Let's keep it purely NBT/Lore based for now.
+        // If it's a manual removal, we mark it as NONE so getRarityForItem sees the
+        // override
+        if (isCustom) {
+            nbtItem.addTag(new ItemTag(NBT_RARITY_KEY, "NONE"));
+            nbtItem.addTag(new ItemTag(NBT_CUSTOM_KEY, true));
+            // CRITICAL: Clean up YAML when manually removed
+            removeMapping(item);
+        } else {
+            // If it's just cleanup, wipe the tags entirely
+            nbtItem.removeTag(NBT_RARITY_KEY);
+            nbtItem.removeTag(NBT_CUSTOM_KEY);
+        }
+
+        // Always stamp the current version to prevent redundant re-processing
+        nbtItem.addTag(new ItemTag(NBT_VERSION_KEY, currentConfigVersion));
+
+        item = nbtItem.toItem();
 
         // Remove rarity lore
         item = removeRarityLore(item);
 
-        debug("Permanently removed rarity from " + item.getType());
+        debug("Permanently removed rarity from " + item.getType() + " (isCustom: " + isCustom + ")");
         return item;
     }
 
@@ -363,7 +408,7 @@ public class RarityManager {
      * @return The processed item (may be unchanged)
      */
     public ItemStack processItem(ItemStack item) {
-        if (item == null || item.getType() == Material.AIR) {
+        if (item == null || item.getType().isAir()) {
             return item;
         }
 
@@ -371,19 +416,35 @@ public class RarityManager {
         Rarity currentRarity = getCurrentRarity(item);
         Rarity targetRarity = getRarityForItem(item);
 
-        // If target is NONE, we MUST ensure color is stripped and NBT is marked
+        // 1. SHARP: Handle EXPLICIT NONE (Manual Removal / Override)
         if (targetRarity != null && targetRarity.getIdentifier().equalsIgnoreCase("NONE")) {
-            // Check if it's already "dirty" (has lore or wrong NBT)
+            // Check if we need to strip lore or NBT (is it currently displaying something?)
             if (currentRarity == null || !currentRarity.getIdentifier().equalsIgnoreCase("NONE")
                     || hasRarityLore(item)) {
-                return removeRarity(item);
+                return removeRarity(item, false);
             }
+
+            // Even if already NONE, check version for NBT stamp consistency
+            NBTItem nbt = NBTItem.get(item);
+            if (!nbt.hasTag(NBT_VERSION_KEY) || nbt.getDouble(NBT_VERSION_KEY) != currentConfigVersion) {
+                return removeRarity(item, false);
+            }
+
             return item;
         }
 
-        // Skip if already has custom rarity (unless target was NONE, handled above)
+        // 2. Skip if already has custom rarity (unless target was NONE, handled above)
         if (hasCustomRarity(item)) {
-            return item;
+            // Still check version - if version mismatch, re-apply the custom rarity to
+            // refresh lore
+            NBTItem nbt = NBTItem.get(item);
+            if (nbt.hasTag(NBT_VERSION_KEY) && nbt.getDouble(NBT_VERSION_KEY) == currentConfigVersion) {
+                return item;
+            }
+            // Re-apply to refresh lore/NBT format if version changed
+            if (currentRarity != null) {
+                return applyRarity(item, currentRarity, true);
+            }
         }
 
         // If no target rarity (not in config and no default), skip
@@ -404,6 +465,47 @@ public class RarityManager {
 
         // Apply the rarity
         return applyRarity(item, targetRarity, false);
+    }
+
+    /**
+     * Checks if the item has un-persisted custom rarity NBT and saves it if needed.
+     * This fixes the issue where custom NBT tags are lost on restart because they
+     * weren't in rarity.yml.
+     */
+    private void checkAndSaveCustomRarity(ItemStack item) {
+        if (item == null)
+            return;
+        NBTItem nbt = NBTItem.get(item);
+
+        // OPTIMIZATION: If item is already stamped with current session version, skip
+        // checks
+        if (nbt.hasTag(NBT_VERSION_KEY) && nbt.getDouble(NBT_VERSION_KEY) == currentConfigVersion) {
+            return;
+        }
+
+        if (nbt.hasTag(NBT_RARITY_KEY)) {
+            // STRICT PERSISTENCE: Only save if marked as CUSTOM
+            if (!nbt.hasTag(NBT_CUSTOM_KEY) || !nbt.getBoolean(NBT_CUSTOM_KEY)) {
+                return;
+            }
+
+            String rarityId = nbt.getString(NBT_RARITY_KEY);
+            if (rarityId != null && !rarityId.equalsIgnoreCase("NONE")) {
+                String key = getItemKey(item);
+                if (key != null) {
+                    // SANITIZE KEY to match saveMapping logic (A.B -> A_B)
+                    // This prevents cache misses where cache has "A_B" but we look up "A.B"
+                    String safeKey = key.replace(".", "_");
+
+                    ItemMappingData cached = itemMappings.get(safeKey.toUpperCase());
+                    if (cached == null || !cached.rarityId.equalsIgnoreCase(rarityId)) {
+                        // Pass 'false' to prevent triggering refreshPlayer -> processItem -> infinite
+                        // loop
+                        saveMapping(item, rarityId, false);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -429,7 +531,7 @@ public class RarityManager {
     /**
      * Updates the item's lore with rarity information.
      */
-    private ItemStack updateRarityLore(ItemStack item, Rarity rarity) {
+    public ItemStack updateRarityLore(ItemStack item, Rarity rarity) {
         ItemMeta meta = item.getItemMeta();
         if (meta == null)
             return item;
@@ -612,59 +714,114 @@ public class RarityManager {
     }
 
     public void saveMapping(ItemStack item, String rarityId) {
+        saveMapping(item, rarityId, true);
+    }
+
+    public void saveMapping(ItemStack item, String rarityId, boolean refresh) {
         String key = getItemKey(item);
         if (key == null)
             return;
 
-        // Use a safe key for YAML paths (escaping dots)
-        String safePath = "Items." + key.replace(".", "_") + ".rarity";
-        rarityConfig.set(safePath, rarityId);
+        // Use a safe key for YAML paths (escaping dots) - SHARP: CONSISTENT
+        // NORMALIZATION
+        String safeKey = key.replace(".", "_");
+        String safePath = "Items." + safeKey + ".rarity";
 
-        try {
-            rarityConfig.save(rarityFile);
-            loadConfig(); // Refresh internal maps
+        // Logic check: Is this a removal?
+        boolean isNone = rarityId == null || rarityId.equalsIgnoreCase("NONE");
 
-            // Update all online players immediately
-            for (org.bukkit.entity.Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
-                refreshPlayer(player);
+        if (isNone) {
+            // Check if there is a DEFAULT rarity for this item type
+            Rarity defaultRarityForType = getRarityForItem(new ItemStack(item.getType()));
+
+            if (defaultRarityForType != null && !defaultRarityForType.getIdentifier().equalsIgnoreCase("NONE")) {
+                // If there IS a default, we MUST save 'NONE' to override it
+                rarityConfig.set(safePath, "NONE");
+                saveAndReload(safeKey, "NONE", refresh);
+            } else {
+                // If there is NO default, we can just delete the record entirely
+                rarityConfig.set("Items." + safeKey, null);
+                saveAndReload(safeKey, "REMOVED", refresh);
             }
-            plugin.getLogger().info("Successfully saved rarity mapping: " + key + " -> " + rarityId);
-        } catch (java.io.IOException e) {
-            plugin.getLogger().severe("Could not save rarity.yml: " + e.getMessage());
+        } else {
+            // Save Custom Rarity
+            rarityConfig.set(safePath, rarityId);
+            saveAndReload(safeKey, rarityId, refresh);
         }
     }
 
-    public void removeMapping(ItemStack item) {
-        String key = getItemKey(item);
-        if (key == null)
-            return;
-
-        // Set mapping to NONE to prevent auto-assignment
-        String safePath = "Items." + key.replace(".", "_") + ".rarity";
-        rarityConfig.set(safePath, "NONE");
-
+    private void saveAndReload(String key, String value, boolean refresh) {
         try {
             rarityConfig.save(rarityFile);
-            loadConfig(); // Refresh internal maps
 
-            // Clean up items for online players immediately
-            for (org.bukkit.entity.Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
-                refreshPlayer(player);
+            // Optimization: Update in-memory map directly instead of full reload
+            // key passed here is ALREADY sanitized (A_B)
+            String upperKey = key.toUpperCase();
+            if (value.startsWith("REMOVED")) {
+                itemMappings.remove(upperKey);
+            } else {
+                itemMappings.put(upperKey, new ItemMappingData(value.toLowerCase()));
             }
-            plugin.getLogger().info("Successfully removed rarity mapping (set to NONE): " + key);
+
+            if (refresh) {
+                for (org.bukkit.entity.Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+                    refreshPlayer(player);
+                }
+            }
+            if (debugMode)
+                plugin.getLogger().info("Updated rarity mapping: " + key + " -> " + value);
         } catch (java.io.IOException e) {
             plugin.getLogger().severe("Could not save rarity.yml: " + e.getMessage());
         }
     }
 
     /**
+     * Efficiently processes a player's inventory, minimizing packet updates.
+     */
+    public void processInventory(org.bukkit.entity.Player player) {
+        if (player == null || !player.isOnline())
+            return;
+
+        org.bukkit.inventory.Inventory inv = player.getInventory();
+        ItemStack[] contents = inv.getContents();
+        boolean changed = false;
+
+        for (int i = 0; i < contents.length; i++) {
+            ItemStack item = contents[i];
+            if (item != null && !item.getType().isAir()) {
+                ItemStack processed = processItem(item);
+                if (processed != item) {
+                    inv.setItem(i, processed);
+                    changed = true;
+                }
+            }
+        }
+
+        if (changed) {
+            debug("Updated inventory for " + player.getName() + " (minimized packets)");
+        }
+    }
+
+    public void removeMapping(ItemStack item) {
+        saveMapping(item, "NONE", true); // This triggers the deletion logic in saveMapping
+    }
+
+    /**
      * Generates a unique config key for an ItemStack.
+     * SHARP: Prioritizes UUID for persistence.
      */
     public String getItemKey(ItemStack item) {
         if (item == null || item.getType() == Material.AIR)
             return null;
 
         NBTItem nbtItem = NBTItem.get(item);
+
+        // 1. MMOItems UUID (Most stable for tracking)
+        if (nbtItem.hasTag("mmoitems_uuid")) {
+            return "UUID_" + nbtItem.getString("mmoitems_uuid");
+        }
+
+        // 2. MMOItems Type/ID Fallback
         if (nbtItem.hasTag("MMOITEMS_ITEM_ID")) {
             return "MMOITEM:" + nbtItem.getString("MMOITEMS_ITEM_TYPE") + ":" + nbtItem.getString("MMOITEMS_ITEM_ID");
         }
@@ -693,6 +850,7 @@ public class RarityManager {
             }
         }
 
+        // 3. Material Fallback
         return item.getType().name();
     }
 
@@ -774,5 +932,13 @@ public class RarityManager {
         if (debugMode) {
             plugin.getLogger().log(Level.INFO, "[Rarity Debug] " + message);
         }
+    }
+
+    public static String getNbtRarityKey() {
+        return NBT_RARITY_KEY;
+    }
+
+    public static String getNbtCustomKey() {
+        return NBT_CUSTOM_KEY;
     }
 }

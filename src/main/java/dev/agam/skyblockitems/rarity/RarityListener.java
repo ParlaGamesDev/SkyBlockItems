@@ -12,6 +12,8 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import net.Indyuce.mmoitems.api.event.ItemBuildEvent;
+import net.Indyuce.mmoitems.api.item.mmoitem.MMOItem;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -51,26 +53,22 @@ public class RarityListener implements Listener {
             return;
         }
 
-        // Always scan player's own inventory
+        // Efficiently scan player inventory and container in a single delayed task
         org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (player.isOnline()) {
-                processInventory(player.getInventory());
-            }
-        }, 1L);
+            if (!player.isOnline())
+                return;
 
-        // Scan the opened container ONLY if it's allowed (not a GUI)
-        if (rarityManager.isAllowedInventory(event.getView())) {
-            org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                if (player.isOnline()) {
-                    org.bukkit.inventory.Inventory topInv = event.getView().getTopInventory();
-                    if (topInv != null && topInv.getType() != InventoryType.CRAFTING) {
-                        processInventory(topInv);
-                    }
+            // 1. Scan player inventory
+            rarityManager.processInventory(player);
+
+            // 2. Scan container if allowed
+            if (rarityManager.isAllowedInventory(event.getView())) {
+                org.bukkit.inventory.Inventory topInv = event.getView().getTopInventory();
+                if (topInv != null && topInv.getType() != InventoryType.CRAFTING) {
+                    processInventory(topInv);
                 }
-            }, 1L);
-        } else {
-            rarityManager.debug("Skipping container scan for " + event.getView().getTitle() + " (GUI detected)");
-        }
+            }
+        }, 2L); // 2-tick delay to be safe
     }
 
     /**
@@ -84,7 +82,7 @@ public class RarityListener implements Listener {
         // Process player's inventory after closing
         org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline()) {
-                processInventory(player.getInventory());
+                rarityManager.processInventory(player);
             }
         }, 1L);
     }
@@ -118,14 +116,9 @@ public class RarityListener implements Listener {
                 }
             }
 
-            // 2. Optimized: If the click moved items into the player's inventory (Shift,
-            // Hotbar, Collect)
-            // we scan the player's inventory immediately to ensure fast updates.
-            if (event.isShiftClick() ||
-                    event.getClick().name().contains("HOTBAR") ||
-                    event.getClick() == org.bukkit.event.inventory.ClickType.DOUBLE_CLICK) {
-                processInventory(player.getInventory());
-            }
+            // 2. Double click / Shift click handling removed for performance
+            // The item will be processed when interacted with next time or on inventory
+            // close/open.
 
             // 3. Always process cursor item (for regular clicks taking items into hand)
             ItemStack cursor = player.getItemOnCursor();
@@ -174,7 +167,7 @@ public class RarityListener implements Listener {
      * Helper method to process all items in a player's inventory.
      */
     private void processPlayerInventory(Player player) {
-        processInventory(player.getInventory());
+        rarityManager.processInventory(player);
     }
 
     /**
@@ -190,6 +183,26 @@ public class RarityListener implements Listener {
                     inventory.setItem(i, processed);
                 }
             }
+        }
+    }
+
+    /**
+     * Force-injects custom rarity during MMOItems build process.
+     * This ensures the item is "born" with the correct rarity if a record exists in
+     * rarity.yml.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onMMOItemBuild(ItemBuildEvent event) {
+        if (!plugin.isMMOItemsEnabled())
+            return;
+
+        ItemStack item = event.getItemStack();
+        Rarity customRarity = rarityManager.getRarityForItem(item);
+
+        // If we found a record in rarity.yml (Sharp Logic)
+        if (customRarity != null) {
+            ItemStack processed = rarityManager.applyRarity(item, customRarity, true);
+            event.setItemStack(processed);
         }
     }
 }

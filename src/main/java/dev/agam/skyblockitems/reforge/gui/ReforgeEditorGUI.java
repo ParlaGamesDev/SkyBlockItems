@@ -130,7 +130,8 @@ public class ReforgeEditorGUI implements BaseGUI {
             statsDisplay.append("<#636e72>אין סטטיסטיקות");
         } else {
             for (Map.Entry<String, Double> entry : stats.entrySet()) {
-                statsDisplay.append("\n<#dfe6e9>").append(entry.getKey()).append(": <#2ecc71>+")
+                String translatedName = plugin.getReforgeManager().formatStatName(entry.getKey());
+                statsDisplay.append("\n<#dfe6e9>").append(translatedName).append(": <#2ecc71>+")
                         .append(entry.getValue());
             }
         }
@@ -272,26 +273,14 @@ public class ReforgeEditorGUI implements BaseGUI {
             new ReforgeStatEditorGUI(plugin, player, displayName, stats, this).open();
         }
 
-        // Edit Enchants
+        // Edit Enchants (Open GUI Selector)
         else if (slot == 20) {
-            promptInput("reforge.editor.properties.enchants.prompt", input -> {
-                enchants.clear();
-                if (!input.trim().isEmpty()) {
-                    enchants.addAll(Arrays.asList(input.split(",\\s*")));
-                }
-                setupGUI();
-            });
+            new ReforgeEnchantSelectorGUI(plugin, player, enchants, this).open();
         }
 
-        // Edit Abilities
+        // Edit Abilities (Open GUI Selector)
         else if (slot == 21) {
-            promptInput("reforge.editor.properties.abilities.prompt", input -> {
-                abilities.clear();
-                if (!input.trim().isEmpty()) {
-                    abilities.addAll(Arrays.asList(input.split(",\\s*")));
-                }
-                setupGUI();
-            });
+            new ReforgeAbilitySelectorGUI(plugin, player, abilities, this).open();
         }
     }
 
@@ -314,7 +303,24 @@ public class ReforgeEditorGUI implements BaseGUI {
         });
     }
 
+    /**
+     * Updates enchants list from sub-GUI.
+     */
+    public void updateEnchants(List<String> newEnchants) {
+        this.enchants = newEnchants;
+        setupGUI();
+    }
+
+    /**
+     * Updates abilities list from sub-GUI.
+     */
+    public void updateAbilities(List<String> newAbilities) {
+        this.abilities = newAbilities;
+        setupGUI();
+    }
+
     public void reopen() {
+        setupGUI();
         Bukkit.getScheduler().runTask(plugin, this::open);
     }
 

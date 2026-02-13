@@ -149,9 +149,9 @@ public class RarityCommand implements CommandExecutor, TabCompleter {
         rarityManager.removeMapping(item);
 
         // Update current item in hand immediately for the caller
-        ItemStack updatedItem = rarityManager.processItem(item);
-        player.getInventory().setItemInMainHand(updatedItem);
-        player.updateInventory();
+        // REMOVED: refreshPlayer inside removeMapping already handles this.
+        // Calling processItem(item) here passes the STALE item (with old NBT) forcing a
+        // re-save.
 
         player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("rarity.removed")));
     }

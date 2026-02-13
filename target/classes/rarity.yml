@@ -49,7 +49,7 @@ Config:
 Rarities:
   1:
     identifier: Common
-    name: '&f&lCOMMON'
+    name: '&f&lנפוץ'
     weight: 1
     default: true
   2:
