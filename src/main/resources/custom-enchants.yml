@@ -1,0 +1,153 @@
+custom-enchants:
+  SAVINGS:
+    enabled: true
+    display-name: "&6SAVINGS"
+    description: "&7חוסך 50% מהמטבעות שלך במוות"
+    material: ENCHANTED_BOOK
+    targets: [ "ALL" ]
+    max-level: 1
+    xp-costs:
+      1: 50
+  MANA_EFFICIENCY:
+    enabled: true
+    display-name: "&bMANA EFFICIENCY"
+    description: "&7מוריד 10% מאנה לשימוש לכל רמה"
+    material: ENCHANTED_BOOK
+    targets: [ "SWORD", "BOW", "WAND" ]
+    max-level: 5
+    levels:
+      1: { xp-cost: 20 }
+      2: { xp-cost: 40 }
+      3: { xp-cost: 60 }
+      4: { xp-cost: 80 }
+      5: { xp-cost: 100 }
+  CHRONOS:
+    enabled: true
+    display-name: "&dCHRONOS"
+    description: "&7מוריד את ה-cooldown של יכולות"
+    material: ENCHANTED_BOOK
+    targets: [ "SWORD", "BOW", "WAND" ]
+    max-level: 3
+    levels:
+      1: { xp-cost: 50 }
+      2: { xp-cost: 100 }
+      3: { xp-cost: 150 }
+  FARMING_FORTUNE:
+    enabled: true
+    display-name: "&aFARMING FORTUNE"
+    description: "&7סיכוי לקבל יבולים כפולים או משולשים"
+    material: ENCHANTED_BOOK
+    targets: [ "HOE" ]
+    max-level: 5
+    levels:
+      1: { xp-cost: 10 }
+      2: { xp-cost: 20 }
+      3: { xp-cost: 30 }
+      4: { xp-cost: 40 }
+      5: { xp-cost: 50 }
+  TURBO_MINER:
+    enabled: true
+    display-name: "&eTURBO MINER"
+    description: "&7+3 מהירות כרייה בכל רצף כרייה (עד 200 בלוקים)"
+    material: ENCHANTED_BOOK
+    targets: [ "PICKAXE" ]
+    max-level: 1
+    xp-costs:
+      1: 60
+  EXP_GRINDER:
+    enabled: true
+    display-name: "&2EXP GRINDER"
+    description: "&7סיכוי של 50% לקבל 30 XP כשחטפת מכה"
+    material: ENCHANTED_BOOK
+    targets: [ "CHESTPLATE", "LEGGINGS", "BOOTS", "HELMET" ]
+    max-level: 1
+    xp-costs:
+      1: 40
+  BERSERK:
+    enabled: true
+    display-name: "&4BERSERK"
+    description: "&7מסיר באפים אך מגדיל את הנזק ב-50%"
+    material: ENCHANTED_BOOK
+    targets: [ "SWORD", "AXE" ]
+    max-level: 1
+    xp-costs:
+      1: 100
+  MONSTER_SOUL:
+    enabled: true
+    display-name: "&8MONSTER SOUL"
+    description: "&7מקבל פי 10 מהנזק של המפלצת שהרגת למכה הקריטית הבאה"
+    material: ENCHANTED_BOOK
+    targets: [ "SWORD", "AXE" ]
+    max-level: 1
+    xp-costs:
+      1: 150
+  GUARDIAN_MANA:
+    enabled: true
+    display-name: "&3GUARDIAN MANA"
+    description: "&725% מהמאנה שהשתמשת ליכולות הופך להגנה ל-5 שניות"
+    material: ENCHANTED_BOOK
+    targets: [ "CHESTPLATE" ]
+    max-level: 1
+    xp-costs:
+      1: 80
+  REPLENISH:
+    enabled: true
+    display-name: "&aREPLENISH"
+    description: "&7שותל יבולים מחדש אוטומטית (לא ניתן להשגה רגילה)"
+    material: ENCHANTED_BOOK
+    targets: [ "HOE" ]
+    max-level: 1
+    obtainable: false
+    xp-costs:
+      1: 0
+  HARVESTING:
+    enabled: true
+    display-name: "&eHARVESTING"
+    description: "&7פורצ'ן לגרזן (עצים ויבולים)"
+    material: ENCHANTED_BOOK
+    targets: [ "AXE" ]
+    max-level: 5
+    levels:
+      1: { xp-cost: 15 }
+      2: { xp-cost: 30 }
+      3: { xp-cost: 45 }
+      4: { xp-cost: 60 }
+      5: { xp-cost: 75 }
+  DELICATE:
+    enabled: true
+    display-name: "&7DELICATE"
+    description: "&7מונע שבירת יבולים שלא גדלו עד הסוף"
+    material: ENCHANTED_BOOK
+    targets: [ "HOE" ]
+    max-level: 1
+    xp-costs:
+      1: 20
+  TRAMPLE_GUARD:
+    enabled: true
+    display-name: "&6TRAMPLE GUARD"
+    description: "&7מונע דריסת יבולים כשאתה הולך עליהם"
+    material: ENCHANTED_BOOK
+    targets: [ "BOOTS" ]
+    max-level: 1
+    xp-costs:
+      1: 30
+  EXP_SHARE:
+    enabled: true
+    display-name: "&bEXP SHARE"
+    description: "&7בונוס XP על חומרים טבעיים מכל סוג"
+    material: ENCHANTED_BOOK
+    targets: [ "ALL" ]
+    max-level: 3
+    levels:
+      1: { xp-cost: 25 }
+      2: { xp-cost: 50 }
+      3: { xp-cost: 75 }
+  GREED:
+    enabled: true
+    display-name: "&eGREED"
+    description: "&7מביא לך 1-5 כסף כל כמה שניות"
+    material: ENCHANTED_BOOK
+    targets: [ "SWORD", "PICKAXE", "AXE", "SHOVEL", "HOE" ]
+    max-level: 1
+    xp-costs:
+      1: 200

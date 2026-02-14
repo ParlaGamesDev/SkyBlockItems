@@ -83,6 +83,20 @@ public class VaultHook {
     }
 
     /**
+     * Gives money to a player's account.
+     * 
+     * @param player The player to give money to
+     * @param amount The amount to give
+     * @return true if the transaction was successful
+     */
+    public boolean depositMoney(Player player, double amount) {
+        if (!enabled) {
+            return true;
+        }
+        return economy.depositPlayer(player, amount).transactionSuccess();
+    }
+
+    /**
      * Gets a player's balance.
      * 
      * @param player The player

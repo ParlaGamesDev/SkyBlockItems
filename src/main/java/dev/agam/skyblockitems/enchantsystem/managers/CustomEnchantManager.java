@@ -72,6 +72,7 @@ public class CustomEnchantManager {
             enchant.setRequiredEnchantingLevel(
                     plugin.getConfig().getInt("required-enchanting-level-" + id.toLowerCase(),
                             section.getInt("required-enchanting-level", 0)));
+            enchant.setEnabled(section.getBoolean("enabled", true));
 
             // Load stats
             ConfigurationSection statsSection = section.getConfigurationSection("stats");

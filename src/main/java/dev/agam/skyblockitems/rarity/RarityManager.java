@@ -412,6 +412,10 @@ public class RarityManager {
             return item;
         }
 
+        // 0. SHARP PERSISTENCE: Check if item has NBT-assigned custom rarity that needs
+        // saving
+        checkAndSaveCustomRarity(item);
+
         // Check if item already has rarity
         Rarity currentRarity = getCurrentRarity(item);
         Rarity targetRarity = getRarityForItem(item);
@@ -490,21 +494,35 @@ public class RarityManager {
             }
 
             String rarityId = nbt.getString(NBT_RARITY_KEY);
-            if (rarityId != null && !rarityId.equalsIgnoreCase("NONE")) {
-                String key = getItemKey(item);
-                if (key != null) {
-                    // SANITIZE KEY to match saveMapping logic (A.B -> A_B)
-                    // This prevents cache misses where cache has "A_B" but we look up "A.B"
-                    String safeKey = key.replace(".", "_");
+            String key = getItemKey(item);
+            if (key != null) {
+                // SANITIZE KEY to match saveMapping logic (A.B -> A_B)
+                String safeKey = key.replace(".", "_");
 
-                    ItemMappingData cached = itemMappings.get(safeKey.toUpperCase());
-                    if (cached == null || !cached.rarityId.equalsIgnoreCase(rarityId)) {
-                        // Pass 'false' to prevent triggering refreshPlayer -> processItem -> infinite
-                        // loop
-                        saveMapping(item, rarityId, false);
+                ItemMappingData cached = itemMappings.get(safeKey.toUpperCase());
+
+                // Check if we need to sync
+                boolean needsSync = false;
+                if (cached == null) {
+                    // Not in config, but has Custom NBT -> Sync if not NONE
+                    // (if NONE and not in config, it's already clean)
+                    if (rarityId != null && !rarityId.equalsIgnoreCase("NONE")) {
+                        needsSync = true;
                     }
+                } else if (rarityId != null && !cached.rarityId.equalsIgnoreCase(rarityId)) {
+                    // In config, but value differs -> Sync
+                    needsSync = true;
+                }
+
+                if (needsSync) {
+                    // Pass 'false' to prevent infinite loop (refreshPlayer -> processItem)
+                    saveMapping(item, rarityId, false);
                 }
             }
+        } else if (nbt.hasTag(NBT_CUSTOM_KEY) && nbt.getBoolean(NBT_CUSTOM_KEY)) {
+            // Has custom marker but NO rarity tag -> This is a manual removal override
+            // Sync as NONE
+            saveMapping(item, "NONE", false);
         }
     }
 

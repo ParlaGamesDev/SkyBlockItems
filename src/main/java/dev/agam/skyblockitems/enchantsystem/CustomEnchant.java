@@ -125,6 +125,10 @@ public class CustomEnchant {
         this.maxLevel = Math.min(10, Math.max(1, maxLevel));
     }
 
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     public void setStat(EnchantStat stat, double valuePerLevel) {
         if (valuePerLevel <= 0) {
             stats.remove(stat);

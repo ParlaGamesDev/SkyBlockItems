@@ -286,6 +286,13 @@ public class AbilityListener implements Listener {
         }
 
         if (mana > 0) {
+            // Apply MANA_EFFICIENCY
+            int efficiencyLevel = plugin.getCustomEnchantListener().getEffectiveEnchantLevel(player, "MANA_EFFICIENCY");
+            if (efficiencyLevel > 0) {
+                double reduction = efficiencyLevel * 0.1;
+                mana = mana * (1.0 - reduction);
+            }
+
             try {
                 dev.aurelium.auraskills.api.AuraSkillsApi auraApi = dev.aurelium.auraskills.api.AuraSkillsApi.get();
                 if (auraApi != null) {
@@ -298,9 +305,19 @@ public class AbilityListener implements Listener {
                         return;
                     }
                     user.setMana(user.getMana() - mana);
+
+                    // Apply GUARDIAN_MANA
+                    plugin.getCustomEnchantListener().handleManaSpend(player, mana);
                 }
             } catch (NoClassDefFoundError | Exception ignored) {
             }
+        }
+
+        // Apply CHRONOS
+        int chronosLevel = plugin.getCustomEnchantListener().getEffectiveEnchantLevel(player, "CHRONOS");
+        if (chronosLevel > 0) {
+            double reduction = chronosLevel * 0.1; // 10% per level
+            cooldown = cooldown * (1.0 - reduction);
         }
 
         if (ability.activate(player, event, cooldown, mana, damage, range)) {

@@ -24,6 +24,16 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.NamespacedKey;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerExpChangeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.block.Block;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.attribute.Attribute;
 
 /**
  * Listener for custom enchantment effects and GUI interactions.
@@ -32,6 +42,11 @@ public class CustomEnchantListener implements Listener {
 
     private final SkyBlockItems plugin;
     private final Random random = new Random();
+
+    // Internal trackers
+    private final Map<UUID, Integer> miningCombo = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> lastMineTime = new ConcurrentHashMap<>();
+    private final Map<UUID, Double> soulCharge = new ConcurrentHashMap<>();
 
     public CustomEnchantListener(SkyBlockItems plugin) {
         this.plugin = plugin;
@@ -83,7 +98,16 @@ public class CustomEnchantListener implements Listener {
     }
 
     private void applyPeriodicEffects(Player player) {
-        // Stats logic reset to empty slate for user to re-define
+        // 1. GREED
+        Map<CustomEnchant, Integer> enchants = getEffectiveEnchants(player);
+        for (CustomEnchant enchant : enchants.keySet()) {
+            if (enchant.getId().equalsIgnoreCase("GREED")) {
+                if (plugin.getVaultHook().isEnabled()) {
+                    double amount = 1 + random.nextInt(5);
+                    plugin.getVaultHook().depositMoney(player, amount);
+                }
+            }
+        }
     }
 
     @EventHandler
@@ -129,7 +153,25 @@ public class CustomEnchantListener implements Listener {
     }
 
     private void applyDefensiveEffects(EntityDamageByEntityEvent event, Player victim) {
-        // Stats logic reset to empty slate for user to re-define
+        ItemStack[] armor = victim.getInventory().getArmorContents();
+        for (ItemStack piece : armor) {
+            if (piece == null || !piece.hasItemMeta() || !piece.getItemMeta().hasLore())
+                continue;
+            Map<CustomEnchant, Integer> enchants = parseCustomEnchants(piece.getItemMeta().getLore());
+
+            for (CustomEnchant e : enchants.keySet()) {
+                if (!e.isEnabled())
+                    continue;
+
+                // 1. EXP_GRINDER
+                if (e.getId().equalsIgnoreCase("EXP_GRINDER")) {
+                    if (random.nextDouble() < 0.5) {
+                        victim.getWorld().spawn(victim.getLocation(), org.bukkit.entity.ExperienceOrb.class)
+                                .setExperience(30);
+                    }
+                }
+            }
+        }
     }
 
     private Map<CustomEnchant, Integer> parseCustomEnchants(List<String> lore) {
@@ -186,20 +228,112 @@ public class CustomEnchantListener implements Listener {
 
     private void applyDamageEffects(EntityDamageByEntityEvent event, Player player,
             LivingEntity target, CustomEnchant enchant, int level) {
-        // Stats logic reset to empty slate for user to re-define
+        if (!enchant.isEnabled())
+            return;
+
+        // 1. BERSERK
+        if (enchant.getId().equalsIgnoreCase("BERSERK")) {
+            for (PotionEffect effect : player.getActivePotionEffects()) {
+                player.removePotionEffect(effect.getType());
+            }
+            event.setDamage(event.getDamage() * 1.5);
+        }
+
+        // 2. MONSTER_SOUL (Release)
+        if (enchant.getId().equalsIgnoreCase("MONSTER_SOUL")) {
+            double charge = soulCharge.getOrDefault(player.getUniqueId(), 0.0);
+            if (charge > 0) {
+                // Check if it's a critical hit (player falling, etc)
+                boolean isCrit = player.getFallDistance() > 0.0F && !player.isInsideVehicle()
+                        && !player.hasPotionEffect(PotionEffectType.BLINDNESS);
+
+                if (isCrit) {
+                    event.setDamage(event.getDamage() + charge);
+                    soulCharge.put(player.getUniqueId(), 0.0);
+                    player.sendMessage(ChatColor.DARK_PURPLE + "Soul strike unleashed!");
+                }
+            }
+        }
     }
 
     @EventHandler
-    public void onDeath(org.bukkit.event.entity.EntityDeathEvent event) {
-        // Stats logic reset to empty slate for user to re-define
+    public void onDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        Map<CustomEnchant, Integer> enchants = getEffectiveEnchants(player);
+
+        boolean hasSavings = enchants.keySet().stream().anyMatch(e -> e.getId().equalsIgnoreCase("SAVINGS"));
+
+        if (hasSavings && plugin.getVaultHook().isEnabled()) {
+            double currentBalance = plugin.getVaultHook().getBalance(player);
+            if (currentBalance > 0) {
+                double rebate = currentBalance * 0.5;
+                plugin.getVaultHook().depositMoney(player, rebate);
+                player.sendMessage(
+                        ChatColor.GOLD + "Savings enchantment saved " + plugin.getVaultHook().format(rebate) + "!");
+            }
+        }
     }
 
     @EventHandler
     public void onExp(org.bukkit.event.player.PlayerExpChangeEvent event) {
-        // Stats logic reset to empty slate for user to re-define
+        Player player = event.getPlayer();
+        Map<CustomEnchant, Integer> enchants = getEffectiveEnchants(player);
+
+        for (Map.Entry<CustomEnchant, Integer> entry : enchants.entrySet()) {
+            if (entry.getKey().getId().equalsIgnoreCase("EXP_SHARE")) {
+                int level = entry.getValue();
+                double bonus = 1.0 + (level * 0.1);
+                event.setAmount((int) (event.getAmount() * bonus));
+            }
+        }
     }
 
-    // Simplified periodic logic
+    @EventHandler
+    public void onInteract(PlayerInteractEvent event) {
+        if (event.getAction() == Action.PHYSICAL) {
+            org.bukkit.block.Block block = event.getClickedBlock();
+            if (block != null && block.getType() == Material.FARMLAND) {
+                Player player = event.getPlayer();
+                ItemStack boots = player.getInventory().getBoots();
+                if (boots != null && boots.hasItemMeta() && boots.getItemMeta().hasLore()) {
+                    Map<CustomEnchant, Integer> enchants = parseCustomEnchants(boots.getItemMeta().getLore());
+                    if (enchants.keySet().stream()
+                            .anyMatch(e -> e.getId().equalsIgnoreCase("TRAMPLE_GUARD") && e.isEnabled())) {
+                        event.setCancelled(true);
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onEntityKill(org.bukkit.event.entity.EntityDeathEvent event) {
+        LivingEntity victim = event.getEntity();
+        Player killer = victim.getKiller();
+        if (killer == null)
+            return;
+
+        ItemStack weapon = killer.getInventory().getItemInMainHand();
+        if (weapon == null || !weapon.hasItemMeta() || !weapon.getItemMeta().hasLore())
+            return;
+
+        Map<CustomEnchant, Integer> enchants = parseCustomEnchants(weapon.getItemMeta().getLore());
+        for (CustomEnchant e : enchants.keySet()) {
+            if (!e.isEnabled())
+                continue;
+
+            // 1. MONSTER_SOUL (Charge)
+            if (e.getId().equalsIgnoreCase("MONSTER_SOUL")) {
+                // User said: "פי 10 מנזק המפלצת שנהרגה"
+                // Assuming we use the victim's max health or last damage as "damage of monster"
+                double bonus = (victim.getAttribute(Attribute.ATTACK_DAMAGE) != null
+                        ? victim.getAttribute(Attribute.ATTACK_DAMAGE).getValue()
+                        : 10.0) * 10.0;
+                soulCharge.put(killer.getUniqueId(), bonus);
+                killer.sendMessage(ChatColor.GRAY + "Soul harvested! Next strike will be powered.");
+            }
+        }
+    }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onCombat(EntityDamageByEntityEvent event) {
@@ -251,20 +385,183 @@ public class CustomEnchantListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockBreak(org.bukkit.event.block.BlockBreakEvent event) {
-        ItemStack tool = event.getPlayer().getInventory().getItemInMainHand();
+        Player player = event.getPlayer();
+        ItemStack tool = player.getInventory().getItemInMainHand();
         if (tool == null || !tool.hasItemMeta() || !tool.getItemMeta().hasLore())
             return;
 
-        Map<String, Integer> enchants = plugin.getEnchantManager().parseLore(tool.getItemMeta().getLore());
+        Map<CustomEnchant, Integer> enchants = parseCustomEnchants(tool.getItemMeta().getLore());
+        if (enchants.isEmpty())
+            return;
 
-        if (enchants.containsKey("telepath") || enchants.containsKey("telekinesis")) {
+        org.bukkit.block.Block block = event.getBlock();
+        Material type = block.getType();
+
+        // 1. DELICATE (Moנע שבירת יבולים צעירים)
+        if (isDelicateEnabled(enchants)) {
+            if (isYoungCrop(block)) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+
+        // 2. REPLENISH (שתילה מחדש אוטומטית)
+        if (isReplenishEnabled(enchants) && isFullyGrownCrop(block)) {
+            Material seedType = getSeedForCrop(type);
+            if (seedType != null) {
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                    block.setType(type);
+                    if (block.getBlockData() instanceof org.bukkit.block.data.Ageable ageable) {
+                        ageable.setAge(0);
+                        block.setBlockData(ageable);
+                    }
+                }, 1L);
+            }
+        }
+
+        // 3. FARMING_FORTUNE & HARVESTING (דאבל/טריפל דרופ)
+        int fortuneLevel = getFortuneLevel(enchants, type);
+        if (fortuneLevel > 0) {
+            double chance = fortuneLevel * 0.25; // 25% chance for extra drop per level
+            if (random.nextDouble() < chance) {
+                Collection<ItemStack> drops = block.getDrops(tool);
+                for (ItemStack drop : drops) {
+                    block.getWorld().dropItemNaturally(block.getLocation(), drop);
+                    if (random.nextDouble() < (chance - 1.0)) { // Triple drop chance if level > 1
+                        block.getWorld().dropItemNaturally(block.getLocation(), drop);
+                    }
+                }
+            }
+        }
+
+        // 4. TURBO_MINER (מהירות כרייה)
+        if (isTurboMinerEnabled(enchants)) {
+            UUID uuid = player.getUniqueId();
+            long now = System.currentTimeMillis();
+            long last = lastMineTime.getOrDefault(uuid, 0L);
+
+            if (now - last > 10000) { // 10s timeout
+                miningCombo.put(uuid, 1);
+            } else {
+                int combo = Math.min(200, miningCombo.getOrDefault(uuid, 0) + 1);
+                miningCombo.put(uuid, combo);
+
+                // +3 mining speed (Haste) every combo milestone or just flat boost?
+                // User said: +3 מהירות כרייה. We'll give Haste II (3 total) if combo > 1
+                if (combo > 1) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 40, 2));
+                }
+            }
+            lastMineTime.put(uuid, now);
+        }
+
+        // 5. EXP_SHARE (בונוס אקספי על חציבת בלוקים מהעולם)
+        int expShareLevel = getEffectiveEnchantLevel(player, "EXP_SHARE");
+        if (expShareLevel > 0 && !block.hasMetadata("PLACED_BY_PLAYER")) {
+            if (random.nextDouble() < 0.2) { // 20% chance to drop bonus XP
+                block.getWorld().spawn(block.getLocation(), org.bukkit.entity.ExperienceOrb.class)
+                        .setExperience(expShareLevel * 2);
+            }
+        }
+
+        // Existing Telekinesis logic
+        if (enchants.keySet().stream().anyMatch(e -> e.getId().equalsIgnoreCase("TELEKINESIS"))) {
             event.setDropItems(false);
-            for (ItemStack drop : event.getBlock().getDrops(tool)) {
-                event.getPlayer().getInventory().addItem(drop).values()
-                        .forEach(i -> event.getPlayer().getWorld().dropItemNaturally(event.getPlayer().getLocation(),
-                                i));
+            for (ItemStack drop : block.getDrops(tool)) {
+                player.getInventory().addItem(drop).values()
+                        .forEach(i -> player.getWorld().dropItemNaturally(player.getLocation(), i));
+            }
+        }
+    }
+
+    private boolean isDelicateEnabled(Map<CustomEnchant, Integer> enchants) {
+        return enchants.entrySet().stream()
+                .anyMatch(e -> e.getKey().getId().equalsIgnoreCase("DELICATE") && e.getKey().isEnabled());
+    }
+
+    private boolean isReplenishEnabled(Map<CustomEnchant, Integer> enchants) {
+        return enchants.entrySet().stream()
+                .anyMatch(e -> e.getKey().getId().equalsIgnoreCase("REPLENISH") && e.getKey().isEnabled());
+    }
+
+    private boolean isTurboMinerEnabled(Map<CustomEnchant, Integer> enchants) {
+        return enchants.entrySet().stream()
+                .anyMatch(e -> e.getKey().getId().equalsIgnoreCase("TURBO_MINER") && e.getKey().isEnabled());
+    }
+
+    private int getFortuneLevel(Map<CustomEnchant, Integer> enchants, Material block) {
+        for (Map.Entry<CustomEnchant, Integer> entry : enchants.entrySet()) {
+            CustomEnchant e = entry.getKey();
+            if (!e.isEnabled())
+                continue;
+
+            if (e.getId().equalsIgnoreCase("FARMING_FORTUNE") && isCrop(block))
+                return entry.getValue();
+            if (e.getId().equalsIgnoreCase("HARVESTING") && (isLog(block) || isCrop(block)))
+                return entry.getValue();
+        }
+        return 0;
+    }
+
+    private boolean isCrop(Material m) {
+        return m == Material.WHEAT || m == Material.CARROTS || m == Material.POTATOES || m == Material.BEETROOTS
+                || m == Material.NETHER_WART || m == Material.COCOA_BEANS;
+    }
+
+    private boolean isLog(Material m) {
+        return m.name().contains("_LOG") || m.name().contains("_WOOD");
+    }
+
+    private boolean isFullyGrownCrop(org.bukkit.block.Block b) {
+        if (b.getBlockData() instanceof org.bukkit.block.data.Ageable ageable) {
+            return ageable.getAge() >= ageable.getMaximumAge();
+        }
+        return false;
+    }
+
+    private boolean isYoungCrop(org.bukkit.block.Block b) {
+        if (b.getBlockData() instanceof org.bukkit.block.data.Ageable ageable) {
+            return ageable.getAge() < ageable.getMaximumAge();
+        }
+        return false;
+    }
+
+    private Material getSeedForCrop(Material crop) {
+        return switch (crop) {
+            case WHEAT -> Material.WHEAT_SEEDS;
+            case CARROTS -> Material.CARROT;
+            case POTATOES -> Material.POTATO;
+            case BEETROOTS -> Material.BEETROOT_SEEDS;
+            case NETHER_WART -> Material.NETHER_WART;
+            default -> null;
+        };
+    }
+
+    public Map<CustomEnchant, Integer> getEffectiveEnchants(Player player) {
+        Map<CustomEnchant, Integer> totals = new HashMap<>();
+        for (ItemStack item : getRelevantItems(player)) {
+            Map<CustomEnchant, Integer> enchants = parseCustomEnchants(item.getItemMeta().getLore());
+            for (Map.Entry<CustomEnchant, Integer> entry : enchants.entrySet()) {
+                if (!entry.getKey().isEnabled())
+                    continue;
+                totals.put(entry.getKey(), Math.max(totals.getOrDefault(entry.getKey(), 0), entry.getValue()));
+            }
+        }
+        return totals;
+    }
+
+    public void handleManaSpend(Player player, double manaSpent) {
+        Map<CustomEnchant, Integer> enchants = getEffectiveEnchants(player);
+        for (CustomEnchant e : enchants.keySet()) {
+            if (e.getId().equalsIgnoreCase("GUARDIAN_MANA")) {
+                double defense = Math.min(50.0, manaSpent * 0.25);
+                // Temporary defense boost?
+                // We'll give Resistance effect or a temporary MMOItems stat if possible
+                player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 100, (int) (defense / 20))); // Approx
+                                                                                                                  // mapping
+                player.sendMessage(ChatColor.AQUA + "Guardian Mana protected you!");
             }
         }
     }
@@ -276,6 +573,14 @@ public class CustomEnchantListener implements Listener {
         items.addAll(Arrays.asList(player.getInventory().getArmorContents()));
         items.removeIf(i -> i == null || !i.hasItemMeta() || !i.getItemMeta().hasLore());
         return items;
+    }
+
+    public int getEffectiveEnchantLevel(Player player, String id) {
+        return getEffectiveEnchants(player).entrySet().stream()
+                .filter(e -> e.getKey().getId().equalsIgnoreCase(id))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(0);
     }
 
     private int fromRoman(String roman) {

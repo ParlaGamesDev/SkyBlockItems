@@ -29,6 +29,7 @@ public class SkyBlockItems extends JavaPlugin {
     private EnchantManager enchantManager;
     private CustomEnchantManager customEnchantManager;
     private ChatInputManager chatInputManager;
+    private dev.agam.skyblockitems.enchantsystem.listeners.CustomEnchantListener customEnchantListener;
 
     private Object mmoItemsStatHook;
     private Object auraSkillsHook;
@@ -188,8 +189,8 @@ public class SkyBlockItems extends JavaPlugin {
 
         getServer().getPluginManager()
                 .registerEvents(new dev.agam.skyblockitems.enchantsystem.listeners.GuiListener(this), this);
-        getServer().getPluginManager()
-                .registerEvents(new dev.agam.skyblockitems.enchantsystem.listeners.CustomEnchantListener(this), this);
+        this.customEnchantListener = new dev.agam.skyblockitems.enchantsystem.listeners.CustomEnchantListener(this);
+        getServer().getPluginManager().registerEvents(this.customEnchantListener, this);
 
         if (auraSkillsEnabled) {
             try {
@@ -285,6 +286,10 @@ public class SkyBlockItems extends JavaPlugin {
 
     public ChatInputManager getChatInputManager() {
         return chatInputManager;
+    }
+
+    public dev.agam.skyblockitems.enchantsystem.listeners.CustomEnchantListener getCustomEnchantListener() {
+        return customEnchantListener;
     }
 
     // Safety Casting for Hooks
