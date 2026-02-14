@@ -78,6 +78,18 @@ public abstract class SkyBlockAbility {
         return description;
     }
 
+    public List<String> getDescriptionWithPlaceholders(java.util.Map<String, String> placeholders) {
+        List<String> result = new java.util.ArrayList<>();
+        for (String line : description) {
+            String processed = line;
+            for (java.util.Map.Entry<String, String> entry : placeholders.entrySet()) {
+                processed = processed.replace("{" + entry.getKey() + "}", entry.getValue());
+            }
+            result.add(processed);
+        }
+        return result;
+    }
+
     public String getId() {
         return id;
     }

@@ -58,15 +58,15 @@ Rarities:
     weight: 2
   3:
     identifier: Rare
-    name: '&#0E44F8&lRARE'
+    name: '&#0E44F8&lנדיר'
     weight: 3
   4:
     identifier: Epic
-    name: '&#9560E3&lEPIC'
+    name: '&#9560E3&lאדיר'
     weight: 4
   5:
     identifier: Legendary
-    name: '&#FFB000&lLEGENDARY'
+    name: '&#FFB000&lאגדי'
     weight: 5
 
 Items:

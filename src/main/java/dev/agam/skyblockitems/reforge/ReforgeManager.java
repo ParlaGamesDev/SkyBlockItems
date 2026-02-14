@@ -24,6 +24,7 @@ public class ReforgeManager {
     private FileConfiguration reforgesConfig;
     private FileConfiguration mmoStatsConfig;
     private FileConfiguration mmoLanguageConfig;
+    private String statFormat;
 
     public ReforgeManager(SkyBlockItems plugin) {
         this.plugin = plugin;
@@ -49,7 +50,12 @@ public class ReforgeManager {
         }
 
         loadReforges();
+        this.statFormat = reforgesConfig.getString("settings.stat-format", "&#FAE8B8({value})");
         loadMMOConfigs();
+    }
+
+    public String getStatFormat() {
+        return statFormat;
     }
 
     /**
@@ -88,7 +94,7 @@ public class ReforgeManager {
             for (java.io.File statFile : possiblePaths) {
                 if (statFile.exists() && !statFile.isDirectory()) {
                     this.mmoStatsConfig = YamlConfiguration.loadConfiguration(statFile);
-                    plugin.getLogger().info("[DEBUG] Loaded MMOItems stats from: " + statFile.getPath());
+
                     break;
                 }
             }
@@ -139,7 +145,32 @@ public class ReforgeManager {
         String hyphenId = cleanId.toUpperCase().replace("_", "-");
         String underscoreId = cleanId.toUpperCase().replace("-", "_");
 
-        // 1. Try Direct MMOItems API (Best performance and accuracy)
+        // 1. Check messages.yml (via a new reforge.stat-names section)
+        String configKey = "reforge.stat-names." + cleanId.toLowerCase();
+        String translated = plugin.getConfigManager().getMessageRaw(configKey);
+        // getMessageRaw returns the path if not found, check if it's different
+        if (translated != null && !translated.equals(configKey)) {
+            return ColorUtils.colorize(translated);
+        }
+
+        // 1.5 Fallback to internal common mappings
+        java.util.Map<String, String> commonMappings = new java.util.HashMap<>();
+        commonMappings.put("STRENGTH", "Strength");
+        commonMappings.put("CRIT_DAMAGE", "Crit Damage");
+        commonMappings.put("CRIT_CHANCE", "Crit Chance");
+        commonMappings.put("HEALTH", "Health");
+        commonMappings.put("DEFENSE", "Defense");
+        commonMappings.put("SPEED", "מהירות");
+        commonMappings.put("WALK_SPEED", "מהירות הליכה");
+        commonMappings.put("MOVEMENT_SPEED", "מהירות הליכה");
+        commonMappings.put("ATTACK_SPEED", "מהירות התקפה");
+        commonMappings.put("INTELLIGENCE", "Intelligence");
+
+        if (commonMappings.containsKey(underscoreId)) {
+            return commonMappings.get(underscoreId);
+        }
+
+        // 2. Try Direct MMOItems API
         if (plugin.isMMOItemsEnabled()) {
             try {
                 net.Indyuce.mmoitems.stat.type.ItemStat stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats()
@@ -152,20 +183,6 @@ public class ReforgeManager {
                 }
             } catch (Exception ignored) {
             }
-        }
-
-        // 2. Fallback to common mappings for GUI display
-        java.util.Map<String, String> commonMappings = new java.util.HashMap<>();
-        commonMappings.put("STRENGTH", "Strength");
-        commonMappings.put("CRIT_DAMAGE", "Crit Damage");
-        commonMappings.put("CRIT_CHANCE", "Crit Chance");
-        commonMappings.put("HEALTH", "Health");
-        commonMappings.put("DEFENSE", "Defense");
-        commonMappings.put("SPEED", "Speed");
-        commonMappings.put("INTELLIGENCE", "Intelligence");
-
-        if (commonMappings.containsKey(underscoreId)) {
-            return commonMappings.get(underscoreId);
         }
 
         // 3. Fallback to file-based scanning (legacy)
@@ -331,30 +348,13 @@ public class ReforgeManager {
         // Sharp Logic: Pool based excluded pool management
         if (excludeReforgeId != null) {
             String cleanExclude = excludeReforgeId.trim().toLowerCase();
-            List<Reforge> filtered = applicable.stream()
+            applicable = applicable.stream()
                     .filter(r -> !r.getId().equalsIgnoreCase(cleanExclude))
                     .collect(Collectors.toList());
-
-            // Only use filtered pool if it's not empty, otherwise fallback to full
-            // applicable pool
-            if (!filtered.isEmpty()) {
-                applicable = filtered;
-            }
         }
 
         if (applicable.isEmpty()) {
-            // Fallback: If no reforges meet rarity req, try all for that item type
-            applicable = getReforgesForItemType(itemType);
-            if (excludeReforgeId != null) {
-                String cleanExclude = excludeReforgeId.trim().toLowerCase();
-                applicable = applicable.stream()
-                        .filter(r -> !r.getId().equalsIgnoreCase(cleanExclude))
-                        .collect(Collectors.toList());
-            }
-        }
-
-        if (applicable.isEmpty()) {
-            return null;
+            return null; // Return null to signal no AVAILABLE alternatives
         }
 
         Random random = new Random();
@@ -415,14 +415,22 @@ public class ReforgeManager {
         if (mmoStatsConfig == null) {
             // Hardcoded fallbacks for common SkyBlock stats if config is missing
             String clean = statIdRaw.replace("mmoitems_", "").toUpperCase();
-            if (clean.contains("ATTACK_DAMAGE")) return "⚔";
-            if (clean.contains("HEALTH")) return "❤";
-            if (clean.contains("STRENGTH")) return "❁";
-            if (clean.contains("DEFENSE")) return "❈";
-            if (clean.contains("SPEED")) return "✦";
-            if (clean.contains("CRIT_CHANCE")) return "☣";
-            if (clean.contains("CRIT_DAMAGE")) return "☠";
-            if (clean.contains("INTELLIGENCE")) return "✎";
+            if (clean.contains("ATTACK_DAMAGE"))
+                return "⚔";
+            if (clean.contains("HEALTH"))
+                return "❤";
+            if (clean.contains("STRENGTH"))
+                return "❁";
+            if (clean.contains("DEFENSE"))
+                return "❈";
+            if (clean.contains("SPEED"))
+                return "✦";
+            if (clean.contains("CRIT_CHANCE"))
+                return "☣";
+            if (clean.contains("CRIT_DAMAGE"))
+                return "☠";
+            if (clean.contains("INTELLIGENCE"))
+                return "✎";
             return "■";
         }
 
@@ -450,4 +458,3 @@ public class ReforgeManager {
         return "■";
     }
 }
-

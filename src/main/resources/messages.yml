@@ -198,6 +198,7 @@ reforge:
   not-enough-money: "<#e74c3c>אין לך מספיק כסף! <#f8b739>(נדרש: {cost})"
   invalid-item: "<#e74c3c>לא ניתן לחשל את החפץ הזה!"
   same-reforge: "<#f39c12>התקבל אותו חישול, מנסה שוב..."
+  already-maximized: "<#e74c3c>הפריט כבר כולל את החישל היחיד האפשרי עבורו!"
   place-item: "<#ffeaa7>הנח חפץ לחישול"
   current-reforge: "<#636e72>חישול נוכחי: <#ffeaa7>{reforge}"
   no-reforge: "<#636e72>אין חישול"
@@ -211,6 +212,22 @@ reforge:
     - "<#636e72>לחץ כדי לקבל חישול אקראי"
     - ""
     - "<#636e72>עלות: <#2ecc71>{cost} מטבעות"
+  
+  stat-names:
+    attack_damage: "נזק"
+    critical_strike_chance: "סיכוי לקריט"
+    critical_strike_power: "עוצמת קריט"
+    health: "חיים"
+    max_health: "חיים"
+    defense: "הגנה"
+    movement_speed: "מהירות הליכה"
+    walk_speed: "מהירות הליכה"
+    speed: "מהירות"
+    max_mana: "מאנה"
+    intelligence: "אינטליגנציה"
+    strength: "כוח"
+    mining_speed: "מהירות חציבה"
+    block_power: "עוצמת בלוק"
   
   editor:
     list-title: "<#aa55ff>&lניהול חישולים"

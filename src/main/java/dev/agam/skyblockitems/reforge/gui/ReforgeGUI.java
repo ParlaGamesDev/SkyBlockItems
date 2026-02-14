@@ -15,11 +15,17 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import dev.agam.skyblockitems.enchantsystem.gui.BaseGUI;
+
 /**
  * GUI for the reforge system.
  * Allows players to place an item and roll for a random reforge.
  */
-public class ReforgeGUI {
+public class ReforgeGUI implements BaseGUI {
 
     private static final Map<String, ReforgeGUI> activeGUIs = new HashMap<>();
     private static final Map<UUID, Long> clickCooldowns = new HashMap<>();
@@ -38,13 +44,13 @@ public class ReforgeGUI {
         // Load GUI configuration
         ConfigurationSection config = plugin.getConfig().getConfigurationSection("gui.reforge");
         String title = ColorUtils
-                .colorize(config != null ? config.getString("title", "<#aa55ff>&lשולחן חישול")
-                        : "<#aa55ff>&lשולחן חישול");
+                .colorize(config != null ? config.getString("title", "<#aa55ff>&lReforge")
+                        : "<#aa55ff>&lReforge");
         int size = config != null ? config.getInt("size", 27) : 27;
         this.itemSlot = config != null ? config.getInt("item-slot", 13) : 13;
         this.rollButtonSlot = config != null ? config.getInt("roll-button-slot", 16) : 16;
 
-        this.inventory = Bukkit.createInventory(null, size, title);
+        this.inventory = Bukkit.createInventory(this, size, title);
 
         setupGUI();
     }
@@ -194,7 +200,15 @@ public class ReforgeGUI {
         Reforge newReforge = plugin.getReforgeManager().getRandomReforge(itemType, currentRarity, currentReforgeId);
 
         if (newReforge == null) {
-            player.sendMessage(getMessage("reforge.invalid-item"));
+            // Check if ANY reforge is applicable at all
+            List<Reforge> allApplicable = plugin.getReforgeManager().getApplicableReforges(itemType, currentRarity);
+            if (allApplicable.isEmpty()) {
+                player.sendMessage(getMessage("reforge.invalid-item"));
+            } else {
+                // We have applicable ones, but getRandomReforge returned null because they are
+                // all the current one
+                player.sendMessage(getMessage("reforge.already-maximized"));
+            }
             playSound(player, "error");
             return;
         }
@@ -227,6 +241,27 @@ public class ReforgeGUI {
         } else {
             player.sendMessage(getMessage("reforge.error"));
             playSound(player, "error");
+        }
+    }
+
+    /**
+     * Handles inventory click events.
+     */
+    public void onClick(InventoryClickEvent event) {
+        if (event.getClickedInventory() != inventory)
+            return;
+
+        int slot = event.getSlot();
+
+        if (slot == rollButtonSlot) {
+            event.setCancelled(true);
+            handleRoll();
+        } else if (slot == itemSlot) {
+            // Allow interaction, but update button
+            plugin.getServer().getScheduler().runTask(plugin, this::updateRollButton);
+        } else {
+            // Cancel interaction with filler items
+            event.setCancelled(true);
         }
     }
 

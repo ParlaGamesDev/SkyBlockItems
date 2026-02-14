@@ -237,10 +237,7 @@ public class ReforgeEditorGUI implements BaseGUI {
 
         // Edit Item Types
         else if (slot == 11) {
-            promptInput("reforge.editor.properties.item-types.prompt", input -> {
-                itemTypes = new ArrayList<>(Arrays.asList(input.split(",\\s*")));
-                setupGUI();
-            });
+            new ReforgeItemTypeSelectorGUI(plugin, player, itemTypes, this).open();
         }
 
         // Edit Rarity Requirement (Cycle)
@@ -321,7 +318,14 @@ public class ReforgeEditorGUI implements BaseGUI {
 
     public void reopen() {
         setupGUI();
-        Bukkit.getScheduler().runTask(plugin, this::open);
+        player.openInventory(inventory);
+    }
+
+    /**
+     * Callback from ReforgeItemTypeSelectorGUI to update item types.
+     */
+    public void updateItemTypes(List<String> newItemTypes) {
+        this.itemTypes = new ArrayList<>(newItemTypes);
     }
 
     @Override

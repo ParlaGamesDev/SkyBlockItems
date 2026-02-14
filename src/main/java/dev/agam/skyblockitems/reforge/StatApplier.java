@@ -223,15 +223,26 @@ public class StatApplier {
      * @param mmoItem The LiveMMOItem instance
      * @param stats   The Map of <StatID, Value> to subtract
      */
-    public void removeStatsFromReceipt(LiveMMOItem mmoItem, Map<String, Double> stats) {
-        if (mmoItem == null || stats == null || stats.isEmpty())
+    public void removeStatsFromReceipt(ItemStack item, LiveMMOItem mmoItem, Map<String, Double> stats) {
+        if (item == null || mmoItem == null || stats == null || stats.isEmpty())
             return;
+
+        // Use standard NBTItem.get(item) directly
+        NBTItem nbtItem = NBTItem.get(item);
+        boolean nbtModified = false;
 
         for (Map.Entry<String, Double> entry : stats.entrySet()) {
             String statId = entry.getKey();
             double valueToSubtract = entry.getValue();
 
-            ItemStat stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats().get(statId);
+            // Clean Stat ID (Remove mmoitems_ prefix for lookup)
+            String mmoStatId = statId;
+            if (mmoStatId.toLowerCase().startsWith("mmoitems_")) {
+                mmoStatId = mmoStatId.substring("mmoitems_".length()).toUpperCase().replace("-", "_");
+            }
+
+            // 1. MMOItems Data Removal
+            ItemStat stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats().get(mmoStatId);
             if (stat != null && mmoItem.hasData(stat)) {
                 if (stat instanceof net.Indyuce.mmoitems.stat.type.DoubleStat) {
                     DoubleData current = (DoubleData) mmoItem.getData(stat);
@@ -240,11 +251,28 @@ public class StatApplier {
                     if (newValue <= 0.0001) {
                         mmoItem.removeData(stat);
                     } else {
-                        // Compatibility: Ensure mmoitem.setData is used correctly for DoubleStat types
                         mmoItem.setData(stat, new DoubleData(newValue));
                     }
                 }
             }
+
+            // 2. Manual NBT Sync removal (Fixes "persistent stats" bug)
+            String cleanIdForNBT = mmoStatId.toUpperCase().replace("-", "_");
+            String nbtKey = "MMOITEMS_" + cleanIdForNBT;
+            if (nbtItem.hasTag(nbtKey)) {
+                double currentNBTValue = nbtItem.getDouble(nbtKey);
+                double newNBTValue = currentNBTValue - valueToSubtract;
+                if (newNBTValue <= 0.0001) {
+                    nbtItem.removeTag(nbtKey);
+                } else {
+                    nbtItem.addTag(new ItemTag(nbtKey, newNBTValue));
+                }
+                nbtModified = true;
+            }
+        }
+
+        if (nbtModified) {
+            item.setItemMeta(nbtItem.toItem().getItemMeta());
         }
     }
 

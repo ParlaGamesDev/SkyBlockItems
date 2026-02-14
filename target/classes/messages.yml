@@ -212,6 +212,22 @@ reforge:
     - ""
     - "<#636e72>עלות: <#2ecc71>{cost} מטבעות"
   
+  stat-names:
+    attack_damage: "נזק"
+    critical_strike_chance: "סיכוי לקריט"
+    critical_strike_power: "עוצמת קריט"
+    health: "חיים"
+    max_health: "חיים"
+    defense: "הגנה"
+    movement_speed: "מהירות הליכה"
+    walk_speed: "מהירות הליכה"
+    speed: "מהירות"
+    max_mana: "מאנה"
+    intelligence: "אינטליגנציה"
+    strength: "כוח"
+    mining_speed: "מהירות חציבה"
+    block_power: "עוצמת בלוק"
+  
   editor:
     list-title: "<#aa55ff>&lניהול חישולים"
     editor-title: "<#d63aff>&lעריכת חישול: <#ffeaa7>{id}"

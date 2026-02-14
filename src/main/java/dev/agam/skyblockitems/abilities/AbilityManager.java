@@ -60,10 +60,49 @@ public class AbilityManager {
                 "הילת תפוח אדמה", Material.POTATOES));
         // DiamondRadarAbility removed by user request
         registerAbility(new dev.agam.skyblockitems.abilities.utility.CleanseAbility());
+        // registerAbility(new
+        // dev.agam.skyblockitems.abilities.combat.OverloadAbility()); // Removed by
+        // user request
+        registerAbility(new dev.agam.skyblockitems.abilities.utility.MetabolismAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.MetabolismAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.SpeedAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.GrapplingHookAbility());
 
+        registerAbility(new dev.agam.skyblockitems.abilities.utility.GrapplingHookAbility());
+
+        // Load Generic Abilities from config
+        loadGenericAbilities();
+    }
+
+    private void loadGenericAbilities() {
+        try {
+            java.io.File file = new java.io.File(dev.agam.skyblockitems.SkyBlockItems.getInstance().getDataFolder(),
+                    "abilities.yml");
+            if (!file.exists())
+                return;
+
+            org.bukkit.configuration.file.YamlConfiguration config = org.bukkit.configuration.file.YamlConfiguration
+                    .loadConfiguration(file);
+
+            for (String key : config.getKeys(false)) {
+                if (key.equalsIgnoreCase("ability-header-format"))
+                    continue;
+
+                // If already registered (Java Class exists), skip
+                if (abilities.containsKey(key))
+                    continue;
+
+                String name = config.getString(key + ".name");
+                if (name != null) {
+                    dev.agam.skyblockitems.SkyBlockItems.getInstance().getLogger()
+                            .info("Registering Generic Ability: " + key + " (" + name + ")");
+                    registerAbility(new GenericAbility(key, name));
+                }
+            }
+        } catch (Exception e) {
+            dev.agam.skyblockitems.SkyBlockItems.getInstance().getLogger()
+                    .warning("Failed to load generic abilities: " + e.getMessage());
+        }
     }
 
     public void registerAbility(SkyBlockAbility ability) {
@@ -72,5 +111,14 @@ public class AbilityManager {
 
     public SkyBlockAbility getAbility(String id) {
         return abilities.get(id);
+    }
+
+    public SkyBlockAbility getAbilityByName(String name) {
+        for (SkyBlockAbility ability : abilities.values()) {
+            if (ability.getDisplayName().equalsIgnoreCase(name) || ability.getId().equalsIgnoreCase(name)) {
+                return ability;
+            }
+        }
+        return null; // Not found
     }
 }
