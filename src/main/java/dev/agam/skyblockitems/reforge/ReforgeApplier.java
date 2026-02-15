@@ -414,9 +414,11 @@ public class ReforgeApplier {
             }
         }
 
-        // 3. Prepare Structure Base (Original Lore minus reforge-abilities/annotations)
+        // 3. Prepare Structure Base (Original Lore minus
+        // reforge-abilities/annotations/enchants)
         List<String> structureBase = new ArrayList<>(rawPreMutationLore);
-        cleanLore(structureBase, reforge, oldReforgeAbilities);
+        Reforge oldReforge = oldReforgeId != null ? plugin.getReforgeManager().getReforge(oldReforgeId) : null;
+        cleanLore(structureBase, reforge, oldReforge, oldReforgeAbilities);
 
         // 4. Iterate and update
         Set<String> injectedStats = new HashSet<>();
@@ -709,8 +711,27 @@ public class ReforgeApplier {
      * pollution.
      * CRITICAL: Only removes OLD reforge data, NOT all abilities!
      */
-    private void cleanLore(List<String> lore, Reforge reforge, Set<String> oldReforgeAbilities) {
+    private void cleanLore(List<String> lore, Reforge reforge, Reforge oldReforge, Set<String> oldReforgeAbilities) {
         Set<String> namesToRemove = new HashSet<>();
+
+        // Add enchant names from old reforge
+        if (oldReforge != null) {
+            for (String s : oldReforge.getEnchants()) {
+                try {
+                    String enchantId = s.split(":")[0].toUpperCase();
+                    String displayName = plugin.getEnchantManager().getDisplayNameForId(enchantId.toLowerCase());
+                    if (displayName.equals(enchantId.toLowerCase())) {
+                        displayName = Arrays.stream(enchantId.split("_"))
+                                .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
+                                .collect(Collectors.joining(" "));
+                    } else {
+                        displayName = ColorUtils.stripColor(ColorUtils.colorize(displayName));
+                    }
+                    namesToRemove.add(normalizeForMatch(displayName));
+                } catch (Exception ignored) {
+                }
+            }
+        }
 
         if (oldReforgeAbilities != null) {
             for (String id : oldReforgeAbilities) {
@@ -739,18 +760,21 @@ public class ReforgeApplier {
                 continue;
             }
 
-            // 2. Remove Ability Headers for Reforge Abilities
-            boolean isHeaderToRemove = false;
+            // 2. Remove Ability/Enchant Headers for Reforge Data
+            boolean isDataToRemove = false;
             for (String name : namesToRemove) {
+                // For enchants, we match "§7" + Name + " ROMAN"
+                // But normalizeForMatch strips color and uppers.
                 if (stripped.contains(name) || name.contains(stripped)) {
-                    // Only remove if it's a short "header-like" line
+                    // Only remove if it's a short "header-like" line or exactly matches reforge
+                    // format
                     if (stripped.length() < name.length() + 15) {
-                        isHeaderToRemove = true;
+                        isDataToRemove = true;
                         break;
                     }
                 }
             }
-            if (isHeaderToRemove) {
+            if (isDataToRemove) {
                 lore.remove(i);
                 i--;
             }
