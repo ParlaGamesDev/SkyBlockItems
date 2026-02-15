@@ -67,6 +67,15 @@ public class ColorUtils {
                 "");
     }
 
+    /**
+     * Colorizes a list of strings.
+     */
+    public static List<String> colorizeList(List<String> list) {
+        if (list == null)
+            return null;
+        return list.stream().map(ColorUtils::colorize).collect(Collectors.toList());
+    }
+
     private static String applyGradient(String text, String color1, String color2) {
         java.awt.Color start = java.awt.Color.decode(color1);
         java.awt.Color end = java.awt.Color.decode(color2);

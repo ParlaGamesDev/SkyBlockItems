@@ -114,12 +114,14 @@ public class EnchantEditorGUI implements BaseGUI {
         inventory.setItem(CONFLICTS_SLOT, createEditorItem("gui.items.editor-conflicts", "", Material.BARRIER));
 
         // Save
-        inventory.setItem(SAVE_SLOT, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.save"), Material.EMERALD_BLOCK));
+        inventory.setItem(SAVE_SLOT, createPropertyItem(Material.EMERALD_BLOCK,
+                plugin.getConfigManager().getMessage("gui.items.save.name"),
+                plugin.getConfigManager().getMessageList("gui.items.save.lore")));
 
         // Back
-        inventory.setItem(BACK_SLOT, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.back"), Material.ARROW));
+        inventory.setItem(BACK_SLOT, createPropertyItem(Material.ARROW,
+                plugin.getConfigManager().getMessage("gui.items.back.name"),
+                plugin.getConfigManager().getMessageList("gui.items.back.lore")));
 
         // Fill remaining empty slots with configured glass pane
         Material fillerMat = Material
@@ -132,8 +134,25 @@ public class EnchantEditorGUI implements BaseGUI {
         }
     }
 
+    private ItemStack createPropertyItem(Material material, String name, List<String> loreLines) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(ColorUtils.colorize(name));
+            List<String> lore = new ArrayList<>();
+            for (String line : loreLines) {
+                lore.add(ColorUtils.colorize(line));
+            }
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
     private ItemStack createEditorItem(String configPath, String value, Material fallback) {
-        ItemStack item = ColorUtils.getItemFromConfig(plugin.getConfig().getConfigurationSection(configPath), fallback);
+        // Use getMessages() instead of getConfig() for GUI items
+        ItemStack item = ColorUtils.getItemFromConfig(
+                plugin.getConfigManager().getMessages().getConfigurationSection(configPath), fallback);
         ItemMeta meta = item.getItemMeta();
         if (meta != null && meta.hasLore()) {
             List<String> lore = meta.getLore().stream()

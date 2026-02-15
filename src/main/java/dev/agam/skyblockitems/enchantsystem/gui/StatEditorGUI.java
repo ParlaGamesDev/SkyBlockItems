@@ -184,7 +184,8 @@ public class StatEditorGUI implements BaseGUI {
         String displayName = ChatColor.stripColor(clicked.getItemMeta().getDisplayName());
 
         for (EnchantStat stat : EnchantStat.values()) {
-            if (stat.getDisplayName().equals(displayName)) {
+            // Compare with Hebrew name since that's what's displayed in the GUI
+            if (stat.getHebrewName().equals(displayName)) {
                 Double currentValue = enchant.getStats().get(stat);
 
                 if (event.getClick().name().contains("MIDDLE")) {

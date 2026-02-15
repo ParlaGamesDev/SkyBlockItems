@@ -85,12 +85,14 @@ public class ReforgeItemTypeSelectorGUI implements BaseGUI {
         }
 
         // Back button
-        inventory.setItem(27, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.back"), Material.ARROW));
+        inventory.setItem(27, createPropertyItem(Material.ARROW,
+                plugin.getConfigManager().getMessage("gui.items.back.name"),
+                plugin.getConfigManager().getMessageList("gui.items.back.lore")));
 
         // Close/Save button
-        inventory.setItem(31, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.close"), Material.EMERALD));
+        inventory.setItem(31, createPropertyItem(Material.EMERALD,
+                plugin.getConfigManager().getMessage("gui.items.close.name"),
+                plugin.getConfigManager().getMessageList("gui.items.close.lore")));
 
         // Filler
         Material fillerMat = Material.getMaterial(
@@ -163,6 +165,21 @@ public class ReforgeItemTypeSelectorGUI implements BaseGUI {
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             setupGUI();
         }
+    }
+
+    private ItemStack createPropertyItem(Material material, String name, List<String> loreLines) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(ColorUtils.colorize(name));
+            List<String> lore = new ArrayList<>();
+            for (String line : loreLines) {
+                lore.add(ColorUtils.colorize(line));
+            }
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+        }
+        return item;
     }
 
     @Override

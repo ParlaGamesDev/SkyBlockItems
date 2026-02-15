@@ -52,7 +52,7 @@ public class RarityCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        if (!player.hasPermission("skyblockitems.rarity.set")) {
+        if (!player.hasPermission("skyblockitems.admin.rarity")) {
             player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("general.no-permission")));
             return;
         }
@@ -98,7 +98,7 @@ public class RarityCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        if (!player.hasPermission("skyblockitems.rarity.set")) {
+        if (!player.hasPermission("skyblockitems.admin.rarity")) {
             player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("general.no-permission")));
             return;
         }
@@ -140,7 +140,7 @@ public class RarityCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        if (!player.hasPermission("skyblockitems.rarity.remove")) {
+        if (!player.hasPermission("skyblockitems.admin.rarity")) {
             player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("general.no-permission")));
             return;
         }

@@ -3,6 +3,7 @@ dev\agam\skyblockitems\enchantsystem\utils\ColorUtils.class
 dev\agam\skyblockitems\abilities\utility\SpeedAbility.class
 dev\agam\skyblockitems\enchantsystem\config\ConfigManager.class
 dev\agam\skyblockitems\enchantsystem\hooks\MMOItemsHook.class
+dev\agam\skyblockitems\integration\ReforgeableStat.class
 dev\agam\skyblockitems\abilities\GenericAbility.class
 dev\agam\skyblockitems\integration\MMOItemsStatIntegration.class
 dev\agam\skyblockitems\reforge\gui\ReforgeGUI.class
@@ -16,10 +17,12 @@ dev\agam\skyblockitems\enchantsystem\gui\EnchantListGUI.class
 dev\agam\skyblockitems\enchantsystem\gui\BaseGUI.class
 dev\agam\skyblockitems\reforge\ReforgeManager.class
 dev\agam\skyblockitems\enchantsystem\managers\CustomEnchantManager.class
+dev\agam\skyblockitems\commands\ReforgesCommand.class
 dev\agam\skyblockitems\enchantsystem\gui\ConflictSelectionGUI.class
 dev\agam\skyblockitems\enchantsystem\gui\EnchantmentGuideGUI$SortOrder.class
 dev\agam\skyblockitems\enchantsystem\gui\LevelSelectionGUI.class
 dev\agam\skyblockitems\stats\DisableAnvilStat.class
+dev\agam\skyblockitems\commands\EnchantsCommand.class
 dev\agam\skyblockitems\reforge\gui\ReforgeStatEditorGUI.class
 dev\agam\skyblockitems\listeners\InfiniteReservoirListener$1.class
 dev\agam\skyblockitems\commands\ReforgeCommand.class

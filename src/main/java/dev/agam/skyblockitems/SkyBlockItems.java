@@ -212,8 +212,11 @@ public class SkyBlockItems extends JavaPlugin {
         getCommand("sbi").setTabCompleter(sbi);
         getCommand("enchant").setExecutor(new dev.agam.skyblockitems.commands.EnchantCommand(this));
         getCommand("anvil").setExecutor(new dev.agam.skyblockitems.commands.AnvilCommand(this));
-        getCommand("rarity").setExecutor(new dev.agam.skyblockitems.rarity.RarityCommand(this));
         getCommand("reforge").setExecutor(new dev.agam.skyblockitems.commands.ReforgeCommand(this));
+
+        dev.agam.skyblockitems.rarity.RarityCommand rarityCmd = new dev.agam.skyblockitems.rarity.RarityCommand(this);
+        getCommand("rarity").setExecutor(rarityCmd);
+        getCommand("rarity").setTabCompleter(rarityCmd);
     }
 
     private void startRaritySystem() {

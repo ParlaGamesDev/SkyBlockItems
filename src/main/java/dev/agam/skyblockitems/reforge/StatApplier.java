@@ -104,7 +104,8 @@ public class StatApplier {
                 item.setItemMeta(rebuilt.getItemMeta());
             }
         } catch (Exception e) {
-            plugin.getLogger().warning("[StatApplier] Failed to apply data-driven stats: " + e.getMessage());
+            // plugin.getLogger().warning("[StatApplier] Failed to apply data-driven stats:
+            // " + e.getMessage()); // Removed debug log
             applyStatsManually(item, stats, itemType);
         }
     }

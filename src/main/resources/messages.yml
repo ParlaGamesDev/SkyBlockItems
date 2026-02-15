@@ -3,6 +3,8 @@ general:
   player-only: "<#e74c3c> הפקודה הזו נועדה לשחקנים בלבד!"
   must-hold-item: "<#f39c12> אתה חייב להחזיק חפץ ביד!"
   blacklisted-item: "<#e74c3c> החפץ הזה נמצא ברשימה השחורה ולא ניתן לכשף אותו!"
+  blacklisted-title: "<#e74c3c>&lברשימה שחורה"
+  blacklisted-lore: "<#636e72>פריט זה נמצא ברשימה השחורה!"
 
 errors:
   one-at-a-time: "<#e74c3c> ניתן לשים רק חפץ אחד בכל פעם!"
@@ -75,7 +77,8 @@ guide:
   sort:
     title: "<#f39c12>⇅ מיון כישופים"
     left-click: "<#74b9ff> לחיצה שמאלית להחלפת מיון!"
-    right-click: "<#74b9ff> לחיצה ימנית לאחורה!"
+    right-click: "<#74b9ff> לחיצה ימנית לאחורה
+    !"
     modes:
       alphabetical-az: "אלפביתי A-Z"
       alphabetical-za: "אלפביתי Z-A"
@@ -156,8 +159,16 @@ commands:
   prompt-id: "<#f39c12>הזן מזהה לכישוף החדש:"
   mmoenchants:
     prompt-id: "<#f39c12>הזן מזהה לכישוף החדש:"
+    saved: "<#2ecc71>הכישוף {id} נשמר בהצלחה!"
 
 editor:
+  prompt-name: "<#f39c12>הזן שם חדש לכישוף:"
+  prompt-description: "<#f39c12>הזן תיאור חדש לכישוף:"
+  prompt-material: "<#f39c12>הזן שם של חומר (Material) לאייקון הכישוף:"
+  invalid-material: "<#e74c3c>חומר לא תקין! אנא השתמש בשמות של באקיט."
+  level-controls:
+    - "<#ffeaa7>▶ לחיצה שמאלית להעלאת רמה"
+    - "<#e74c3c>▶ לחיצה ימנית להורדת רמה"
   list-title: "&8עריכת כישופים"
   main-title: "&8עריכת כישוף: {enchant}"
   xp-cost-title: "&8עריכת עלות XP"
@@ -187,10 +198,59 @@ gui:
     click-toggle: "<#ffeaa7>▶ לחץ להחלפה"
     click-enable: "<#ffeaa7> לחץ להפעלה"
     middle-click-remove: "<#e74c3c> גלגלת להסרה"
+    controls:
+      - "&eלחיצה שמאלית: +1"
+      - "&eלחיצה ימנית: -1"
+      - "&eShift + ימני: +10"
   conflict-selector:
     selected: "<#e74c3c> מתנגש"
     not-selected: "<#636e72>• לא מתנגש"
     click-toggle: "<#ffeaa7>▶ לחץ להחלפה"
+  controls:
+    left-click: "<#ffeaa7>▶ לחיצה שמאלית לעריכה"
+    shift-right-delete: "<#e74c3c>▶ Shift + ימני למחיקה"
+    middle-click-remove: "<#e74c3c>▶ גלגלת להסרה"
+  items:
+    back:
+      name: "<#e74c3c>&lחזור"
+      lore: ["<#636e72>חזור לתפריט הקודם"]
+    save:
+      name: "<#2ecc71>&lשמור"
+      lore: ["<#636e72>שמור את השינויים וסגור"]
+    close:
+      name: "<#e74c3c>&lסגור"
+      lore: ["<#636e72>סגור את התפריט"]
+    prev-page:
+      name: "<#e74c3c>&lדף קודם"
+    next-page:
+      name: "<#2ecc71>&lדף הבא"
+    editor-name:
+      name: "<#ffeaa7>שם הכישוף"
+      lore: ["<#636e72>לחץ לשינוי"]
+    editor-description:
+      name: "<#ffeaa7>תיאור"
+      lore: ["<#636e72>לחץ לשינוי"]
+    editor-icon:
+      name: "<#ffeaa7>אייקון"
+      lore: ["<#636e72>לחץ לשינוי"]
+    editor-targets:
+      name: "<#ffeaa7>יעדים"
+      lore: ["<#636e72>לחץ לשינוי"]
+    editor-max-level:
+      name: "<#ffeaa7>רמה מקסימלית"
+      lore: []
+    editor-required-level:
+      name: "<#ffeaa7>רמת כישוף נדרשת"
+      lore: []
+    editor-stats:
+      name: "<#ffeaa7>סטטיסטיקות"
+      lore: ["<#636e72>לחץ לעריכה"]
+    editor-xp-costs:
+      name: "<#ffeaa7>עלות XP"
+      lore: ["<#636e72>לחץ לעריכה"]
+    editor-conflicts:
+      name: "<#ffeaa7>התנגשויות"
+      lore: ["<#636e72>לחץ לעריכה"]
 
 reforge:
   gui-title: "<#aa55ff>&lשולחן חישול"
@@ -206,6 +266,10 @@ reforge:
   error: "<#e74c3c>שגיאה בהחלת החישול!"
   place-item-lore: "<#636e72>הנח חפץ בסלוט כדי להתחיל"
   invalid-item-lore: "<#e74c3c>לא ניתן לחשל את החפץ הזה!"
+  not-mmoitem-title: "<#e74c3c>&lפריט לא נתמך"
+  not-mmoitem-lore: "<#636e72>רק פריטי MMOItems ניתנים לחישול!"
+  not-reforgeable-title: "<#e74c3c>&lחישול לא זמין"
+  not-reforgeable-lore: "<#636e72>פריט זה אינו ניתן לחישול!"
   click-to-reforge: "<#ffeaa7>לחץ כדי לחשל!"
   roll-button-name: "<#2ecc71>&lחשל!"
   roll-button-lore:
@@ -218,15 +282,37 @@ reforge:
     attack-speed: "<#ffe5d9>מהירות התקפה"
     critical_strike_chance: "<#f1bf50>סיכוי לקריט"
     critical_strike_power: "<#f1bf50>עוצמת קריט"
-    health: "<#f44336>חיים"
-    max_health: "<#f44336>חיים מקסימליים"
+    skill_critical_strike_chance: "<#f1bf50>סיכוי לקריט סקיל"
+    skill_critical_strike_power: "<#f1bf50>עוצמת קריט סקיל"
+    pve_damage: "<#ff7675>נזק PVE"
+    pvp_damage: "<#ff7675>נזק PVP"
+    weapon_damage: "<#ff7675>נזק נשק"
+    skill_damage: "<#ff7675>נזק סקיל"
+    projectile_damage: "<#ff7675>נזק חץ"
+    magic_damage: "<#74b9ff>נזק קסם"
+    physical_damage: "<#ffe5d9>נזק פיזי"
     defense: "<#dedede>הגנה"
-    movement_speed: "<#c7c4bf>מהירות"
-    walk_speed: "<#c7c4bf>מהירות הליכה"
+    fall_damage_reduction: "<#81ecec>הפחתת נזק נפילה"
+    fire_damage_reduction: "<#ff7675>הפחתת נזק אש"
+    pve_damage_reduction: "<#fab1a0>הפחתת נזק PVE"
+    pvp_damage_reduction: "<#fab1a0>הפחתת נזק PVP"
+    undead_damage: "<#a29bfe>נזק לאל-מתים"
+    lifesteal: "<#ff7675>ערפדות"
+    armor_toughness: "<#dedede>קשיחות שריון"
+    max_health: "<#f44336>חיים מקסימליים"
+    health: "<#f44336>חיים"
+    knockback_resistance: "<#dfe6e9>עמידות להדיפה"
+    movement_speed: "<#c7c4bf>מהירות הליכה"
     speed: "<#c7c4bf>מהירות"
-    max_mana: "<#b6ddf5>מאנה"
-    strength: "<#ffe5d9>כוח"
-    mining_speed: "<#ffe5d9>מהירות חציבה"
+    jump_strength: "<#55efc4>עוצמת קפיצה"
+    mining_efficiency: "<#ffe5d9>יעילות חציבה"
+    movement_efficiency: "<#c7c4bf>יעילות תנועה"
+    oxygen_bonus: "<#74b9ff>בונוס חמצן"
+    sneaking_speed: "<#c7c4bf>מהירות התגנבות"
+    water_movement_speed: "<#74b9ff>מהירות במים"
+    autosmelt: "<#fdcb6e>התכה אוטומטית"
+    max_mana: "<#b6ddf5>מאנה מקסימלית"
+    mana: "<#b6ddf5>מאנה"
   
   editor:
     list-title: "<#aa55ff>&lניהול חישולים"
@@ -294,32 +380,51 @@ reforge:
       id-label: "<#636e72>ID: <#ffeaa7>{id}"
       cost-label: "<#636e72>עלות: <#2ecc71>{cost} מטבעות"
       types-label: "<#636e72>סוגים: <#74b9ff>{types}"
-      rarity-label: "<#636e72>נדירות: <#a29bfe>{req} → {upgrade}"
+      rarity-label: "<#636e72>נדירות: <#a29bfe>{req}"
       stats-header: "<#ffeaa7>סטטיסטיקות:"
       enchants-header: "<#d63aff>כישופים: <#dfe6e9>{enchants}"
       abilities-header: "<#00b894>יכולות: <#dfe6e9>{abilities}"
 
-    stat-editor:
-      title: "<#d63aff>&lעריכת סטטיסטיקות: <#ffeaa7>{reforge}"
-      add-stat: "<#2ecc71>&lהוסף סטטיסטיקה"
-      add-stat-lore: "<#636e72>לחץ כדי להוסיף סטטיסטיקה חדשה"
-      edit-value-prompt: "הזן ערך חדש לסטטיסטיקה {stat}:"
-      new-stat-prompt: "הזן שם סטטיסטיקה (למשל mmoitems_attack_damage):"
+    stat-selector:
+      title: "<#d63aff>&lבחר סטטיסטיקה"
+      current-value: "<#636e72>ערך נוכחי: <#2ecc71>+{value}"
+      not-set: "<#636e72>לא מוגדר"
+      click-add: "<#ffeaa7>▶ לחץ להוספה/עריכה"
+      page-prev: "<#e74c3c>&lדף קודם"
+      page-next: "<#2ecc71>&lדף הבא"
+      page-indicator: "<#ffeaa7>&lעמוד {current}/{total}"
+      page-indicator-lore: "<#636e72>סה\"כ {total} סטטיסטיקות"
+      stat-id-label: "<#636e72>ID: <#dfe6e9>{id}"
+      value-prompt: "<#f39c12>הזן ערך עבור <#ffeaa7>{name} <#636e72>({id}):"
+      added-success: "<#2ecc71>✔ נוסף: <#ffeaa7>{name} <#2ecc71>+{value}"
     
     enchant-selector:
       title: "<#d63aff>&lבחר כישופים"
-      selected: "<#2ecc71>✔ נבחר"
-      not-selected: "<#e74c3c>✖ לא נבחר"
-      click-toggle: "<#ffeaa7>▶ לחץ להחלפת מצב"
-      set-level: "<#74b9ff>▶ Shift + לחיצה להגדרת רמה"
-      level-prompt: "הזן רמת כישוף עבור {enchant}:"
-      current-level: "<#636e72>רמה נוכחית: <#a29bfe>{level}"
-      
+      selected: "<#2ecc71>✔"
+      not-selected: "<#e74c3c>✖"
+      current-level: "<#636e72>רמה: <#ffeaa7>{level}"
+      click-toggle: "<#ffeaa7>▶ לחיצה שמאלית להוספה/הסרה"
+      set-level: "<#74b9ff>▶ לחיצה ימנית לשינוי רמה"
+      level-prompt: "<#f39c12>הזן רמה עבור {enchant}:"
+    
+    stat-editor:
+      title: "&8עריכת סטטיסטיקות"
+      add-stat: "&a&lהוסף סטטיסטיקה"
+      add-stat-lore: "&7לחץ כדי להוסיף סטטיסטיקה חדשה"
+      edit-value-prompt: "&eהזן ערך חדש לסטטיסטיקה:"
+
     item-type-selector:
-      title: "<#d63aff>&lבחר סוגי פריטים"
-      selected: "<#2ecc71>נבחר"
-      not-selected: "<#636e72>לא נבחר"
-      click-toggle: "<#74b9ff>▶ לחץ להחלפה"
+      title: "&8בחירת סוגי פריטים"
+      click-toggle: "&eלחץ כדי להפעיל/לכבות"
+
+    ability-selector:
+      title: "&8בחירת יכולות"
+      selected: "<#2ecc71>✔ נבחר"
+      not-selected: "<#636e72>• לא נבחר"
+      description: "<#ffeaa7>תיאור:"
+      click-toggle: "<#ffeaa7>▶ לחץ להחלפה"
+
+  invalid-item-title: "&cלא ניתן לחשל"
 
 item-types:
   sword: "חרב"
@@ -357,12 +462,81 @@ targets:
   tool: "כלים"
   axe: "גרזנים"
   fishing_rod: "חכות"
+  pickaxe: "מכושים"
+  shovel: "אתים"
+  hoe: "מעדרים"
   global: "כללי"
+
+
 
 enchant-descriptions:
   greed: "מגדיל את כמות המטבעות שמפלצות מפילות."
+  delicate: "מונע הריסת גבעולים ומותאם לקציר עדין."
+  protection: "מפחית את רוב סוגי הנזק."
+  fire_protection: "מפחית נזק מאש ולבה."
+  feather_falling: "מפחית נזק מנפילה."
+  blast_protection: "מפחית נזק מפיצוצים."
+  projectile_protection: "מפחית נזק מחצים וקליעים."
+  respiration: "מאפשר לנשום מתחת למים לזמן רב יותר."
+  aqua_affinity: "מאפשר לחצוב מהר יותר מתחת למים."
+  thorns: "גורם נזק לתוקפים בחזרה."
+  depth_strider: "מגביר את מהירות ההליכה במים."
+  frost_walker: "הופך מים לקרח בהליכה ומונע נזק מבלוקים חמים."
+  soul_speed: "מגביר את מהירות ההליכה על חול נשמות."
+  swift_sneak: "מגביר את מהירות ההתגנבות."
+  sharpness: "מגדיל את הנזק הכללי."
+  smite: "מגדיל את הנזק נגד אל-מתים (זומבים, שלדים)."
+  bane_of_arthropods: "מגדיל את הנזק נגד עכבישים וחרקים."
+  knockback: "הודף את האויבים אחורה."
+  fire_aspect: "שורף את המותקף."
+  looting: "מגדיל את כמות השלל שמפלצות מפילות."
+  sweeping_edge: "מגדיל את הנזק של התקפות הנפה."
+  power: "מגדיל את נזק החצים."
+  punch: "הודף אויבים שנפגעו מחצים."
+  flame: "יורה חצים בוערים."
+  infinity: "מאפשר לירות ללא הגבלה כל עוד יש חץ אחד."
+  efficiency: "מגביר את מהירות החציבה."
+  silk_touch: "מאפשר להשיג בלוקים בצורתם המקורית."
+  unbreaking: "מאריך את חיי הכלי ומונע שבירה מהירה."
+  fortune: "מגדיל את כמות המשאבים שנופלים בחציבה."
+  luck_of_the_sea: "מגדיל את הסיכוי למצוא אוצרות בדיג."
+  lure: "מקצר את זמן ההמתנה לדגים בדיג."
+  loyalty: "הקלשון חוזר אליך אוטומטית לאחר הזריקה."
+  impaling: "מגדיל נזק נגד יצורי מים ושחקנים במים."
+  riptide: "משגר אותך קדימה כשזורקים את הקלשון במים או בגשם."
+  channeling: "יוצר ברק כשפוגעים ביצור בזמן סופת רעמים."
+  multishot: "יורה 3 חצים במחיר של אחד."
+  piercing: "החצים חודרים דרך אויבים ומגנים."
+  quick_charge: "מקצר את זמן הטעינה של הקשת המוצלבת."
+  mending: "תיקון אוטומטי של החפץ בעזרת נקודות נסיון (XP)."
+  binding_curse: "מונע את הסרת החפץ לאחר לבישתו."
+  vanishing_curse: "החפץ נעלם לאחר המוות."
+  
+  # AuraSkills Enchants
+  strength_boost: "מחזק את השרירים ומגדיל את כוח ההתקפה הפיזי."
+  wisdom_boost: "מרחיב את התודעה ומגדיל את צבירת ה-XP והמאנה."
+  luck_boost: "מושך אנרגיות חיוביות ומגדיל את המזל במציאת פריטים."
+  speed_stat_boost: "מגדיל את מהירות התנועה הכללית בעולם."
+
+  # Custom Enchants
+  savings: "שומר על אחוז מהכסף שלך בעת מוות."
+  mana_efficiency: "מפחית את עלות המאנה של השימוש ביכולות."
+  chronos: "מכווץ את הזמן ומפחית את ה-Cooldown של יכולות."
+  farming_fortune: "מגדיל את הסיכוי לקצור יבולים כפולים ומשולשים."
+  turbo_miner: "מעניק מהירות כרייה נוספת כשכורים ברצף."
+  exp_grinder: "מעניק סיכוי לקבל נקודות ניסיון (XP) כשאתה נפגע."
+  berserk: "נכנס לטירוף: מגדיל נזק משמעותית אך מבטל באפים חיוביים."
+  monster_soul: "סופג את נשמת המפלצת כדי לחזק את המכה הבאה."
+  guardian_mana: "יוצר מגן קסום המבוסס על המאנה שבזבזת."
+  replenish: "שותל מחדש יבולים מיד לאחר הקצירה."
+  harvesting: "מגדיל את כמות היבולים שמתקבלים מקציר (Fortune לגרזן)."
+  trample_guard: "מונע הרס של שדות ויבולים כשדורכים עליהם."
+  exp_share: "מעניק בונוס XP בעת כריית משאבים טבעיים."
 
 ability:
+  header: "&6Ability: {ability} &e&lRIGHT CLICK"
+  format: "&6{ability} &7| &e{trigger}"
+  missing-config: "&cהגדרה חסרה בקונפיג: {id}"
   lore:
     mana: "{mana} מאנה"
     cooldown-seconds: "{cooldown} שניות"

@@ -47,7 +47,9 @@ C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockite
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\abilities\utility\UnderwaterAbility.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\commands\AnvilCommand.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\commands\EnchantCommand.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\commands\EnchantsCommand.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\commands\ReforgeCommand.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\commands\ReforgesCommand.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\commands\SkyBlockItemsCommand.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\enchantsystem\config\ConfigManager.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\enchantsystem\CustomEnchant.java
@@ -76,6 +78,7 @@ C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockite
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\MMOItemsAbilityListener.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\MMOItemsHook.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\MMOItemsStatIntegration.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\ReforgeableStat.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\VaultHook.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\integration\WorldGuardHook.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\listeners\InfiniteReservoirListener.java

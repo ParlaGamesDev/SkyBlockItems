@@ -66,7 +66,10 @@ public class AbilityLoreGenerator {
                         .replace("{trigger}", configTrigger);
                 loreLines.add(ColorUtils.translate(formattedHeader));
             } else {
-                loreLines.add("§6" + configDisplayName + " §7| " + configTrigger);
+                String header = SkyBlockItems.getInstance().getConfigManager().getMessage("ability.format")
+                        .replace("{ability}", configDisplayName)
+                        .replace("{trigger}", configTrigger);
+                loreLines.add(ColorUtils.translate(header));
             }
 
             // 4. Process Description
@@ -120,8 +123,12 @@ public class AbilityLoreGenerator {
             }
         } else {
             // Fallback
-            loreLines.add("§6" + displayName + " §7| §e" + triggerName);
-            loreLines.add("§c[SkyBlockItems] הגדרה חסרה בקונפיג: " + abilityId);
+            String header = SkyBlockItems.getInstance().getConfigManager().getMessage("ability.format")
+                    .replace("{ability}", displayName)
+                    .replace("{trigger}", triggerName);
+            loreLines.add(ColorUtils.translate(header));
+            loreLines.add(SkyBlockItems.getInstance().getConfigManager().getMessage("ability.missing-config")
+                    .replace("{id}", abilityId));
         }
 
         return loreLines;

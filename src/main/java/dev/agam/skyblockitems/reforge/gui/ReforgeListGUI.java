@@ -68,11 +68,13 @@ public class ReforgeListGUI implements BaseGUI {
         // Navigation
         if (page > 0) {
             inventory.setItem(size - 9, ColorUtils.getItemFromConfig(
-                    plugin.getConfig().getConfigurationSection("gui.items.prev-page"), Material.ARROW));
+                    plugin.getConfigManager().getMessages().getConfigurationSection("gui.items.prev-page"),
+                    Material.ARROW));
         }
         if (startIndex + 28 < reforges.size()) {
             inventory.setItem(size - 1, ColorUtils.getItemFromConfig(
-                    plugin.getConfig().getConfigurationSection("gui.items.next-page"), Material.ARROW));
+                    plugin.getConfigManager().getMessages().getConfigurationSection("gui.items.next-page"),
+                    Material.ARROW));
         }
 
         // Create new button
@@ -112,7 +114,7 @@ public class ReforgeListGUI implements BaseGUI {
                     .replace("{types}", String.join(", ", reforge.getItemTypes()))));
             lore.add(ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.rarity-label")
                     .replace("{req}", reforge.getRarityRequirement())
-                    .replace("{upgrade}", reforge.getRarityUpgrade())));
+                    .replace(" → {upgrade}", "")));
             lore.add("");
 
             if (!reforge.getStats().isEmpty()) {
@@ -133,12 +135,6 @@ public class ReforgeListGUI implements BaseGUI {
                                 .replace("{enchants}", String.join(", ", reforge.getEnchants()))));
             }
 
-            if (!reforge.getAbilities().isEmpty()) {
-                lore.add(ColorUtils
-                        .colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.abilities-header")
-                                .replace("{abilities}", String.join(", ", reforge.getAbilities()))));
-            }
-
             lore.add("");
             lore.add(ColorUtils
                     .colorize(plugin.getConfigManager().getMessage("reforge.editor.buttons.left-click-edit")));
@@ -146,6 +142,12 @@ public class ReforgeListGUI implements BaseGUI {
                     .colorize(plugin.getConfigManager().getMessage("reforge.editor.buttons.shift-right-delete")));
 
             meta.setLore(lore);
+
+            // Store ID in PDC
+            org.bukkit.persistence.PersistentDataContainer data = meta.getPersistentDataContainer();
+            data.set(new org.bukkit.NamespacedKey(plugin, "reforge_id"),
+                    org.bukkit.persistence.PersistentDataType.STRING, reforge.getId());
+
             icon.setItemMeta(meta);
         }
         return icon;
@@ -191,28 +193,25 @@ public class ReforgeListGUI implements BaseGUI {
         }
 
         // Click on reforge
-        if (clicked.hasItemMeta() && clicked.getItemMeta().hasLore()) {
-            List<String> lore = clicked.getItemMeta().getLore();
-            if (lore != null && !lore.isEmpty()) {
-                String idSearch = ChatColor.stripColor(
-                        plugin.getConfigManager().getMessage("reforge.editor.labels.id-label").replace("{id}", ""));
-                String idLine = ChatColor.stripColor(lore.get(0));
-                if (idLine.startsWith(idSearch)) {
-                    String reforgeId = idLine.substring(idSearch.length());
-                    Reforge reforge = plugin.getReforgeManager().getReforge(reforgeId);
+        if (clicked.hasItemMeta()) {
+            org.bukkit.persistence.PersistentDataContainer data = clicked.getItemMeta().getPersistentDataContainer();
+            String reforgeId = data.get(new org.bukkit.NamespacedKey(plugin, "reforge_id"),
+                    org.bukkit.persistence.PersistentDataType.STRING);
 
-                    if (reforge != null) {
-                        if (event.isShiftClick() && event.isRightClick()) {
-                            // Delete
-                            deleteReforge(reforgeId);
-                            player.sendMessage(ColorUtils.colorize(
-                                    plugin.getConfigManager().getMessage("reforge.editor.deleted").replace("{id}",
-                                            reforgeId)));
-                            setupGUI();
-                        } else {
-                            // Edit
-                            new ReforgeEditorGUI(plugin, player, reforgeId, false).open();
-                        }
+            if (reforgeId != null) {
+                Reforge reforge = plugin.getReforgeManager().getReforge(reforgeId);
+
+                if (reforge != null) {
+                    if (event.isShiftClick() && event.isRightClick()) {
+                        // Delete
+                        deleteReforge(reforgeId);
+                        player.sendMessage(ColorUtils.colorize(
+                                plugin.getConfigManager().getMessage("reforge.editor.deleted").replace("{id}",
+                                        reforgeId)));
+                        setupGUI();
+                    } else {
+                        // Edit
+                        new ReforgeEditorGUI(plugin, player, reforgeId, false).open();
                     }
                 }
             }

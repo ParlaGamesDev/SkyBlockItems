@@ -52,57 +52,65 @@ public class ReforgeStatSelectorGUI implements BaseGUI {
     }
 
     /**
-     * Loads all available stats from MMOItems API
+     * Loads allowed stats from MMOItems API based on user-approved list.
      */
     private void loadMMOItemsStats() {
+        // User's allowed stat IDs (normalized to internal MMOItems IDs)
+        Set<String> allowedStats = new HashSet<>(Arrays.asList(
+                "ATTACK_DAMAGE", "ATTACK_SPEED", "CRITICAL_STRIKE_CHANCE", "CRITICAL_STRIKE_POWER",
+                "SKILL_CRITICAL_STRIKE_CHANCE", "SKILL_CRITICAL_STRIKE_POWER", "PVE_DAMAGE", "PVP_DAMAGE",
+                "WEAPON_DAMAGE", "SKILL_DAMAGE", "PROJECTILE_DAMAGE", "MAGIC_DAMAGE", "PHYSICAL_DAMAGE",
+                "DEFENSE", "FALL_DAMAGE_REDUCTION", "FIRE_DAMAGE_REDUCTION", "PVE_DAMAGE_REDUCTION",
+                "PVP_DAMAGE_REDUCTION", "UNDEAD_DAMAGE", "LIFESTEAL",
+                "ARMOR_TOUGHNESS", "MAX_HEALTH", "KNOCKBACK_RESISTANCE", "MOVEMENT_SPEED",
+                "JUMP_STRENGTH", "MINING_EFFICIENCY", "MOVEMENT_EFFICIENCY", "OXYGEN_BONUS",
+                "SNEAKING_SPEED", "WATER_MOVEMENT_SPEED", "AUTOSMELT"));
+
         try {
-
-            // Get all registered stats from MMOItems
             Collection<ItemStat<?, ?>> stats = MMOItems.plugin.getStats().getAll();
-
-            int count = 0;
             for (ItemStat<?, ?> stat : stats) {
-                String statId = stat.getId();
-                String statName = stat.getName();
-
-                // Add to available stats
-                availableStats.put(statId, statName);
-
-                // Log ALL stats so user can search for the correct IDs
-
-                count++;
+                String statId = stat.getId().toUpperCase().replace("-", "_");
+                if (allowedStats.contains(statId)) {
+                    availableStats.put(stat.getId(), stat.getName());
+                }
             }
-
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to load MMOItems stats: " + e.getMessage());
-
-            // Fallback to common stats if MMOItems API fails
+            // Basic fallbacks if MMOItems fails
             availableStats.put("ATTACK_DAMAGE", "Attack Damage");
-            availableStats.put("ATTACK_SPEED", "Attack Speed");
-            availableStats.put("CRITICAL_STRIKE_CHANCE", "Critical Strike Chance");
-            availableStats.put("CRITICAL_STRIKE_POWER", "Critical Strike Power");
             availableStats.put("MAX_HEALTH", "Max Health");
-            availableStats.put("ARMOR", "Armor");
-            availableStats.put("ARMOR_TOUGHNESS", "Armor Toughness");
-            availableStats.put("MAX_MANA", "Max Mana");
-            availableStats.put("KNOCKBACK_RESISTANCE", "Knockback Resistance");
-            availableStats.put("MOVEMENT_SPEED", "Movement Speed");
-            availableStats.put("MAGIC_DAMAGE", "Magic Damage");
             availableStats.put("DEFENSE", "Defense");
-            availableStats.put("DODGE_RATING", "Dodge Rating");
-            availableStats.put("BLOCK_RATING", "Block Rating");
-            availableStats.put("BLOCK_POWER", "Block Power");
-            availableStats.put("PARRY_RATING", "Parry Rating");
-            availableStats.put("COOLDOWN_REDUCTION", "Cooldown Reduction");
-            availableStats.put("RANGE", "Range");
-            availableStats.put("MANA_REGENERATION", "Mana Regeneration");
-            availableStats.put("STAMINA_REGENERATION", "Stamina Regeneration");
-            availableStats.put("MAX_STAMINA", "Max Stamina");
-            availableStats.put("HEALTH_REGENERATION", "Health Regeneration");
-            availableStats.put("ADDITIONAL_EXPERIENCE", "Additional Experience");
-            availableStats.put("DURABILITY", "Durability");
-            availableStats.put("UNBREAKABLE", "Unbreakable");
         }
+    }
+
+    private Material getStatMaterial(String statId) {
+        String id = statId.toUpperCase().replace("-", "_");
+        if (id.contains("DAMAGE") && !id.contains("REDUCTION"))
+            return Material.IRON_SWORD;
+        if (id.contains("SPEED"))
+            return Material.FEATHER;
+        if (id.contains("CRITICAL"))
+            return Material.BLAZE_POWDER;
+        if (id.contains("HEALTH"))
+            return Material.APPLE;
+        if (id.contains("DEFENSE") || id.contains("ARMOR"))
+            return Material.IRON_CHESTPLATE;
+        if (id.contains("REDUCTION"))
+            return Material.SHIELD;
+        if (id.contains("MINING") || id.contains("EFFICIENCY"))
+            return Material.IRON_PICKAXE;
+        if (id.contains("MANA"))
+            return Material.LAPIS_LAZULI;
+        if (id.contains("LIFESTEAL"))
+            return Material.REDSTONE;
+        if (id.contains("AUTOSMELT"))
+            return Material.LAVA_BUCKET;
+        if (id.contains("JUMP"))
+            return Material.RABBIT_FOOT;
+        if (id.contains("OXYGEN") || id.contains("WATER"))
+            return Material.WATER_BUCKET;
+
+        return Material.PAPER;
     }
 
     @Override
@@ -126,7 +134,7 @@ public class ReforgeStatSelectorGUI implements BaseGUI {
             String statName = availableStats.get(statId);
             boolean hasCurrentValue = currentStats.containsKey(statId);
 
-            ItemStack item = new ItemStack(Material.PAPER);
+            ItemStack item = new ItemStack(getStatMaterial(statId));
             ItemMeta meta = item.getItemMeta();
 
             // Format name
@@ -136,18 +144,20 @@ public class ReforgeStatSelectorGUI implements BaseGUI {
             meta.setDisplayName(ColorUtils.colorize(displayName));
 
             List<String> lore = new ArrayList<>();
-            lore.add(ColorUtils.colorize("<#636e72>ID: <#dfe6e9>" + statId));
+            lore.add(plugin.getConfigManager().getMessage("reforge.editor.stat-selector.stat-id-label")
+                    .replace("{id}", statId));
 
             if (hasCurrentValue) {
-                lore.add(ColorUtils.colorize("<#636e72>ערך נוכחי: <#2ecc71>+" + currentStats.get(statId)));
+                lore.add(plugin.getConfigManager().getMessage("reforge.editor.stat-selector.current-value")
+                        .replace("{value}", String.valueOf(currentStats.get(statId))));
             } else {
-                lore.add(ColorUtils.colorize("<#636e72>לא מוגדר"));
+                lore.add(plugin.getConfigManager().getMessage("reforge.editor.stat-selector.not-set"));
             }
 
             lore.add("");
-            lore.add(ColorUtils.colorize("<#ffeaa7>▶ לחץ להוספה/עריכה"));
+            lore.add(plugin.getConfigManager().getMessage("reforge.editor.stat-selector.click-add"));
 
-            meta.setLore(lore);
+            meta.setLore(ColorUtils.colorizeList(lore));
             item.setItemMeta(meta);
 
             inventory.setItem(slot++, item);
@@ -157,8 +167,10 @@ public class ReforgeStatSelectorGUI implements BaseGUI {
         // Previous page button (slot 45)
         if (currentPage > 0) {
             inventory.setItem(45, createButton(Material.RED_STAINED_GLASS_PANE,
-                    "<#e74c3c>&lדף קודם",
-                    Arrays.asList("<#636e72>עמוד " + currentPage + "/" + totalPages)));
+                    plugin.getConfigManager().getMessage("reforge.editor.stat-selector.page-prev"),
+                    Arrays.asList(plugin.getConfigManager().getMessage("reforge.editor.stat-selector.page-indicator")
+                            .replace("{current}", String.valueOf(currentPage))
+                            .replace("{total}", String.valueOf(totalPages)))));
         }
 
         // Page indicator (slot 49)
@@ -170,20 +182,25 @@ public class ReforgeStatSelectorGUI implements BaseGUI {
         };
         Material pageIndicatorMat = pageColors[currentPage % pageColors.length];
         inventory.setItem(49, createButton(pageIndicatorMat,
-                "<#ffeaa7>&lעמוד " + (currentPage + 1) + "/" + totalPages,
-                Arrays.asList("<#636e72>סה\"כ " + statIds.size() + " סטטיסטיקות")));
+                plugin.getConfigManager().getMessage("reforge.editor.stat-selector.page-indicator")
+                        .replace("{current}", String.valueOf(currentPage + 1))
+                        .replace("{total}", String.valueOf(totalPages)),
+                Arrays.asList(plugin.getConfigManager().getMessage("reforge.editor.stat-selector.page-indicator-lore")
+                        .replace("{total}", String.valueOf(statIds.size())))));
 
         // Next page button (slot 53)
         if (currentPage < totalPages - 1) {
             inventory.setItem(53, createButton(Material.GREEN_STAINED_GLASS_PANE,
-                    "<#2ecc71>&lדף הבא",
-                    Arrays.asList("<#636e72>עמוד " + (currentPage + 2) + "/" + totalPages)));
+                    plugin.getConfigManager().getMessage("reforge.editor.stat-selector.page-next"),
+                    Arrays.asList(plugin.getConfigManager().getMessage("reforge.editor.stat-selector.page-indicator")
+                            .replace("{current}", String.valueOf(currentPage + 2))
+                            .replace("{total}", String.valueOf(totalPages)))));
         }
 
         // Back button (slot 48)
         inventory.setItem(48, createButton(Material.BARRIER,
-                "<#e74c3c>&lחזור",
-                Arrays.asList("<#636e72>חזור לעורך סטטיסטיקות")));
+                plugin.getConfigManager().getMessage("gui.items.back.name"),
+                plugin.getConfigManager().getMessageList("gui.items.back.lore")));
 
         // Filler
         Material fillerMat = Material.getMaterial(
@@ -242,8 +259,10 @@ public class ReforgeStatSelectorGUI implements BaseGUI {
 
             // Prompt for value
             player.closeInventory();
-            player.sendMessage(ColorUtils.colorize(
-                    "<#f39c12>הזן ערך עבור <#ffeaa7>" + selectedStatName + " <#636e72>(" + selectedStatId + "):"));
+            String promptMsg = plugin.getConfigManager().getMessage("reforge.editor.stat-selector.value-prompt")
+                    .replace("{name}", selectedStatName)
+                    .replace("{id}", selectedStatId);
+            player.sendMessage(ColorUtils.colorize(promptMsg));
 
             plugin.getChatInputManager().awaitInput(player, input -> {
                 try {
@@ -253,8 +272,11 @@ public class ReforgeStatSelectorGUI implements BaseGUI {
                         systemStatId = "mmoitems_" + selectedStatId.toLowerCase();
                     }
                     currentStats.put(systemStatId, value);
-                    player.sendMessage(ColorUtils.colorize(
-                            "<#2ecc71>✔ נוסף: <#ffeaa7>" + selectedStatName + " <#2ecc71>+" + value));
+                    String successMsg = plugin.getConfigManager()
+                            .getMessage("reforge.editor.stat-selector.added-success")
+                            .replace("{name}", selectedStatName)
+                            .replace("{value}", String.valueOf(value));
+                    player.sendMessage(ColorUtils.colorize(successMsg));
                 } catch (NumberFormatException e) {
                     player.sendMessage(ColorUtils.colorize(
                             plugin.getConfigManager().getMessage("reforge.editor.invalid-number")));

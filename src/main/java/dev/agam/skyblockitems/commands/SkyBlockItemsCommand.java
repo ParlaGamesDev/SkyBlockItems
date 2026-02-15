@@ -38,63 +38,55 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // This command requires admin permission
-        if (!player.hasPermission("skyblock.admin")) {
-            player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
-            return true;
-        }
-
-        if (args.length == 0) {
-            player.sendMessage(plugin.getConfigManager().getMessage("commands.sbi.usage",
-                    "{usage}", "/sbi <reload|givebook|blacklist|admin|edit|reforges|editreforge>"));
-            return true;
-        }
-
         String sub = args[0].toLowerCase();
 
         switch (sub) {
             case "reload" -> {
+                if (!player.hasPermission("skyblockitems.admin.reload")) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
+                    return true;
+                }
                 plugin.reloadAllConfigs();
                 player.sendMessage(plugin.getConfigManager().getMessage("commands.reload-success"));
             }
 
             case "givebook" -> {
+                if (!player.hasPermission("skyblockitems.admin.give")) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
+                    return true;
+                }
                 handleGiveBook(player, args);
             }
 
             case "blacklist" -> {
+                if (!player.hasPermission("skyblockitems.admin.blacklist")) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
+                    return true;
+                }
                 handleBlacklist(player, args);
             }
 
-            case "admin" -> {
+            case "enchants" -> {
+                if (!player.hasPermission("skyblockitems.admin.enchants")) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
+                    return true;
+                }
                 new EnchantListGUI(plugin, player).open();
             }
 
-            case "edit" -> {
-                if (args.length < 2) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("commands.edit.usage"));
-                    return true;
-                }
-                CustomEnchant enchant = plugin.getCustomEnchantManager().getEnchant(args[1]);
-                if (enchant == null) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("commands.edit.not-found")
-                            .replace("{id}", args[1]));
-                    return true;
-                }
-                new EnchantEditorGUI(plugin, player, enchant).open();
-            }
-
             case "reforges" -> {
+                if (!player.hasPermission("skyblockitems.admin.reforges")) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
+                    return true;
+                }
                 new dev.agam.skyblockitems.reforge.gui.ReforgeListGUI(plugin, player).open();
             }
 
-            case "editreforge" -> {
-                if (args.length < 2) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("commands.editreforge.usage", "{usage}",
-                            "/sbi editreforge <id>"));
-                    return true;
-                }
-                new dev.agam.skyblockitems.reforge.gui.ReforgeEditorGUI(plugin, player, args[1], false).open();
+            case "rarity" -> {
+                // Delegate to RarityCommand
+                String[] rarityArgs = new String[args.length - 1];
+                System.arraycopy(args, 1, rarityArgs, 0, args.length - 1);
+                new dev.agam.skyblockitems.rarity.RarityCommand(plugin).onCommand(sender, command, label, rarityArgs);
             }
 
             default -> {
@@ -209,8 +201,7 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            List<String> subs = Arrays.asList("reload", "givebook", "blacklist", "admin", "edit", "reforges",
-                    "editreforge");
+            List<String> subs = Arrays.asList("reload", "givebook", "blacklist", "enchants", "reforges", "rarity");
             return filterCompletions(subs, args[0]);
         }
 
@@ -222,18 +213,21 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
                 case "blacklist" -> {
                     return filterCompletions(Arrays.asList("add", "remove", "list"), args[1]);
                 }
-                case "edit" -> {
-                    for (CustomEnchant enchant : plugin.getCustomEnchantManager().getAllEnchants()) {
-                        completions.add(enchant.getId());
-                    }
-                    return filterCompletions(completions, args[1]);
+                case "rarity" -> {
+                    String[] rarityArgs = new String[args.length - 1];
+                    System.arraycopy(args, 1, rarityArgs, 0, args.length - 1);
+                    return new dev.agam.skyblockitems.rarity.RarityCommand(plugin).onTabComplete(sender, command, alias,
+                            rarityArgs);
                 }
-                case "editreforge" -> {
-                    for (dev.agam.skyblockitems.reforge.Reforge reforge : plugin.getReforgeManager().getAllReforges()) {
-                        completions.add(reforge.getId());
-                    }
-                    return filterCompletions(completions, args[1]);
-                }
+            }
+        }
+
+        if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("rarity")) {
+                String[] rarityArgs = new String[args.length - 1];
+                System.arraycopy(args, 1, rarityArgs, 0, args.length - 1);
+                return new dev.agam.skyblockitems.rarity.RarityCommand(plugin).onTabComplete(sender, command, alias,
+                        rarityArgs);
             }
         }
 

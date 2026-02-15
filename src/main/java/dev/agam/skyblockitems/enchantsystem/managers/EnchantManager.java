@@ -174,8 +174,15 @@ public class EnchantManager {
             return result;
 
         Map<String, String> nameToId = new HashMap<>();
+
+        // Include base enchants
         enchants.forEach((id, c) -> nameToId
                 .put(ChatColor.stripColor(ColorUtils.colorize(c.getDisplayName())).toLowerCase(), id.toLowerCase()));
+
+        // Include custom enchants
+        plugin.getCustomEnchantManager().getAllEnchants().forEach(ce -> nameToId
+                .put(ChatColor.stripColor(ColorUtils.colorize(ce.getDisplayName())).toLowerCase(),
+                        ce.getId().toLowerCase()));
 
         for (String line : lore) {
             String clean = ChatColor.stripColor(line).toLowerCase();

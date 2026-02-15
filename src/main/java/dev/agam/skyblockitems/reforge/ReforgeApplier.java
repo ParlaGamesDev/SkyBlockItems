@@ -69,6 +69,50 @@ public class ReforgeApplier {
     }
 
     /**
+     * Checks if an item is eligible for reforging.
+     * Requirements:
+     * 1. Must be a valid MMOItems item
+     * 2. Must have REFORGEABLE stat set to true (or not set, defaults to true)
+     * 
+     * @param item The item to check
+     * @return true if the item can be reforged, false otherwise
+     */
+    public boolean isReforgeable(ItemStack item) {
+        if (item == null || item.getType().isAir()) {
+            return false;
+        }
+
+        // Use ReforgeableStat's static method which handles all checks
+        return dev.agam.skyblockitems.integration.ReforgeableStat.isReforgeable(item);
+    }
+
+    /**
+     * Gets the reason why an item cannot be reforged.
+     * 
+     * @param item The item to check
+     * @return Message key for the error reason, or null if item is reforgeable
+     */
+    public String getNotReforgeableReason(ItemStack item) {
+        if (item == null || item.getType().isAir()) {
+            return null;
+        }
+
+        NBTItem nbtItem = NBTItem.get(item);
+
+        // Check if it's an MMOItem
+        if (!nbtItem.hasTag("MMOITEMS_ITEM_ID")) {
+            return "reforge.not-mmoitem";
+        }
+
+        // Check if REFORGEABLE stat is set to false
+        if (nbtItem.hasTag("MMOITEMS_REFORGEABLE") && !nbtItem.getBoolean("MMOITEMS_REFORGEABLE")) {
+            return "reforge.not-reforgeable";
+        }
+
+        return null; // Item is reforgeable
+    }
+
+    /**
      * Applies a reforge to an item using the MMOItems data-driven API.
      */
     public boolean applyReforge(ItemStack item, Reforge reforge, String itemType) {
@@ -103,7 +147,6 @@ public class ReforgeApplier {
                 removeReforgeLegacy(item, null);
             }
             applyReforgeLegacy(item, reforge, itemType);
-            upgradeRarity(item, reforge);
             applyEnchantmentsLegacy(item, reforge);
         }
 
@@ -183,30 +226,17 @@ public class ReforgeApplier {
             }
         }
 
-        List<List<String>> result = new ArrayList<>(deduplicated.values());
-        plugin.getLogger().info("[DEBUG] Extracted " + result.size() + " unique raw ability blocks.");
-        return result;
+        return new ArrayList<>(deduplicated.values());
     }
 
-    /**
-     * CREATIVE SOLUTION: Bypass the entire build system!
-     * Instead of fighting with MMOItems build, RarityManager, and cleanLore,
-     * we'll just manually construct the EXACT lore we want.
-     */
     private void applyReforgeMMOItems(ItemStack item, Reforge reforge, String savedOriginalName, String oldReforgeId) {
-        try {
-            LiveMMOItem mmoItem = new LiveMMOItem(item);
-            ItemMeta itemMeta = item.getItemMeta();
-            if (itemMeta == null)
-                return;
-            PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
+        LiveMMOItem mmoItem = new LiveMMOItem(item);
+        ItemMeta itemMeta = item.getItemMeta();
+        List<String> preMutationLore = itemMeta.hasLore() ? itemMeta.getLore() : new ArrayList<>();
+        PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
 
-            // 0. CAPTURE ORIGINAL ABILITIES before any mutation!
-            // This is the most critical fix for disappearing abilities.
-            List<String> preMutationLore = itemMeta.hasLore() ? new ArrayList<>(itemMeta.getLore()) : new ArrayList<>();
+        try {
             List<List<String>> preservedAbilities = extractAbilitiesRaw(preMutationLore);
-            plugin.getLogger().info(
-                    "[DEBUG] Captured " + preservedAbilities.size() + " abilities for preservation BEFORE mutation.");
 
             // 1. SUBTRACT old stats from PDC receipt
             if (pdc.has(PDC_STATS_RECEIPT, PersistentDataType.STRING)) {
@@ -231,17 +261,6 @@ public class ReforgeApplier {
                     for (String enchantData : enchantsStr.split(",")) {
                         String[] split = enchantData.split(":");
                         if (split.length >= 2) {
-                            // We can't easily "subtract" enchants without removing valid ones if level
-                            // matches.
-                            // But since reforge enchants are usually bonuses, we should remove them.
-                            // However, safer approach: Remove the specific enchantment if it matches the
-                            // level we added?
-                            // Or just remove it entirely?
-                            // Best logic: Remove the enchantment. If the player added it manually, it's
-                            // gone.
-                            // Limitation: Can't distinguish between "Reforge Sharpness 1" and "Player
-                            // Sharpness 5".
-                            // Compromise: Remove valid namespaced key enchant.
                             try {
                                 Enchantment e = Enchantment.getByKey(NamespacedKey.minecraft(split[0].toLowerCase()));
                                 if (e != null && itemMeta.hasEnchant(e)) {
@@ -291,22 +310,7 @@ public class ReforgeApplier {
                 }
             }
 
-            // 3. Add abilities functionally
-            if (!reforge.getAbilities().isEmpty()) {
-                AbilityListData list = mmoItem.hasData(ItemStats.ABILITIES)
-                        ? (AbilityListData) mmoItem.getData(ItemStats.ABILITIES)
-                        : new AbilityListData();
-                for (String abilityId : reforge.getAbilities()) {
-                    SkillHandler<?> handler = io.lumine.mythic.lib.MythicLib.plugin.getSkills()
-                            .getHandler(abilityId.toUpperCase());
-                    plugin.getLogger().info("[DEBUG] Loading Reforge Ability: " + abilityId + " -> "
-                            + (handler != null ? "FOUND" : "NULL"));
-                    if (handler != null) {
-                        list.add(new AbilityData(handler, TriggerType.RIGHT_CLICK));
-                    }
-                }
-                mmoItem.setData(ItemStats.ABILITIES, list);
-            }
+            // 3. functional abilities removed
 
             // 4. DO THE BUILD (to get functional stats synced)
             ItemStack builtItem = mmoItem.newBuilder().build();
@@ -330,27 +334,6 @@ public class ReforgeApplier {
 
             // Set the perfect lore
             finalMeta.setLore(perfectLore);
-
-            // Set rarity NBT manually (no lore touch!)
-            // RARITY UPDATE REMOVED BY USER REQUEST
-            /*
-             * String upgrade = reforge.getRarityUpgrade();
-             * if (upgrade != null && !upgrade.equalsIgnoreCase("NONE")) {
-             * NBTItem rarityNbt = NBTItem.get(builtItem);
-             * rarityNbt.addTag(new ItemTag("skyblock.rarity", upgrade));
-             * rarityNbt.addTag(new ItemTag("skyblock.custom_rarity", true));
-             * builtItem = rarityNbt.toItem();
-             * plugin.getRarityManager().saveMapping(builtItem, upgrade, false);
-             * 
-             * // Re-get meta after NBT change
-             * finalMeta = builtItem.getItemMeta();
-             * if (finalMeta == null)
-             * return;
-             * finalMeta.setDisplayName(ColorUtils.colorize(reforge.getDisplayName() + " " +
-             * savedOriginalName));
-             * finalMeta.setLore(perfectLore);
-             * }
-             */
 
             // Apply enchantments and track them
             List<String> addedEnchantsList = new ArrayList<>();
@@ -376,7 +359,7 @@ public class ReforgeApplier {
             finalPdc.set(PDC_STATS_RECEIPT, PersistentDataType.STRING,
 
                     serializeStats(addedStats));
-            finalPdc.set(PDC_ABILITIES, PersistentDataType.STRING, String.join(",", reforge.getAbilities()));
+            finalPdc.set(PDC_ABILITIES, PersistentDataType.STRING, "");
             finalPdc.set(PDC_ENCHANTS, PersistentDataType.STRING, String.join(",", addedEnchantsList));
             finalPdc.set(PDC_ORIGINAL_NAME, PersistentDataType.STRING, savedOriginalName);
 
@@ -386,9 +369,7 @@ public class ReforgeApplier {
             item.setAmount(builtItem.getAmount());
             item.setItemMeta(finalMeta);
 
-        } catch (
-
-        Throwable e) {
+        } catch (Throwable e) {
             plugin.getLogger().severe("[SkyBlock Reforge] Manual Build Fail: " + e.getMessage());
             e.printStackTrace();
         }
@@ -646,50 +627,58 @@ public class ReforgeApplier {
             }
 
             result.addAll(insertPos, forced);
+        }
 
-            // Add a gap BEFORE forced stats if they are at the top and there's a
-            // description
-            if (insertPos > 0 && !foundExistingStat) {
-                String prev = ColorUtils.stripColor(result.get(insertPos - 1)).trim();
-                if (!prev.isEmpty()) {
-                    result.add(insertPos, "");
+        // 6. Original Item Abilities (Preserved)
+        if (preservedAbilities != null && !preservedAbilities.isEmpty()) {
+            // Gap before abilities if not at top
+            if (!result.isEmpty() && !ColorUtils.stripColor(result.get(result.size() - 1)).trim().isEmpty()) {
+                result.add("");
+            }
+            for (List<String> abilityBlock : preservedAbilities) {
+                result.addAll(abilityBlock);
+                result.add(""); // Gap after each ability block
+            }
+        }
+
+        // 7. Enchantments (Applied via Reforge) - NOW AT THE TOP
+        List<String> reforgeEnchantsLines = new ArrayList<>();
+        for (String s : reforge.getEnchants()) {
+            try {
+                String[] split = s.split(":");
+                String enchantId = split[0].toUpperCase();
+                int level = Integer.parseInt(split[1]);
+
+                // Format: Gray + Name + Level
+                String displayName = plugin.getEnchantManager().getDisplayNameForId(enchantId.toLowerCase());
+                if (displayName.equals(enchantId.toLowerCase())) {
+                    // Not a custom enchant, format vanilla name
+                    displayName = Arrays.stream(enchantId.split("_"))
+                            .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
+                            .collect(Collectors.joining(" "));
+                } else {
+                    displayName = ColorUtils.stripColor(ColorUtils.colorize(displayName));
+                }
+
+                String roman = toRoman(level);
+                reforgeEnchantsLines.add("§7" + displayName + (roman.isEmpty() ? "" : " " + roman));
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (!reforgeEnchantsLines.isEmpty()) {
+            // Always at the top
+            result.addAll(0, reforgeEnchantsLines);
+            // Add a gap after enchants if there's more lore
+            if (result.size() > reforgeEnchantsLines.size()) {
+                String next = ColorUtils.stripColor(result.get(reforgeEnchantsLines.size())).trim();
+                if (!next.isEmpty()) {
+                    result.add(reforgeEnchantsLines.size(), "");
                 }
             }
         }
 
-        // 6. Abilities (Preserved and New)
-        for (List<String> block : preservedAbilities) {
-            String headStrip = normalizeForMatch(ColorUtils.stripColor(block.get(0)));
-            boolean isCurReforge = false;
-            for (String abilityId : reforge.getAbilities()) {
-                SkyBlockAbility a = plugin.getAbilityManager().getAbility(abilityId);
-                if (a != null && normalizeForMatch(a.getDisplayName()).equals(headStrip))
-                    isCurReforge = true;
-            }
-            if (!isCurReforge) {
-                if (!result.isEmpty() && !ColorUtils.stripColor(result.get(result.size() - 1)).trim().isEmpty())
-                    result.add("");
-                result.addAll(block);
-            }
-        }
-
-        if (!reforge.getAbilities().isEmpty()) {
-            for (String id : reforge.getAbilities()) {
-                SkyBlockAbility ability = plugin.getAbilityManager().getAbility(id);
-                if (ability != null) {
-                    if (!result.isEmpty() && !ColorUtils.stripColor(result.get(result.size() - 1)).trim().isEmpty())
-                        result.add("");
-                    result.add("§6Ability: " + ability.getDisplayName() + " §e§lRIGHT CLICK");
-                    Map<String, String> placeholders = new HashMap<>();
-                    placeholders.put("cooldown", String.valueOf((int) ability.getDefaultCooldown()));
-                    placeholders.put("mana", String.valueOf((int) ability.getDefaultManaCost()));
-                    placeholders.put("damage", String.valueOf((int) ability.getDefaultDamage()));
-                    result.addAll(ability.getDescriptionWithPlaceholders(placeholders));
-                }
-            }
-        }
-
-        // 7. Final Rarity Line
+        // 8. Final Rarity Line
         if (rarityLine != null) {
             if (!result.isEmpty() && !ColorUtils.stripColor(result.get(result.size() - 1)).trim().isEmpty())
                 result.add("");
@@ -699,19 +688,30 @@ public class ReforgeApplier {
         return result;
     }
 
+    private String toRoman(int num) {
+        return switch (num) {
+            case 1 -> "I";
+            case 2 -> "II";
+            case 3 -> "III";
+            case 4 -> "IV";
+            case 5 -> "V";
+            case 6 -> "VI";
+            case 7 -> "VII";
+            case 8 -> "VIII";
+            case 9 -> "IX";
+            case 10 -> "X";
+            default -> String.valueOf(num);
+        };
+    }
+
     /**
      * Wipes any existing REFORGE ability descriptions or annotations to prevent
      * pollution.
      * CRITICAL: Only removes OLD reforge data, NOT all abilities!
      */
     private void cleanLore(List<String> lore, Reforge reforge, Set<String> oldReforgeAbilities) {
-        // Collect ability names to remove
         Set<String> namesToRemove = new HashSet<>();
-        for (String id : reforge.getAbilities()) {
-            SkyBlockAbility a = this.plugin.getAbilityManager().getAbility(id);
-            if (a != null)
-                namesToRemove.add(normalizeForMatch(a.getDisplayName()));
-        }
+
         if (oldReforgeAbilities != null) {
             for (String id : oldReforgeAbilities) {
                 SkyBlockAbility a = this.plugin.getAbilityManager().getAbility(id);
@@ -874,24 +874,7 @@ public class ReforgeApplier {
         }
     }
 
-    private void injectManualAbilityLore(List<String> lore, Reforge reforge) {
-        List<String> abilityIds = reforge.getAbilities();
-        if (abilityIds == null || abilityIds.isEmpty())
-            return;
-
-        // Add blank line separator (Gap)
-        lore.add("");
-
-        for (String id : abilityIds) {
-            SkyBlockAbility ability = plugin.getAbilityManager().getAbility(id);
-            if (ability != null) {
-                // Header: §6Ability: [Name] §e§lRIGHT CLICK
-                lore.add("§6Ability: " + ability.getDisplayName() + " §e§lRIGHT CLICK");
-                // Body: Description from abilities.yml
-                lore.addAll(ability.getDescription());
-            }
-        }
-    }
+    // injectManualAbilityLore removed
 
     private String getStatDisplayName(String statIdRaw) {
         try {
@@ -916,14 +899,6 @@ public class ReforgeApplier {
 
     public boolean hasReforge(ItemStack item) {
         return getCurrentReforge(item) != null;
-    }
-
-    private void upgradeRarity(ItemStack item, Reforge reforge) {
-        if (plugin.getRarityManager() == null)
-            return;
-        Rarity target = plugin.getRarityManager().getRarity(reforge.getRarityUpgrade());
-        if (target != null)
-            plugin.getRarityManager().applyRarity(item, target, false);
     }
 
     private void applyReforgeLegacy(ItemStack item, Reforge reforge, String itemType) {

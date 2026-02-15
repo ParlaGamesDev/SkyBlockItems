@@ -28,7 +28,7 @@ import dev.agam.skyblockitems.enchantsystem.gui.BaseGUI;
 public class ReforgeGUI implements BaseGUI {
 
     private static final Map<String, ReforgeGUI> activeGUIs = new HashMap<>();
-    private static final Map<UUID, Long> clickCooldowns = new HashMap<>();
+    private static final Map<UUID, Long> clickCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
 
     private final SkyBlockItems plugin;
     private final Player player;
@@ -41,14 +41,15 @@ public class ReforgeGUI implements BaseGUI {
         this.plugin = plugin;
         this.player = player;
 
-        // Load GUI configuration
+        // Redesigned GUI: 4 rows (36 slots)
+        int size = 36;
+        this.itemSlot = 13; // Row 2, Slot 5
+        this.rollButtonSlot = 22; // Row 3, Slot 5
+
         ConfigurationSection config = plugin.getConfig().getConfigurationSection("gui.reforge");
         String title = ColorUtils
                 .colorize(config != null ? config.getString("title", "<#aa55ff>&lReforge")
                         : "<#aa55ff>&lReforge");
-        int size = config != null ? config.getInt("size", 27) : 27;
-        this.itemSlot = config != null ? config.getInt("item-slot", 13) : 13;
-        this.rollButtonSlot = config != null ? config.getInt("roll-button-slot", 16) : 16;
 
         this.inventory = Bukkit.createInventory(this, size, title);
 
@@ -56,63 +57,110 @@ public class ReforgeGUI implements BaseGUI {
     }
 
     /**
-     * Sets up the GUI with filler items and the roll button.
+     * Sets up the GUI with filler items and sidebars.
      */
     private void setupGUI() {
-        // Get filler material from config
-        ConfigurationSection config = plugin.getConfig().getConfigurationSection("gui.reforge");
-        String fillerMaterialName = config != null ? config.getString("filler-material", "PURPLE_STAINED_GLASS_PANE")
-                : "PURPLE_STAINED_GLASS_PANE";
-        Material fillerMaterial = Material.valueOf(fillerMaterialName);
+        // Initial setup with grey sidebars (empty state)
+        updateSidebars(Material.GRAY_STAINED_GLASS_PANE);
 
-        // Fill with glass panes
-        ItemStack filler = new ItemStack(fillerMaterial);
+        // Fill remaining empty slots with purple glass (except slots 13 and 22)
+        ItemStack filler = new ItemStack(Material.PURPLE_STAINED_GLASS_PANE);
         ItemMeta fillerMeta = filler.getItemMeta();
         fillerMeta.setDisplayName(" ");
         filler.setItemMeta(fillerMeta);
 
         for (int i = 0; i < inventory.getSize(); i++) {
-            if (i != itemSlot && i != rollButtonSlot) {
-                inventory.setItem(i, filler);
+            if (inventory.getItem(i) == null || inventory.getItem(i).getType() == Material.AIR) {
+                if (i != itemSlot && i != rollButtonSlot) {
+                    inventory.setItem(i, filler);
+                }
             }
         }
 
-        // Add roll button
         updateRollButton();
     }
 
+    private void updateSidebars(Material material) {
+        ItemStack glass = new ItemStack(material);
+        ItemMeta meta = glass.getItemMeta();
+        meta.setDisplayName(" ");
+        glass.setItemMeta(meta);
+
+        // Left sidebar
+        inventory.setItem(0, glass);
+        inventory.setItem(9, glass);
+        inventory.setItem(18, glass);
+        inventory.setItem(27, glass);
+
+        // Right sidebar
+        inventory.setItem(8, glass);
+        inventory.setItem(17, glass);
+        inventory.setItem(26, glass);
+        inventory.setItem(35, glass);
+    }
+
     /**
-     * Updates the roll button based on current state.
+     * Updates the roll button and sidebars based on current state.
      */
     public void updateRollButton() {
         ItemStack item = inventory.getItem(itemSlot);
 
         ConfigurationSection itemConfig = plugin.getConfig().getConfigurationSection("gui.items.reforge-roll");
-        Material material = Material.valueOf(itemConfig != null ? itemConfig.getString("material", "ANVIL") : "ANVIL");
+        Material anvilMaterial = Material
+                .valueOf(itemConfig != null ? itemConfig.getString("material", "ANVIL") : "ANVIL");
 
-        ItemStack button = new ItemStack(material);
+        ItemStack button = new ItemStack(anvilMaterial);
         ItemMeta meta = button.getItemMeta();
 
         if (item == null || item.getType() == Material.AIR) {
             // No item placed
+            updateSidebars(Material.GRAY_STAINED_GLASS_PANE);
             meta.setDisplayName(getMessage("reforge.place-item"));
             List<String> lore = new ArrayList<>();
             lore.add(plugin.getConfigManager().getMessage("reforge.place-item-lore"));
             meta.setLore(lore);
         } else {
-            // Item placed - show cost and current reforge if any
-            String itemType = getItemType(item);
+            // Item placed
             ReforgeApplier applier = new ReforgeApplier(plugin);
+
+            // First check if item is reforgeable
+            if (!applier.isReforgeable(item)) {
+                updateSidebars(Material.RED_STAINED_GLASS_PANE);
+                String reasonKey = applier.getNotReforgeableReason(item);
+                meta.setDisplayName(ColorUtils.colorize(plugin.getConfigManager().getMessage(reasonKey + "-title")));
+                List<String> lore = new ArrayList<>();
+                lore.add(plugin.getConfigManager().getMessage(reasonKey + "-lore"));
+                meta.setLore(lore);
+                button.setItemMeta(meta);
+                inventory.setItem(rollButtonSlot, button);
+                return;
+            }
+
+            String itemType = getItemType(item);
             String currentReforge = applier.getCurrentReforge(item);
 
-            List<Reforge> applicable = plugin.getReforgeManager().getApplicableReforges(itemType, "COMMON");
+            // Get current rarity for cost calculation
+            String currentRarity = "COMMON";
+            if (plugin.getRarityManager() != null) {
+                dev.agam.skyblockitems.rarity.Rarity rarity = plugin.getRarityManager().getCurrentRarity(item);
+                if (rarity != null) {
+                    currentRarity = rarity.getIdentifier();
+                }
+            }
+
+            List<Reforge> applicable = plugin.getReforgeManager().getApplicableReforges(itemType, currentRarity);
 
             if (applicable.isEmpty()) {
-                meta.setDisplayName(getMessage("reforge.invalid-item"));
+                updateSidebars(Material.RED_STAINED_GLASS_PANE);
+                // Use a short title for the item name
+                meta.setDisplayName(
+                        ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.invalid-item-title")));
                 List<String> lore = new ArrayList<>();
+                // Use the detailed explanation for the lore
                 lore.add(plugin.getConfigManager().getMessage("reforge.invalid-item-lore"));
                 meta.setLore(lore);
             } else {
+                updateSidebars(Material.LIME_STAINED_GLASS_PANE);
                 meta.setDisplayName(ColorUtils.colorize(
                         itemConfig != null ? itemConfig.getString("name", "<#2ecc71>&lחשל!") : "<#2ecc71>&lחשל!"));
 
@@ -128,10 +176,11 @@ public class ReforgeGUI implements BaseGUI {
                 }
                 lore.add("");
 
-                // Show cost (use first applicable reforge's cost as example)
-                double cost = applicable.isEmpty() ? 0 : applicable.get(0).getCost();
-                lore.add(
-                        getMessage("reforge.cost-label").replace("{cost}", String.valueOf((int) cost)));
+                // Pick a random reforge to show its cost
+                Reforge randomReforge = applicable.get(new Random().nextInt(applicable.size()));
+                int cost = (int) randomReforge.getCost();
+
+                lore.add(getMessage("reforge.cost-label").replace("{cost}", String.valueOf(cost)));
                 lore.add("");
                 lore.add(plugin.getConfigManager().getMessage("reforge.click-to-reforge"));
 
@@ -248,20 +297,61 @@ public class ReforgeGUI implements BaseGUI {
      * Handles inventory click events.
      */
     public void onClick(InventoryClickEvent event) {
-        if (event.getClickedInventory() != inventory)
+        if (event.getInventory().getHolder() != this)
             return;
+        event.setCancelled(true);
+
+        // Handle clicking in player inventory (to place item)
+        if (event.getClickedInventory() == event.getView().getBottomInventory()) {
+            ItemStack clicked = event.getCurrentItem();
+            if (clicked != null && clicked.getType() != Material.AIR) {
+                // Check blacklist
+                if (plugin.getConfigManager().isBlacklisted(clicked.getType().name())) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("general.blacklisted-item"));
+                    return;
+                }
+
+                // Check amount
+                if (clicked.getAmount() > 1) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("errors.one-at-a-time"));
+                    return;
+                }
+
+                // Check if slot is empty
+                ItemStack currentInSlot = inventory.getItem(itemSlot);
+                if (currentInSlot != null && currentInSlot.getType() != Material.AIR) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("errors.remove-current-first"));
+                    return;
+                }
+
+                // Place item manually
+                inventory.setItem(itemSlot, clicked.clone());
+                event.setCurrentItem(null);
+
+                // Update button state
+                plugin.getServer().getScheduler().runTask(plugin, this::updateRollButton);
+            }
+            return;
+        }
 
         int slot = event.getSlot();
 
         if (slot == rollButtonSlot) {
-            event.setCancelled(true);
             handleRoll();
         } else if (slot == itemSlot) {
-            // Allow interaction, but update button
-            plugin.getServer().getScheduler().runTask(plugin, this::updateRollButton);
-        } else {
-            // Cancel interaction with filler items
-            event.setCancelled(true);
+            // Take item back manually
+            ItemStack item = inventory.getItem(itemSlot);
+            if (item != null && item.getType() != Material.AIR) {
+                inventory.setItem(itemSlot, null);
+                HashMap<Integer, ItemStack> leftover = player.getInventory().addItem(item);
+                if (!leftover.isEmpty()) {
+                    for (ItemStack lo : leftover.values()) {
+                        player.getWorld().dropItemNaturally(player.getLocation(), lo);
+                    }
+                }
+                // Update button state
+                plugin.getServer().getScheduler().runTask(plugin, this::updateRollButton);
+            }
         }
     }
 

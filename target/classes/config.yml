@@ -70,6 +70,11 @@ gui:
 
 # You can add 'custom-model-data: <number>' to any item here to define a custom model for it
   items:
+    reforge-roll:
+      material: ANVIL
+      name: "<#2ecc71>&lחשל!"
+      lore:
+        - "<#636e72>לחץ כדי לקבל חישול אקראי"
     back:
       material: BARRIER
       name: "&c&lחזרה"
@@ -220,10 +225,3 @@ gui:
     item-slot: 13
     roll-button-slot: 16
     filler-material: PURPLE_STAINED_GLASS_PANE
-
-  items:
-    reforge-roll:
-      material: ANVIL
-      name: "<#2ecc71>&lחשל!"
-      lore:
-        - "<#636e72>לחץ כדי לקבל חישול אקראי"

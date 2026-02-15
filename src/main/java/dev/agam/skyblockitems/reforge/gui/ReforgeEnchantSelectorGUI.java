@@ -71,23 +71,20 @@ public class ReforgeEnchantSelectorGUI implements BaseGUI {
             ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
             ItemMeta meta = item.getItemMeta();
 
-            // Format name with selection status
-            String statusSymbol = isSelected ? "✔" : "✖";
             String statusMsg = isSelected
                     ? plugin.getConfigManager().getMessage("reforge.editor.enchant-selector.selected")
                     : plugin.getConfigManager().getMessage("reforge.editor.enchant-selector.not-selected");
 
-            meta.setDisplayName(ColorUtils.colorize(statusMsg + " §f" + formatEnchantName(enchantKey)));
+            meta.setDisplayName(ColorUtils.colorize(statusMsg + " <#ffffff>" + formatEnchantName(enchantKey)));
 
             List<String> lore = new ArrayList<>();
             lore.add(ColorUtils.colorize(
                     plugin.getConfigManager().getMessage("reforge.editor.enchant-selector.current-level")
                             .replace("{level}", String.valueOf(level))));
             lore.add("");
-            lore.add(ColorUtils
-                    .colorize(plugin.getConfigManager().getMessage("reforge.editor.enchant-selector.click-toggle")));
-            lore.add(ColorUtils
-                    .colorize(plugin.getConfigManager().getMessage("reforge.editor.enchant-selector.set-level")));
+            lore.add(ColorUtils.colorize("&eLeft Click &7to increase level"));
+            lore.add(ColorUtils.colorize("&eRight Click &7to decrease level"));
+            lore.add(ColorUtils.colorize("&eShift Click &7to set level manually"));
 
             meta.setLore(lore);
             item.setItemMeta(meta);
@@ -137,7 +134,7 @@ public class ReforgeEnchantSelectorGUI implements BaseGUI {
             String enchantKey = enchant.getKey().getKey().toUpperCase();
 
             if (event.isShiftClick()) {
-                // Set level
+                // Set level manually via prompt
                 if (selectedEnchants.containsKey(enchantKey)) {
                     player.closeInventory();
                     player.sendMessage(ColorUtils.colorize(
@@ -147,22 +144,42 @@ public class ReforgeEnchantSelectorGUI implements BaseGUI {
                     plugin.getChatInputManager().awaitInput(player, input -> {
                         try {
                             int level = Integer.parseInt(input);
-                            selectedEnchants.put(enchantKey, level);
+                            if (level <= 0) {
+                                selectedEnchants.remove(enchantKey);
+                            } else {
+                                selectedEnchants.put(enchantKey, level);
+                            }
                         } catch (NumberFormatException e) {
                             player.sendMessage(ColorUtils.colorize(
                                     plugin.getConfigManager().getMessage("reforge.editor.invalid-number")));
                         }
                         open();
                     });
-                }
-            } else {
-                // Toggle selection
-                if (selectedEnchants.containsKey(enchantKey)) {
-                    selectedEnchants.remove(enchantKey);
                 } else {
-                    selectedEnchants.put(enchantKey, 1); // Default level 1
+                    // Not selected, just select it
+                    selectedEnchants.put(enchantKey, 1);
+                    setupGUI();
+                }
+            } else if (event.isLeftClick()) {
+                // Toggle or Increase level
+                if (selectedEnchants.containsKey(enchantKey)) {
+                    int currentLevel = selectedEnchants.get(enchantKey);
+                    selectedEnchants.put(enchantKey, currentLevel + 1);
+                } else {
+                    selectedEnchants.put(enchantKey, 1);
                 }
                 setupGUI();
+            } else if (event.isRightClick()) {
+                // Decrease level or Remove
+                if (selectedEnchants.containsKey(enchantKey)) {
+                    int currentLevel = selectedEnchants.get(enchantKey);
+                    if (currentLevel > 1) {
+                        selectedEnchants.put(enchantKey, currentLevel - 1);
+                    } else {
+                        selectedEnchants.remove(enchantKey);
+                    }
+                    setupGUI();
+                }
             }
         }
     }

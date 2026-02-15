@@ -68,12 +68,22 @@ public class ReforgeStatEditorGUI implements BaseGUI {
             String cleanName = plugin.getReforgeManager().formatStatName(entry.getKey());
             meta.setDisplayName(ColorUtils.colorize("&e" + cleanName));
             List<String> lore = new ArrayList<>();
-            lore.add(ColorUtils.colorize("&7ID: &8" + entry.getKey()));
-            lore.add(ColorUtils.colorize("&7Value: &a" + entry.getValue()));
+            lore.add(ColorUtils
+                    .colorize(plugin.getConfigManager().getMessage("reforge.editor.stat-selector.stat-id-label")
+                            .replace("{id}", entry.getKey())));
+            lore.add(ColorUtils
+                    .colorize(plugin.getConfigManager().getMessage("reforge.editor.stat-selector.current-value")
+                            .replace("{value}", String.valueOf(entry.getValue()))));
             lore.add("");
-            lore.add(ColorUtils.colorize("§e▶ לחיצה שמאלית לשינוי ערך"));
-            lore.add(ColorUtils.colorize("§c▶ Shift + לחיצה ימנית למחיקה"));
+            lore.add(ColorUtils.colorize(plugin.getConfigManager().getMessage("gui.controls.left-click")));
+            lore.add(ColorUtils.colorize(plugin.getConfigManager().getMessage("gui.controls.shift-right-delete")));
             meta.setLore(lore);
+
+            // Store ID in PDC
+            org.bukkit.persistence.PersistentDataContainer data = meta.getPersistentDataContainer();
+            data.set(new org.bukkit.NamespacedKey(plugin, "stat_id"), org.bukkit.persistence.PersistentDataType.STRING,
+                    entry.getKey());
+
             item.setItemMeta(meta);
             inventory.setItem(slot, item);
             slot++;
@@ -134,9 +144,13 @@ public class ReforgeStatEditorGUI implements BaseGUI {
             if (meta == null || !meta.hasLore())
                 return;
 
-            // Extract original ID from lore (Line 0: "§7ID: §8ID_HERE")
-            String idLine = ColorUtils.stripColor(meta.getLore().get(0));
-            String statId = idLine.replace("ID: ", "").trim();
+            // Extract original ID from PDC
+            org.bukkit.persistence.PersistentDataContainer data = meta.getPersistentDataContainer();
+            String statId = data.get(new org.bukkit.NamespacedKey(plugin, "stat_id"),
+                    org.bukkit.persistence.PersistentDataType.STRING);
+
+            if (statId == null)
+                return;
 
             if (event.isShiftClick() && event.isRightClick()) {
                 stats.remove(statId);

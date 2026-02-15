@@ -6,20 +6,19 @@ softdepend: [MMOItems, MythicLib, AuraSkills, WorldGuard, PlaceholderAPI, Protoc
 authors: [Agam]
 commands:
   sbi:
-    description: Admin command for SkyBlockItems
-    permission: skyblock.admin
+    description: Main plugin command
+    permission: skyblockitems.sbi
   enchant:
     description: Opens the Enchanting GUI
-    aliases: [enchants, et]
+    aliases: [et]
     permission: skyblock.enchant
   anvil:
     description: Opens the Custom Anvil GUI
     permission: skyblock.anvil
-  rarity:
-    description: Manage item rarities
-    permission: skyblockitems.rarity
-    aliases: [ir]
   reforge:
     description: Opens the Reforge GUI
     permission: skyblock.reforge
     aliases: [rf]
+  rarity:
+    description: Manage item rarities
+    permission: skyblockitems.admin.rarity

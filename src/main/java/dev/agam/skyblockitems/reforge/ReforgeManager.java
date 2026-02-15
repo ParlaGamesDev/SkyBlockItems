@@ -390,16 +390,15 @@ public class ReforgeManager {
      * Update or create a reforge in the configuration and reload.
      */
     public void saveReforge(String id, String displayName, List<String> itemTypes,
-            String rarityReq, String rarityUpgrade, double cost,
-            Map<String, Double> stats, List<String> enchants, List<String> abilities) {
+            String rarityReq, double cost,
+            Map<String, Double> stats, List<String> enchants) {
         reforgesConfig.set("reforges." + id + ".display-name", displayName);
         reforgesConfig.set("reforges." + id + ".item-types", itemTypes);
         reforgesConfig.set("reforges." + id + ".rarity-requirement", rarityReq);
-        reforgesConfig.set("reforges." + id + ".rarity-upgrade", rarityUpgrade);
         reforgesConfig.set("reforges." + id + ".cost", cost);
         reforgesConfig.set("reforges." + id + ".stats", stats.isEmpty() ? null : stats);
         reforgesConfig.set("reforges." + id + ".enchants", enchants.isEmpty() ? null : enchants);
-        reforgesConfig.set("reforges." + id + ".abilities", abilities.isEmpty() ? null : abilities);
+        reforgesConfig.set("reforges." + id + ".abilities", null); // Wipe abilities if they existed
 
         saveConfig();
         reload();

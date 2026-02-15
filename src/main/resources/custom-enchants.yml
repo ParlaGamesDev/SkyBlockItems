@@ -3,7 +3,7 @@ custom-enchants:
     enabled: true
     display-name: "&6SAVINGS"
     description: "&7חוסך 50% מהמטבעות שלך במוות"
-    material: ENCHANTED_BOOK
+    material: SUNFLOWER
     targets: [ "ALL" ]
     max-level: 1
     xp-costs:
@@ -12,7 +12,7 @@ custom-enchants:
     enabled: true
     display-name: "&bMANA EFFICIENCY"
     description: "&7מוריד 10% מאנה לשימוש לכל רמה"
-    material: ENCHANTED_BOOK
+    material: LAPIS_LAZULI
     targets: [ "SWORD", "BOW", "WAND" ]
     max-level: 5
     levels:
@@ -24,8 +24,8 @@ custom-enchants:
   CHRONOS:
     enabled: true
     display-name: "&dCHRONOS"
-    description: "&7מוריד את ה-cooldown של יכולות"
-    material: ENCHANTED_BOOK
+    description: "&7מוריד את זמן ההמתנה של יכולות בקצת"
+    material: CLOCK
     targets: [ "SWORD", "BOW", "WAND" ]
     max-level: 3
     levels:
@@ -36,7 +36,7 @@ custom-enchants:
     enabled: true
     display-name: "&aFARMING FORTUNE"
     description: "&7סיכוי לקבל יבולים כפולים או משולשים"
-    material: ENCHANTED_BOOK
+    material: WHEAT
     targets: [ "HOE" ]
     max-level: 5
     levels:
@@ -49,7 +49,7 @@ custom-enchants:
     enabled: true
     display-name: "&eTURBO MINER"
     description: "&7+3 מהירות כרייה בכל רצף כרייה (עד 200 בלוקים)"
-    material: ENCHANTED_BOOK
+    material: NETHERITE_PICKAXE
     targets: [ "PICKAXE" ]
     max-level: 1
     xp-costs:
@@ -58,7 +58,7 @@ custom-enchants:
     enabled: true
     display-name: "&2EXP GRINDER"
     description: "&7סיכוי של 50% לקבל 30 XP כשחטפת מכה"
-    material: ENCHANTED_BOOK
+    material: EXPERIENCE_BOTTLE
     targets: [ "CHESTPLATE", "LEGGINGS", "BOOTS", "HELMET" ]
     max-level: 1
     xp-costs:
@@ -66,8 +66,8 @@ custom-enchants:
   BERSERK:
     enabled: true
     display-name: "&4BERSERK"
-    description: "&7מסיר באפים אך מגדיל את הנזק ב-50%"
-    material: ENCHANTED_BOOK
+    description: "&7מסיר את כל הכישופים אך מגדיל את הנזק ב-50%"
+    material: STONE_SWORD
     targets: [ "SWORD", "AXE" ]
     max-level: 1
     xp-costs:
@@ -76,7 +76,7 @@ custom-enchants:
     enabled: true
     display-name: "&8MONSTER SOUL"
     description: "&7מקבל פי 10 מהנזק של המפלצת שהרגת למכה הקריטית הבאה"
-    material: ENCHANTED_BOOK
+    material: DIAMOND_SWORD
     targets: [ "SWORD", "AXE" ]
     max-level: 1
     xp-costs:
@@ -85,7 +85,7 @@ custom-enchants:
     enabled: true
     display-name: "&3GUARDIAN MANA"
     description: "&725% מהמאנה שהשתמשת ליכולות הופך להגנה ל-5 שניות"
-    material: ENCHANTED_BOOK
+    material: LAPIS_LAZULI
     targets: [ "CHESTPLATE" ]
     max-level: 1
     xp-costs:
@@ -94,7 +94,7 @@ custom-enchants:
     enabled: true
     display-name: "&aREPLENISH"
     description: "&7שותל יבולים מחדש אוטומטית (לא ניתן להשגה רגילה)"
-    material: ENCHANTED_BOOK
+    material: WHEAT_SEEDS
     targets: [ "HOE" ]
     max-level: 1
     obtainable: false
@@ -104,7 +104,7 @@ custom-enchants:
     enabled: true
     display-name: "&eHARVESTING"
     description: "&7פורצ'ן לגרזן (עצים ויבולים)"
-    material: ENCHANTED_BOOK
+    material: PUMPKIN_SEEDS
     targets: [ "AXE" ]
     max-level: 5
     levels:
@@ -117,7 +117,7 @@ custom-enchants:
     enabled: true
     display-name: "&7DELICATE"
     description: "&7מונע שבירת יבולים שלא גדלו עד הסוף"
-    material: ENCHANTED_BOOK
+    material: MELON_SEEDS
     targets: [ "HOE" ]
     max-level: 1
     xp-costs:
@@ -126,7 +126,7 @@ custom-enchants:
     enabled: true
     display-name: "&6TRAMPLE GUARD"
     description: "&7מונע דריסת יבולים כשאתה הולך עליהם"
-    material: ENCHANTED_BOOK
+    material: BEETROOT_SEEDS
     targets: [ "BOOTS" ]
     max-level: 1
     xp-costs:
@@ -135,7 +135,7 @@ custom-enchants:
     enabled: true
     display-name: "&bEXP SHARE"
     description: "&7בונוס XP על חומרים טבעיים מכל סוג"
-    material: ENCHANTED_BOOK
+    material: EXPERIENCE_BOTTLE
     targets: [ "ALL" ]
     max-level: 3
     levels:
@@ -146,7 +146,7 @@ custom-enchants:
     enabled: true
     display-name: "&eGREED"
     description: "&7מביא לך 1-5 כסף כל כמה שניות"
-    material: ENCHANTED_BOOK
+    material: SUNFLOWER
     targets: [ "SWORD", "PICKAXE", "AXE", "SHOVEL", "HOE" ]
     max-level: 1
     xp-costs:

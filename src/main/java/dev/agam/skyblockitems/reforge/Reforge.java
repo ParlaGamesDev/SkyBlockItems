@@ -15,11 +15,9 @@ public class Reforge {
     private final String displayName;
     private final List<String> itemTypes;
     private final String rarityRequirement;
-    private final String rarityUpgrade;
     private final double cost;
     private final Map<String, Double> stats;
     private final List<String> enchants;
-    private final List<String> abilities;
 
     /**
      * Constructs a Reforge from a ConfigurationSection.
@@ -32,7 +30,6 @@ public class Reforge {
         this.displayName = ColorUtils.colorize(section.getString("display-name", id));
         this.itemTypes = section.getStringList("item-types");
         this.rarityRequirement = section.getString("rarity-requirement", "COMMON");
-        this.rarityUpgrade = section.getString("rarity-upgrade", "COMMON");
         this.cost = section.getDouble("cost", 0.0);
 
         // Load stats map
@@ -44,9 +41,8 @@ public class Reforge {
             }
         }
 
-        // Load enchants and abilities
+        // Load enchants
         this.enchants = section.getStringList("enchants");
-        this.abilities = section.getStringList("abilities");
     }
 
     /**
@@ -107,10 +103,6 @@ public class Reforge {
         return rarityRequirement;
     }
 
-    public String getRarityUpgrade() {
-        return rarityUpgrade;
-    }
-
     public double getCost() {
         return cost;
     }
@@ -121,10 +113,6 @@ public class Reforge {
 
     public List<String> getEnchants() {
         return new ArrayList<>(enchants);
-    }
-
-    public List<String> getAbilities() {
-        return new ArrayList<>(abilities);
     }
 
     @Override

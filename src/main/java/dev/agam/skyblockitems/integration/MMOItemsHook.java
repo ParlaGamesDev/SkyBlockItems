@@ -42,6 +42,9 @@ public class MMOItemsHook {
         MMOItems.plugin.getStats().register(new NaturalAbilityLoreStat());
         MMOItems.plugin.getStats().register(new DisableEnchantingStat());
         MMOItems.plugin.getStats().register(new DisableAnvilStat());
+        MMOItems.plugin.getStats().register(new ReforgeableStat());
+
+        SkyBlockItems.getInstance().getLogger().info("Registered custom stats: REFORGEABLE, Glow, Solar, etc.");
 
         // FORCE A RELOAD OF MMOITEMS TEMPLATES
         // This is required because MMOItems loads before us (due to dependency)
