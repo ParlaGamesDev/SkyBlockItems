@@ -53,20 +53,16 @@ Rarities:
     weight: 1
     default: true
   2:
-    identifier: Uncommon
-    name: '&#0CDB00&lUNCOMMON'
-    weight: 2
-  3:
     identifier: Rare
     name: '&#0E44F8&lנדיר'
-    weight: 3
-  4:
+    weight: 2
+  3:
     identifier: Epic
     name: '&#9560E3&lאדיר'
-    weight: 4
-  5:
+    weight: 3
+  4:
     identifier: Legendary
     name: '&#FFB000&lאגדי'
-    weight: 5
+    weight: 4
 
 Items:

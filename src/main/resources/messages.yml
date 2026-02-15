@@ -244,7 +244,7 @@ reforge:
       display-name:
         name: "<#ffeaa7>שם תצוגה"
         click: "<#74b9ff>▶ לחץ לעריכה"
-        prompt: "הזן שם תצוגה חדש:"
+        prompt: "<#f39c12>הזן שם תצוגה חדש בצ'אט:"
       item-types:
         name: "<#ffeaa7>סוגי פריטים"
         click: "<#74b9ff>▶ לחץ לעריכה"
@@ -253,15 +253,15 @@ reforge:
       rarity-req:
         name: "<#ffeaa7>דרישת נדירות"
         click: "<#74b9ff>▶ לחץ לעריכה"
-        prompt: "הזן דרישת נדירות (COMMON/UNCOMMON/RARE/EPIC/LEGENDARY):"
+        prompt: "הזן דרישת נדירות (COMMON/RARE/EPIC/LEGENDARY):"
       rarity-upgrade:
         name: "<#ffeaa7>שדרוג נדירות"
         click: "<#74b9ff>▶ לחץ לעריכה"
-        prompt: "הזן שדרוג נדירות (COMMON/UNCOMMON/RARE/EPIC/LEGENDARY):"
+        prompt: "הזן שדרוג נדירות (COMMON/RARE/EPIC/LEGENDARY):"
       cost:
         name: "<#ffeaa7>עלות"
         click: "<#74b9ff>▶ לחץ לעריכה"
-        prompt: "הזן עלות:"
+        prompt: "<#f39c12>הזן עלות חדשה בצ'אט:"
       stats:
         name: "<#ffeaa7>סטטיסטיקות"
         click: "<#74b9ff>▶ לחץ לעריכה"
@@ -315,12 +315,62 @@ reforge:
       level-prompt: "הזן רמת כישוף עבור {enchant}:"
       current-level: "<#636e72>רמה נוכחית: <#a29bfe>{level}"
       
-    ability-selector:
-      title: "<#00b894>&lבחר יכולות"
-      selected: "<#2ecc71>✔ נבחר"
-      not-selected: "<#e74c3c>✖ לא נבחר"
-      click-toggle: "<#ffeaa7>▶ לחץ להחלפת מצב"
-      description: "<#636e72>{description}"
-    
-    rarity-selector:
-      title: "בחר נדירות"
+    item-type-selector:
+      title: "<#d63aff>&lבחר סוגי פריטים"
+      selected: "<#2ecc71>נבחר"
+      not-selected: "<#636e72>לא נבחר"
+      click-toggle: "<#74b9ff>▶ לחץ להחלפה"
+
+item-types:
+  sword: "חרב"
+  bow: "קשת"
+  crossbow: "קשת מוצלבת"
+  trident: "קלשון"
+  mace: "אלה"
+  armor: "שריון"
+  helmet: "קסדה"
+  chestplate: "שריון חזה"
+  leggings: "מכנסיים"
+  boots: "מגפיים"
+  tool: "כלי"
+  axe: "גרזן"
+  pickaxe: "מכוש"
+  shovel: "את"
+  hoe: "מעדר"
+  fishing_rod: "חכה"
+  shield: "מגן"
+  consumable: "מתכלה"
+  accessory: "אביזר"
+  global: "כללי"
+
+targets:
+  sword: "חרבות"
+  bow: "קשתות"
+  crossbow: "קשתות מוצלבות"
+  trident: "קלשונים"
+  mace: "אלות"
+  armor: "שריון"
+  helmet: "קסדות"
+  chestplate: "שריון חזה"
+  leggings: "מכנסיים"
+  boots: "מגפיים"
+  tool: "כלים"
+  axe: "גרזנים"
+  fishing_rod: "חכות"
+  global: "כללי"
+
+enchant-descriptions:
+  greed: "מגדיל את כמות המטבעות שמפלצות מפילות."
+
+ability:
+  lore:
+    mana: "{mana} מאנה"
+    cooldown-seconds: "{cooldown} שניות"
+    cooldown-minutes: "{minutes} דקות ו-{seconds} שניות"
+    cooldown-minutes-only: "{minutes} דקות"
+    damage: "{damage} נזק"
+    range: "רדיוס {range} בלוקים"
+    duration: "למשך {seconds} שניות"
+    format: "עבור {mana} ניתן להשתמש שוב לאחר {cooldown}"
+    format-mana-only: "עבור {mana}"
+    format-cooldown-only: "ניתן להשתמש שוב לאחר {cooldown}"

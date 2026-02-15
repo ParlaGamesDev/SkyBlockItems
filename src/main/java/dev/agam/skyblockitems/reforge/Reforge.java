@@ -81,11 +81,10 @@ public class Reforge {
     private int getRarityWeight(String rarity) {
         return switch (rarity.toUpperCase()) {
             case "COMMON" -> 1;
-            case "UNCOMMON" -> 2;
-            case "RARE" -> 3;
-            case "EPIC" -> 4;
-            case "LEGENDARY" -> 5;
-            case "MYTHIC" -> 6;
+            case "RARE" -> 2;
+            case "EPIC" -> 3;
+            case "LEGENDARY" -> 4;
+            case "MYTHIC" -> 5;
             default -> 1;
         };
     }

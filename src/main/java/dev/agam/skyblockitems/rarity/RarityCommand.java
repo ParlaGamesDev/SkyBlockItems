@@ -80,6 +80,9 @@ public class RarityCommand implements CommandExecutor, TabCompleter {
         // Apply rarity globally (saves to config + refreshes online players)
         rarityManager.saveMapping(item, rarity.getIdentifier());
 
+        // Immediate update for the player
+        player.getInventory().setItemInMainHand(rarityManager.processItem(item));
+
         player.sendMessage(ColorUtils.colorize(
                 plugin.getConfigManager().getMessage("rarity.set-success")
                         .replace("{rarity}", ColorUtils.colorize(rarity.getDisplayName()))));
@@ -123,6 +126,9 @@ public class RarityCommand implements CommandExecutor, TabCompleter {
         // Apply rarity globally (saves to config + refreshes online players)
         rarityManager.saveMapping(item, rarity.getIdentifier());
 
+        // Immediate update for the player
+        player.getInventory().setItemInMainHand(rarityManager.processItem(item));
+
         player.sendMessage(ColorUtils.colorize(
                 plugin.getConfigManager().getMessage("rarity.custom-success")
                         .replace("{rarity}", ColorUtils.colorize(rarity.getDisplayName()))));
@@ -148,10 +154,8 @@ public class RarityCommand implements CommandExecutor, TabCompleter {
         // Remove mapping globally (removes from config + refreshes online players)
         rarityManager.removeMapping(item);
 
-        // Update current item in hand immediately for the caller
-        // REMOVED: refreshPlayer inside removeMapping already handles this.
-        // Calling processItem(item) here passes the STALE item (with old NBT) forcing a
-        // re-save.
+        // Immediate update for the player
+        player.getInventory().setItemInMainHand(rarityManager.processItem(item));
 
         player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("rarity.removed")));
     }

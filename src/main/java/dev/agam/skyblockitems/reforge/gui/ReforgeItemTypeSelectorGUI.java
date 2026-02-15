@@ -40,7 +40,7 @@ public class ReforgeItemTypeSelectorGUI implements BaseGUI {
         this.currentItemTypes = new ArrayList<>(currentItemTypes);
         this.parentGUI = parentGUI;
 
-        String title = ColorUtils.colorize("<#d63aff>&lבחר סוגי פריטים");
+        String title = plugin.getConfigManager().getMessage("reforge.editor.item-type-selector.title");
         this.inventory = Bukkit.createInventory(this, 36, title);
         setupGUI();
     }
@@ -71,10 +71,10 @@ public class ReforgeItemTypeSelectorGUI implements BaseGUI {
 
             // Lore
             List<String> lore = new ArrayList<>();
-            lore.add(ColorUtils.colorize(
-                    isSelected ? "<#2ecc71>נבחר" : "<#636e72>לא נבחר"));
+            lore.add(plugin.getConfigManager().getMessage(isSelected ? "reforge.editor.item-type-selector.selected"
+                    : "reforge.editor.item-type-selector.not-selected"));
             lore.add("");
-            lore.add(ColorUtils.colorize("<#74b9ff>▶ לחץ להחלפה"));
+            lore.add(plugin.getConfigManager().getMessage("reforge.editor.item-type-selector.click-toggle"));
 
             meta.setLore(lore);
             icon.setItemMeta(meta);

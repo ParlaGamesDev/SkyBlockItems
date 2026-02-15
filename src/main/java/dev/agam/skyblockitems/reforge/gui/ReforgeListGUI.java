@@ -103,29 +103,40 @@ public class ReforgeListGUI implements BaseGUI {
             meta.setDisplayName(ColorUtils.colorize(reforge.getDisplayName()));
 
             List<String> lore = new ArrayList<>();
-            lore.add(ColorUtils.colorize("<#636e72>ID: <#ffeaa7>" + reforge.getId()));
-            lore.add(ColorUtils.colorize("<#636e72>עלות: <#2ecc71>" + (int) reforge.getCost() + " מטבעות"));
+            lore.add(ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.id-label")
+                    .replace("{id}", reforge.getId())));
+            lore.add(ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.cost-label")
+                    .replace("{cost}", String.valueOf((int) reforge.getCost()))));
             lore.add("");
-            lore.add(ColorUtils.colorize("<#636e72>סוגים: <#74b9ff>" + String.join(", ", reforge.getItemTypes())));
-            lore.add(ColorUtils.colorize("<#636e72>נדירות: <#a29bfe>" + reforge.getRarityRequirement() + " → "
-                    + reforge.getRarityUpgrade()));
+            lore.add(ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.types-label")
+                    .replace("{types}", String.join(", ", reforge.getItemTypes()))));
+            lore.add(ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.rarity-label")
+                    .replace("{req}", reforge.getRarityRequirement())
+                    .replace("{upgrade}", reforge.getRarityUpgrade())));
             lore.add("");
 
             if (!reforge.getStats().isEmpty()) {
-                lore.add(ColorUtils.colorize("<#ffeaa7>סטטיסטיקות:"));
+                lore.add(ColorUtils
+                        .colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.stats-header")));
                 for (Map.Entry<String, Double> entry : reforge.getStats().entrySet()) {
                     lore.add(ColorUtils
-                            .colorize("  <#636e72>• <#dfe6e9>" + entry.getKey() + ": <#2ecc71>+" + entry.getValue()));
+                            .colorize(
+                                    "  <#636e72>• <#dfe6e9>" + plugin.getReforgeManager().formatStatName(entry.getKey())
+                                            + ": <#2ecc71>+" + entry.getValue()));
                 }
                 lore.add("");
             }
 
             if (!reforge.getEnchants().isEmpty()) {
-                lore.add(ColorUtils.colorize("<#d63aff>כישופים: <#dfe6e9>" + String.join(", ", reforge.getEnchants())));
+                lore.add(ColorUtils
+                        .colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.enchants-header")
+                                .replace("{enchants}", String.join(", ", reforge.getEnchants()))));
             }
 
             if (!reforge.getAbilities().isEmpty()) {
-                lore.add(ColorUtils.colorize("<#00b894>יכולות: <#dfe6e9>" + String.join(", ", reforge.getAbilities())));
+                lore.add(ColorUtils
+                        .colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.abilities-header")
+                                .replace("{abilities}", String.join(", ", reforge.getAbilities()))));
             }
 
             lore.add("");
@@ -183,9 +194,11 @@ public class ReforgeListGUI implements BaseGUI {
         if (clicked.hasItemMeta() && clicked.getItemMeta().hasLore()) {
             List<String> lore = clicked.getItemMeta().getLore();
             if (lore != null && !lore.isEmpty()) {
+                String idSearch = ChatColor.stripColor(
+                        plugin.getConfigManager().getMessage("reforge.editor.labels.id-label").replace("{id}", ""));
                 String idLine = ChatColor.stripColor(lore.get(0));
-                if (idLine.startsWith("ID: ")) {
-                    String reforgeId = idLine.substring(4);
+                if (idLine.startsWith(idSearch)) {
+                    String reforgeId = idLine.substring(idSearch.length());
                     Reforge reforge = plugin.getReforgeManager().getReforge(reforgeId);
 
                     if (reforge != null) {

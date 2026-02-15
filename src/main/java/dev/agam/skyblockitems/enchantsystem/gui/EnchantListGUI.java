@@ -106,7 +106,7 @@ public class EnchantListGUI implements BaseGUI {
             if (!enchant.getStats().isEmpty()) {
                 lore.add(plugin.getConfigManager().getMessage("editor.stats-label"));
                 for (var entry : enchant.getStats().entrySet()) {
-                    lore.add(ColorUtils.colorize("  <#777777>" + entry.getKey().getDisplayName() + ": <#ffffff>+"
+                    lore.add(ColorUtils.colorize("  <#777777>" + entry.getKey().getHebrewName() + ": <#ffffff>+"
                             + entry.getValue() + "/level"));
                 }
                 lore.add("");

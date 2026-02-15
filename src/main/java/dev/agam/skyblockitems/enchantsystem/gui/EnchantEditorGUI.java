@@ -162,7 +162,7 @@ public class EnchantEditorGUI implements BaseGUI {
         switch (slot) {
             case NAME_SLOT -> {
                 player.closeInventory();
-                player.sendMessage(plugin.getConfigManager().getMessage("commands.type-id")); // Reuse or specific?
+                player.sendMessage(plugin.getConfigManager().getMessage("editor.prompt-name"));
                 plugin.getChatInputManager().awaitInput(player, input -> {
                     enchant.setDisplayName(input);
                     new EnchantEditorGUI(plugin, player, enchant).open();
@@ -170,19 +170,19 @@ public class EnchantEditorGUI implements BaseGUI {
             }
             case DESC_SLOT -> {
                 player.closeInventory();
-                player.sendMessage(plugin.getConfigManager().getMessage("commands.type-id")); // Reuse or specific?
+                player.sendMessage(plugin.getConfigManager().getMessage("editor.prompt-description"));
                 plugin.getChatInputManager().awaitInput(player, input -> {
                     enchant.setDescription(input);
                     new EnchantEditorGUI(plugin, player, enchant).open();
                 });
             }
-            case ICON_SLOT -> promptInput("editor.type-material", input -> {
+            case ICON_SLOT -> promptInput("editor.prompt-material", input -> {
                 Material mat = Material.getMaterial(input.toUpperCase());
                 if (mat != null) {
                     enchant.setMaterial(mat);
                     player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                 } else {
-                    player.sendMessage(plugin.getConfigManager().getMessage("commands.invalid-material"));
+                    player.sendMessage(plugin.getConfigManager().getMessage("editor.invalid-material"));
                 }
                 reopen();
             });

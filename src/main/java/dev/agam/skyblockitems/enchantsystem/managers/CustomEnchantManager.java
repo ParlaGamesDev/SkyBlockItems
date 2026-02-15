@@ -10,6 +10,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 /**
@@ -31,13 +32,29 @@ public class CustomEnchantManager {
     private void loadConfig() {
         configFile = new File(plugin.getDataFolder(), "custom-enchants.yml");
         if (!configFile.exists()) {
-            try {
-                configFile.createNewFile();
-            } catch (IOException e) {
-                plugin.getLogger().severe("Could not create custom-enchants.yml!");
-            }
+            plugin.saveResource("custom-enchants.yml", false);
         }
         config = YamlConfiguration.loadConfiguration(configFile);
+
+        // FORCE MERGE - Copy missing keys from default to active config
+        InputStream defConfigStream = plugin.getResource("custom-enchants.yml");
+        if (defConfigStream != null) {
+            YamlConfiguration defConfig = YamlConfiguration
+                    .loadConfiguration(
+                            new java.io.InputStreamReader(defConfigStream, java.nio.charset.StandardCharsets.UTF_8));
+
+            boolean changed = false;
+            for (String key : defConfig.getKeys(true)) {
+                if (!config.contains(key)) {
+                    config.set(key, defConfig.get(key));
+                    changed = true;
+                }
+            }
+
+            if (changed) {
+                saveConfig();
+            }
+        }
     }
 
     public void loadEnchants() {

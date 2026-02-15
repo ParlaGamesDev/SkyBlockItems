@@ -83,51 +83,54 @@ public class ReforgeEditorGUI implements BaseGUI {
 
         // Display Name
         inventory.setItem(10, createPropertyItem(Material.NAME_TAG,
-                "<#ffeaa7>שם תצוגה",
+                plugin.getConfigManager().getMessage("reforge.editor.properties.display-name.name"),
                 Arrays.asList(
-                        ColorUtils.colorize("<#636e72>ערך נוכחי:"),
-                        ColorUtils.colorize(displayName),
+                        plugin.getConfigManager().getMessage("reforge.editor.labels.current-value"),
+                        displayName,
                         "",
-                        ColorUtils.colorize("<#74b9ff>▶ לחץ לעריכה"))));
+                        plugin.getConfigManager().getMessage("reforge.editor.properties.display-name.click"))));
 
         // Item Types
         inventory.setItem(11, createPropertyItem(Material.IRON_SWORD,
-                "<#ffeaa7>סוגי פריטים",
+                plugin.getConfigManager().getMessage("reforge.editor.properties.item-types.name"),
                 Arrays.asList(
-                        ColorUtils.colorize("<#636e72>ערך נוכחי:"),
-                        ColorUtils.colorize("<#dfe6e9>" + String.join(", ", itemTypes)),
+                        plugin.getConfigManager().getMessage("reforge.editor.labels.current-value"),
+                        "<#dfe6e9>" + String.join(", ", itemTypes),
                         "",
-                        ColorUtils.colorize("<#74b9ff>▶ לחץ לעריכה"),
-                        ColorUtils.colorize("<#636e72>דוגמאות: SWORD, PICKAXE, BOW, ALL"))));
+                        plugin.getConfigManager().getMessage("reforge.editor.properties.item-types.click"),
+                        plugin.getConfigManager().getMessage("reforge.editor.properties.item-types.example"))));
 
         // Rarity Requirement
         inventory.setItem(12, createPropertyItem(Material.PAPER,
-                "<#ffeaa7>דרישת נדירות",
+                plugin.getConfigManager().getMessage("reforge.editor.properties.rarity-req.name"),
                 Arrays.asList(
-                        ColorUtils.colorize("<#636e72>ערך נוכחי: <#a29bfe>" + rarityRequirement),
+                        plugin.getConfigManager().getMessage("reforge.editor.labels.current-value") + " <#a29bfe>"
+                                + rarityRequirement,
                         "",
-                        ColorUtils.colorize("<#74b9ff>▶ לחץ לעריכה"))));
+                        plugin.getConfigManager().getMessage("reforge.editor.properties.rarity-req.click"))));
 
         // Rarity Upgrade
         inventory.setItem(13, createPropertyItem(Material.ENCHANTED_BOOK,
-                "<#ffeaa7>שדרוג נדירות",
+                plugin.getConfigManager().getMessage("reforge.editor.properties.rarity-upgrade.name"),
                 Arrays.asList(
-                        ColorUtils.colorize("<#636e72>ערך נוכחי: <#a29bfe>" + rarityUpgrade),
+                        plugin.getConfigManager().getMessage("reforge.editor.labels.current-value") + " <#a29bfe>"
+                                + rarityUpgrade,
                         "",
-                        ColorUtils.colorize("<#74b9ff>▶ לחץ לעריכה"))));
+                        plugin.getConfigManager().getMessage("reforge.editor.properties.rarity-upgrade.click"))));
 
         // Cost
         inventory.setItem(14, createPropertyItem(Material.GOLD_INGOT,
-                "<#ffeaa7>עלות",
+                plugin.getConfigManager().getMessage("reforge.editor.properties.cost.name"),
                 Arrays.asList(
-                        ColorUtils.colorize("<#636e72>ערך נוכחי: <#2ecc71>" + (int) cost + " מטבעות"),
+                        plugin.getConfigManager().getMessage("reforge.editor.labels.current-value") + " <#2ecc71>"
+                                + (int) cost + " מטבעות",
                         "",
-                        ColorUtils.colorize("<#74b9ff>▶ לחץ לעריכה"))));
+                        plugin.getConfigManager().getMessage("reforge.editor.properties.cost.click"))));
 
         // Stats
         StringBuilder statsDisplay = new StringBuilder();
         if (stats.isEmpty()) {
-            statsDisplay.append("<#636e72>אין סטטיסטיקות");
+            statsDisplay.append(plugin.getConfigManager().getMessage("reforge.editor.properties.stats.none"));
         } else {
             for (Map.Entry<String, Double> entry : stats.entrySet()) {
                 String translatedName = plugin.getReforgeManager().formatStatName(entry.getKey());
@@ -136,47 +139,49 @@ public class ReforgeEditorGUI implements BaseGUI {
             }
         }
         inventory.setItem(19, createPropertyItem(Material.DIAMOND,
-                "<#ffeaa7>סטטיסטיקות",
+                plugin.getConfigManager().getMessage("reforge.editor.properties.stats.name"),
                 Arrays.asList(
-                        ColorUtils.colorize("<#636e72>ערך נוכחי:"),
-                        ColorUtils.colorize(statsDisplay.toString()),
+                        plugin.getConfigManager().getMessage("reforge.editor.labels.current-value"),
+                        statsDisplay.toString(),
                         "",
-                        ColorUtils.colorize("<#74b9ff>▶ לחץ לעריכה"),
-                        ColorUtils.colorize("<#636e72>פורמט: stat_name:value"))));
+                        plugin.getConfigManager().getMessage("reforge.editor.properties.stats.click"),
+                        plugin.getConfigManager().getMessage("reforge.editor.properties.stats.example"))));
 
         // Enchants
         inventory.setItem(20, createPropertyItem(Material.ENCHANTED_BOOK,
-                "<#d63aff>כישופים",
+                plugin.getConfigManager().getMessage("reforge.editor.properties.enchants.name"),
                 Arrays.asList(
-                        ColorUtils.colorize("<#636e72>ערך נוכחי:"),
-                        ColorUtils.colorize(enchants.isEmpty() ? "<#636e72>אין כיש ופים"
-                                : "<#dfe6e9>" + String.join(", ", enchants)),
+                        plugin.getConfigManager().getMessage("reforge.editor.labels.current-value"),
+                        enchants.isEmpty()
+                                ? plugin.getConfigManager().getMessage("reforge.editor.properties.enchants.none")
+                                : "<#dfe6e9>" + String.join(", ", enchants),
                         "",
-                        ColorUtils.colorize("<#74b9ff>▶ לחץ לעריכה"),
-                        ColorUtils.colorize("<#636e72>פורמט: ENCHANT_NAME:LEVEL"))));
+                        plugin.getConfigManager().getMessage("reforge.editor.properties.enchants.click"),
+                        plugin.getConfigManager().getMessage("reforge.editor.properties.enchants.example"))));
 
         // Abilities
         inventory.setItem(21, createPropertyItem(Material.BLAZE_POWDER,
-                "<#00b894>יכולות",
+                plugin.getConfigManager().getMessage("reforge.editor.properties.abilities.name"),
                 Arrays.asList(
-                        ColorUtils.colorize("<#636e72>ערך נוכחי:"),
-                        ColorUtils.colorize(abilities.isEmpty() ? "<#636e72>אין יכולות"
-                                : "<#dfe6e9>" + String.join(", ", abilities)),
+                        plugin.getConfigManager().getMessage("reforge.editor.labels.current-value"),
+                        abilities.isEmpty()
+                                ? plugin.getConfigManager().getMessage("reforge.editor.properties.abilities.none")
+                                : "<#dfe6e9>" + String.join(", ", abilities),
                         "",
-                        ColorUtils.colorize("<#74b9ff>▶ לחץ לעריכה"),
-                        ColorUtils.colorize("<#636e72>רשימת IDs של יכולות"))));
+                        plugin.getConfigManager().getMessage("reforge.editor.properties.abilities.click"),
+                        plugin.getConfigManager().getMessage("reforge.editor.properties.abilities.example"))));
 
         // Save button
         inventory.setItem(49, createPropertyItem(Material.EMERALD_BLOCK,
-                "<#2ecc71>&lשמור",
+                plugin.getConfigManager().getMessage("reforge.editor.buttons.save"),
                 Arrays.asList(
-                        ColorUtils.colorize("<#636e72>שמור את החישול וחזור לרשימה"))));
+                        plugin.getConfigManager().getMessage("reforge.editor.buttons.save-lore"))));
 
         // Back button
         inventory.setItem(45, createPropertyItem(Material.BARRIER,
-                "<#e74c3c>&lחזור",
+                plugin.getConfigManager().getMessage("reforge.editor.buttons.back"),
                 Arrays.asList(
-                        ColorUtils.colorize("<#636e72>חזור לרשימת החישולים (ללא שמירה)"))));
+                        plugin.getConfigManager().getMessage("reforge.editor.buttons.back-lore"))));
 
         // Filler
         Material fillerMat = Material.getMaterial(
@@ -282,7 +287,7 @@ public class ReforgeEditorGUI implements BaseGUI {
     }
 
     private String cycleRarity(String current) {
-        List<String> rarities = Arrays.asList("COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY");
+        List<String> rarities = Arrays.asList("COMMON", "RARE", "EPIC", "LEGENDARY");
         int index = rarities.indexOf(current.toUpperCase());
         if (index == -1 || index == rarities.size() - 1) {
             return rarities.get(0);

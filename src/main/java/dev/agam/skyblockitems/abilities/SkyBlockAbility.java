@@ -170,7 +170,9 @@ public abstract class SkyBlockAbility {
      * Example: "50 מאנה"
      */
     protected String formatMana(double mana) {
-        return COLOR_MANA + (int) mana + " מאנה";
+        return COLOR_MANA
+                + dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager().getMessage("ability.lore.mana")
+                        .replace("{mana}", String.valueOf((int) mana));
     }
 
     /**
@@ -182,11 +184,20 @@ public abstract class SkyBlockAbility {
             int minutes = (int) (cooldown / 60);
             int seconds = (int) (cooldown % 60);
             if (seconds > 0) {
-                return COLOR_COOLDOWN + minutes + " דקות ו-" + seconds + " שניות";
+                return COLOR_COOLDOWN
+                        + dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
+                                .getMessage("ability.lore.cooldown-minutes")
+                                .replace("{minutes}", String.valueOf(minutes))
+                                .replace("{seconds}", String.valueOf(seconds));
             }
-            return COLOR_COOLDOWN + minutes + " דקות";
+            return COLOR_COOLDOWN
+                    + dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
+                            .getMessage("ability.lore.cooldown-minutes-only")
+                            .replace("{minutes}", String.valueOf(minutes));
         }
-        return COLOR_COOLDOWN + String.format("%.1f", cooldown) + " שניות";
+        return COLOR_COOLDOWN + dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
+                .getMessage("ability.lore.cooldown-seconds")
+                .replace("{cooldown}", String.format("%.1f", cooldown));
     }
 
     /**
@@ -194,7 +205,9 @@ public abstract class SkyBlockAbility {
      * Example: "10 נזק"
      */
     protected String formatDamage(double damage) {
-        return COLOR_DAMAGE + String.format("%.1f", damage) + " נזק";
+        return COLOR_DAMAGE + dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
+                .getMessage("ability.lore.damage")
+                .replace("{damage}", String.format("%.1f", damage));
     }
 
     /**
@@ -202,7 +215,9 @@ public abstract class SkyBlockAbility {
      * Example: "רדיוס 10 בלוקים"
      */
     protected String formatRange(double range) {
-        return COLOR_RANGE + "רדיוס " + (int) range + " בלוקים";
+        return COLOR_RANGE
+                + dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager().getMessage("ability.lore.range")
+                        .replace("{range}", String.valueOf((int) range));
     }
 
     /**
@@ -210,7 +225,9 @@ public abstract class SkyBlockAbility {
      * Example: "למשך 5 שניות"
      */
     protected String formatDuration(double seconds) {
-        return COLOR_DURATION + "למשך " + (int) seconds + " שניות";
+        return COLOR_DURATION + dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
+                .getMessage("ability.lore.duration")
+                .replace("{seconds}", String.valueOf((int) seconds));
     }
 
     /**
@@ -218,15 +235,22 @@ public abstract class SkyBlockAbility {
      * Example: "עבור 50 מאנה ניתן להשתמש שוב לאחר 5 שניות"
      */
     protected String formatManaAndCooldown(double mana, double cooldown) {
-        StringBuilder sb = new StringBuilder();
-        if (mana > 0) {
-            sb.append(COLOR_WHITE).append("עבור ").append(formatMana(mana));
+        if (mana > 0 && cooldown > 0) {
+            return COLOR_WHITE + dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
+                    .getMessage("ability.lore.format")
+                    .replace("{mana}", formatMana(mana))
+                    .replace("{cooldown}", formatCooldown(cooldown));
+        } else if (mana > 0) {
+            return COLOR_WHITE
+                    + dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
+                            .getMessage("ability.lore.format-mana-only")
+                            .replace("{mana}", formatMana(mana));
+        } else if (cooldown > 0) {
+            return COLOR_WHITE
+                    + dev.agam.skyblockitems.SkyBlockItems.getInstance().getConfigManager()
+                            .getMessage("ability.lore.format-cooldown-only")
+                            .replace("{cooldown}", formatCooldown(cooldown));
         }
-        if (cooldown > 0) {
-            if (sb.length() > 0)
-                sb.append(" ");
-            sb.append(COLOR_WHITE).append("ניתן להשתמש שוב לאחר ").append(formatCooldown(cooldown));
-        }
-        return sb.toString();
+        return "";
     }
 }

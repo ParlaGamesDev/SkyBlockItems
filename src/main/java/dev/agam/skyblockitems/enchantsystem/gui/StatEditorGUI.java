@@ -103,7 +103,7 @@ public class StatEditorGUI implements BaseGUI {
         Double currentValue = enchant.getStats().get(stat);
         boolean isEnabled = currentValue != null && currentValue > 0;
 
-        meta.setDisplayName(ColorUtils.colorize((isEnabled ? "&a" : "&c") + stat.getDisplayName()));
+        meta.setDisplayName(ColorUtils.colorize((isEnabled ? "&a" : "&c") + stat.getHebrewName()));
 
         List<String> lore = new ArrayList<>();
         lore.add(ColorUtils.colorize("&7" + stat.getHebrewName()));

@@ -17,7 +17,7 @@ public class RarityStat extends StringStat {
         super("SKYBLOCK_RARITY",
                 Material.NETHER_STAR,
                 "Item Rarity",
-                new String[] { "§7The rarity tier of this item.", "§7Valid values: Common, Uncommon, Rare,",
+                new String[] { "§7The rarity tier of this item.", "§7Valid values: Common, Rare,",
                         "§7Epic, Legendary" },
                 new String[] { "all" });
     }
