@@ -66,9 +66,6 @@ public class AbilityManager {
         registerAbility(new dev.agam.skyblockitems.abilities.utility.MetabolismAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.MetabolismAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.SpeedAbility());
-        registerAbility(new dev.agam.skyblockitems.abilities.utility.GrapplingHookAbility());
-
-        registerAbility(new dev.agam.skyblockitems.abilities.utility.GrapplingHookAbility());
 
         // Load Generic Abilities from config
         loadGenericAbilities();

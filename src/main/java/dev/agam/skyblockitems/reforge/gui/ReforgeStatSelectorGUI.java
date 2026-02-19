@@ -198,7 +198,7 @@ public class ReforgeStatSelectorGUI implements BaseGUI {
         }
 
         // Back button (slot 48)
-        inventory.setItem(48, createButton(Material.BARRIER,
+        inventory.setItem(48, createButton(Material.ARROW,
                 plugin.getConfigManager().getMessage("gui.items.back.name"),
                 plugin.getConfigManager().getMessageList("gui.items.back.lore")));
 
@@ -248,7 +248,7 @@ public class ReforgeStatSelectorGUI implements BaseGUI {
         }
 
         // Stat selection
-        if (slot < 45 && clicked.getType() == Material.PAPER) {
+        if (slot < 45) {
             List<String> statIds = new ArrayList<>(availableStats.keySet());
             int absoluteIndex = (currentPage * STATS_PER_PAGE) + slot;
             if (absoluteIndex >= statIds.size())
@@ -268,7 +268,8 @@ public class ReforgeStatSelectorGUI implements BaseGUI {
                 try {
                     double value = Double.parseDouble(input);
                     String systemStatId = selectedStatId;
-                    if (!selectedStatId.startsWith("mmoitems_")) {
+                    // Ensure internal stat ID format
+                    if (!selectedStatId.toLowerCase().startsWith("mmoitems_")) {
                         systemStatId = "mmoitems_" + selectedStatId.toLowerCase();
                     }
                     currentStats.put(systemStatId, value);

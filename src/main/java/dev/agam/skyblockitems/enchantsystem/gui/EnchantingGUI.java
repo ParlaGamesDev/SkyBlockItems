@@ -53,6 +53,7 @@ public class EnchantingGUI implements BaseGUI {
 
     @Override
     public void open() {
+        this.returningFromLevelSelect = false;
         player.openInventory(inventory);
         updateEnchantments();
     }
@@ -224,9 +225,9 @@ public class EnchantingGUI implements BaseGUI {
         }
         inv.setItem(51, sortItem);
 
-        // Close Button (Slot 50)
-        inv.setItem(50, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.close"), Material.BARRIER));
+        // Back Button (Standardized: slot 50, Arrow material)
+        inventory.setItem(50, ColorUtils.getItemFromConfig(
+                plugin.getConfig().getConfigurationSection("gui.items.back"), Material.ARROW));
 
         // Enchantment Guide Button (Slot 49)
         inv.setItem(49, ColorUtils.getItemFromConfig(
@@ -426,6 +427,7 @@ public class EnchantingGUI implements BaseGUI {
         // Enchantment Guide Open
         if (slot == 49) {
             player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+            this.returningFromLevelSelect = true;
             new EnchantmentGuideGUI(plugin, player, this).open();
             return;
         }
@@ -532,7 +534,8 @@ public class EnchantingGUI implements BaseGUI {
                     player.getWorld().dropItemNaturally(player.getLocation(), item);
                 }
             }
-            itemToEnchant.setAmount(0);
+            inventory.setItem(ITEM_SLOT, null);
+            itemToEnchant = null;
         }
     }
 

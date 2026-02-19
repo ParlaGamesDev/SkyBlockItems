@@ -16,10 +16,11 @@ errors:
   already-exists: "<#e74c3c> כישוף עם המזהה הזה כבר קיים!"
   item-disabled-enchanting: "<#e74c3c> לא ניתן לכשף את החפץ הזה!"
   item-disabled-anvil: "<#e74c3c> לא ניתן להשתמש בסדן על החפץ הזה!"
+  blacklisted-item: "&cחפץ זה נמצא ברשימה השחורה ולא ניתן להשתמש בו כאן."
 
 enchanting:
   gui-title: "&8שולחן כישופים"
-  success: "<#2ecc71> הכישוף <#a29bfe>{enchant} <#ffeaa7>{level} <#2ecc71>הוחל בהצלחה! <#636e72>(עלות: {cost} XP)"
+  success: "<#2ecc71> הכישוף <#a29bfe>{enchant}<#ffeaa7>{level} <#2ecc71>הוחל בהצלחה! <#636e72>(עלות: {cost} XP)"
   unlocked-alert: "<#2ecc71> <#a29bfe>NEW ENCHANT UNLOCKED! <#dfe6e9>{enchant}"
   upgrade-fail: "<#e74c3c> כבר יש לך את הרמה הזו או גבוהה יותר!"
   too-expensive: "<#e74c3c> יקר מדי! (מקסימום {max} רמות)"
@@ -90,8 +91,8 @@ guide:
     requirements: "<#f39c12>דרישות:"
     conflicts: "<#e74c3c> מתנגש עם:"
     status: "<#a29bfe>סטטוס: {status}"
-    status-unlocked: "<#2ecc71> פתוח"
-    status-locked: "<#e74c3c> נעול"
+    status-unlocked: "<#2ecc71>פתוח"
+    status-locked: "<#e74c3c>נעול"
     req-level: " <#636e72>• <#74b9ff>רמת כישוף {level}"
     list-format: " <#636e72>• <#dfe6e9>{value}"
 
@@ -254,29 +255,31 @@ gui:
 
 reforge:
   gui-title: "<#aa55ff>&lשולחן חישול"
-  success: "<#2ecc71>החפץ חושל בהצלחה! <#ffeaa7>{reforge}"
   not-enough-money: "<#e74c3c>אין לך מספיק כסף! <#f8b739>(נדרש: {cost})"
   invalid-item: "<#e74c3c>לא ניתן לחשל את החפץ הזה!"
   same-reforge: "<#f39c12>התקבל אותו חישול, מנסה שוב..."
   already-maximized: "<#e74c3c>הפריט כבר כולל את החישל היחיד האפשרי עבורו!"
-  place-item: "<#ffeaa7>הנח חפץ לחישול"
-  current-reforge: "<#636e72>חישול נוכחי: <#ffeaa7>{reforge}"
-  no-reforge: "<#636e72>אין חישול"
-  cost-label: "<#636e72>עלות: <#2ecc71>{cost} מטבעות"
-  error: "<#e74c3c>שגיאה בהחלת החישול!"
-  place-item-lore: "<#636e72>הנח חפץ בסלוט כדי להתחיל"
-  invalid-item-lore: "<#e74c3c>לא ניתן לחשל את החפץ הזה!"
-  not-mmoitem-title: "<#e74c3c>&lפריט לא נתמך"
-  not-mmoitem-lore: "<#636e72>רק פריטי MMOItems ניתנים לחישול!"
-  not-reforgeable-title: "<#e74c3c>&lחישול לא זמין"
-  not-reforgeable-lore: "<#636e72>פריט זה אינו ניתן לחישול!"
-  click-to-reforge: "<#ffeaa7>לחץ כדי לחשל!"
+  place-item: "&cשים חפץ במקום המיועד!"
+  place-item-lore: "&7עליך לשים חפץ MMOItems שניתן לחשל\n&7כדי שתוכל להתחיל בתהליך."
+  not-mmoitem-title: "&cחפץ לא תקין"
+  not-mmoitem-lore: "&7מערכת החישול תומכת רק בחפצי\n&7SkyBlock מותאמים אישית (MMOItems)."
+  not-reforgeable-title: "&cלא ניתן לחישול"
+  not-reforgeable-lore: "&7לחפץ זה אין את התכונה הדרושה\n&7כדי לעבור תהליך חישול."
+  invalid-item-title: "&cאין חישולים מתאימים"
+  invalid-item-lore: "&7לא נמצאו חישולים שתואמים את סוג\n&7החפץ או את הדרגה שלו (Rarity)."
+  current-reforge: "&7חישול נוכחי: {reforge}"
+  no-reforge: "&7חפץ זה טרם חושמל או חושב."
+  cost-label-gui: "<#636e72>עלות: <#2ecc71>{cost} מטבעות"
+  cost-label: "&7מחיר לחישול: &e{cost} מטבעות"
+  click-to-reforge: "&eלחץ כדי לנסות את מזלך!"
   roll-button-name: "<#2ecc71>&lחשל!"
   roll-button-lore:
     - "<#636e72>לחץ כדי לקבל חישול אקראי"
     - ""
     - "<#636e72>עלות: <#2ecc71>{cost} מטבעות"
-  
+  success: "&aבוצע בהצלחה! החפץ שלך הפך ל-&e{reforge}&a!"
+  error: "&cאירעה שגיאה בעיבוד החפץ. נסה שוב."
+
   stat-names:
     attack_damage: "<#ffe5d9>נזק התקפה"
     attack-speed: "<#ffe5d9>מהירות התקפה"
@@ -424,7 +427,6 @@ reforge:
       description: "<#ffeaa7>תיאור:"
       click-toggle: "<#ffeaa7>▶ לחץ להחלפה"
 
-  invalid-item-title: "&cלא ניתן לחשל"
 
 item-types:
   sword: "חרב"
@@ -465,7 +467,8 @@ targets:
   pickaxe: "מכושים"
   shovel: "אתים"
   hoe: "מעדרים"
-  global: "כללי"
+  all: "הכל"
+  global: "הכל"
 
 
 
@@ -516,7 +519,7 @@ enchant-descriptions:
   strength_boost: "מחזק את השרירים ומגדיל את כוח ההתקפה הפיזי."
   wisdom_boost: "מרחיב את התודעה ומגדיל את צבירת ה-XP והמאנה."
   luck_boost: "מושך אנרגיות חיוביות ומגדיל את המזל במציאת פריטים."
-  speed_stat_boost: "מגדיל את מהירות התנועה הכללית בעולם."
+  water_speed: "מגדיל את מהירות השחייה והתנועה בתוך המים."
 
   # Custom Enchants
   savings: "שומר על אחוז מהכסף שלך בעת מוות."
@@ -532,6 +535,15 @@ enchant-descriptions:
   harvesting: "מגדיל את כמות היבולים שמתקבלים מקציר (Fortune לגרזן)."
   trample_guard: "מונע הרס של שדות ויבולים כשדורכים עליהם."
   exp_share: "מעניק בונוס XP בעת כריית משאבים טבעיים."
+  
+  # 1.21 & Boost Enchants
+  breach: "מתעלם מחלק משריון האויב, מה שמאפשר להוריד להם יותר חיים."
+  density: "מגדיל את הנזק שנגרם מנפילה עם המייס."
+  wind_burst: "יוצר פרץ רוח שמקפיץ אותך למעלה אחרי פגיעה."
+  crit_chance_boost: "מגדיל את הסיכוי להנחית מכה קריטית."
+  crit_damage_boost: "מגדיל את הנזק שנגרם ממכה קריטית."
+  regeneration_boost: "מאיץ את קצב התחדשות החיים שלך."
+  toughness_boost: "מחזק את העמידות שלך ומפחית נזק ספוג."
 
 ability:
   header: "&6Ability: {ability} &e&lRIGHT CLICK"

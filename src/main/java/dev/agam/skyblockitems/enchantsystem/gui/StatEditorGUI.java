@@ -51,8 +51,11 @@ public class StatEditorGUI implements BaseGUI {
         EnchantStat[] allStats = EnchantStat.values();
         int startIndex = page * 28;
         int slot = 10;
-
         for (int i = startIndex; i < Math.min(startIndex + 28, allStats.length); i++) {
+            EnchantStat stat = allStats[i];
+            if (stat == EnchantStat.NONE)
+                continue; // Skip NONE as requested
+
             if (slot % 9 == 0)
                 slot++;
             if (slot % 9 == 8)
@@ -60,7 +63,6 @@ public class StatEditorGUI implements BaseGUI {
             if (slot >= inventory.getSize() - 10)
                 break;
 
-            EnchantStat stat = allStats[i];
             ItemStack icon = createStatIcon(stat);
             inventory.setItem(slot, icon);
             slot++;
@@ -78,11 +80,9 @@ public class StatEditorGUI implements BaseGUI {
                     plugin.getConfig().getConfigurationSection("gui.items.next-page"), Material.ARROW));
         }
 
-        // Back button
-        inventory.setItem(invSize - 6, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.back"), Material.ARROW));
+        // Back button (Standardized: slot invSize - 5, Arrow material)
         inventory.setItem(invSize - 5, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.close"), Material.EMERALD));
+                plugin.getConfig().getConfigurationSection("gui.items.back"), Material.ARROW));
 
         // Fill remaining empty slots with configured glass pane
         Material fillerMat = Material.getMaterial(
@@ -138,7 +138,31 @@ public class StatEditorGUI implements BaseGUI {
     }
 
     private Material getStatMaterial(EnchantStat stat) {
-        return Material.BARRIER;
+        String name = stat.name();
+        if (name.contains("HEALTH"))
+            return Material.APPLE;
+        if (name.contains("DAMAGE"))
+            return Material.IRON_SWORD;
+        if (name.contains("SPEED"))
+            return Material.FEATHER;
+        if (name.contains("ARMOR") || name.contains("DEFENSE"))
+            return Material.IRON_CHESTPLATE;
+        if (name.contains("LUCK"))
+            return Material.RABBIT_FOOT;
+        if (name.contains("CRITICAL"))
+            return Material.BLAZE_POWDER;
+        if (name.contains("BLOCK") || name.contains("SHIELD"))
+            return Material.SHIELD;
+        if (name.contains("DODGE") || name.contains("PARRY"))
+            return Material.CHAINMAIL_BOOTS;
+        if (name.contains("XP"))
+            return Material.EXPERIENCE_BOTTLE;
+        if (name.contains("FISHING"))
+            return Material.FISHING_ROD;
+        if (name.contains("KNOCKBACK"))
+            return Material.IRON_BOOTS;
+
+        return Material.PAPER;
     }
 
     public void onClick(InventoryClickEvent event) {
@@ -149,7 +173,7 @@ public class StatEditorGUI implements BaseGUI {
         int slot = event.getSlot();
         int size = inventory.getSize();
 
-        if (slot == size - 5 || slot == size - 6) {
+        if (slot == size - 5) {
             parent.reopen();
             return;
         }

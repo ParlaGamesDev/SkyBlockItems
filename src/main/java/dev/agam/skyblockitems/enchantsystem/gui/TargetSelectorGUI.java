@@ -28,7 +28,7 @@ public class TargetSelectorGUI implements BaseGUI {
     private static final String[] AVAILABLE_TARGETS = {
             "SWORD", "BOW", "CROSSBOW", "TRIDENT", "MACE",
             "ARMOR", "HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS",
-            "TOOL", "AXE", "FISHING_ROD", "GLOBAL"
+            "TOOL", "AXE", "PICKAXE", "SHOVEL", "HOE", "FISHING_ROD", "GLOBAL"
     };
 
     public TargetSelectorGUI(SkyBlockItems plugin, Player player, CustomEnchant enchant, EnchantEditorGUI parent) {
@@ -79,10 +79,9 @@ public class TargetSelectorGUI implements BaseGUI {
 
         // Back button
         int size = inventory.getSize();
-        inventory.setItem(size - 9, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.back"), Material.ARROW));
+        // Back button (Standardized: slot size - 5, Arrow material)
         inventory.setItem(size - 5, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.close"), Material.EMERALD));
+                plugin.getConfig().getConfigurationSection("gui.items.back"), Material.ARROW));
 
         // Fill remaining empty slots with configured glass pane
         Material fillerMat = Material.getMaterial(
@@ -115,6 +114,9 @@ public class TargetSelectorGUI implements BaseGUI {
             case "BOOTS" -> Material.IRON_BOOTS;
             case "TOOL" -> Material.IRON_PICKAXE;
             case "AXE" -> Material.IRON_AXE;
+            case "PICKAXE" -> Material.DIAMOND_PICKAXE;
+            case "SHOVEL" -> Material.DIAMOND_SHOVEL;
+            case "HOE" -> Material.DIAMOND_HOE;
             case "FISHING_ROD" -> Material.FISHING_ROD;
             case "GLOBAL" -> Material.NETHER_STAR;
             default -> Material.BARRIER;
@@ -129,7 +131,7 @@ public class TargetSelectorGUI implements BaseGUI {
         int slot = event.getSlot();
         int size = inventory.getSize();
 
-        if (slot == size - 9 || slot == size - 5) {
+        if (slot == size - 5) {
             parent.reopen();
             return;
         }

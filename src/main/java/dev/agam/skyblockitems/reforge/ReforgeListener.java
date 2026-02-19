@@ -2,6 +2,7 @@ package dev.agam.skyblockitems.reforge;
 
 import dev.agam.skyblockitems.SkyBlockItems;
 import dev.agam.skyblockitems.reforge.gui.ReforgeGUI;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,6 +12,8 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.HashMap;
 
 /**
  * Event listener for the reforge GUI.
@@ -55,6 +58,15 @@ public class ReforgeListener implements Listener {
                     player.getInventory().addItem(item);
                     gui.updateRollButton();
                 } else {
+                    // Check if placement is allowed
+                    ItemStack cursor = event.getCursor();
+                    if (cursor != null && cursor.getType() != Material.AIR) {
+                        if (!gui.canPlaceItem(cursor)) {
+                            event.setCancelled(true);
+                            return;
+                        }
+                    }
+
                     event.setCancelled(false);
                     // Schedule button update for next tick
                     org.bukkit.Bukkit.getScheduler().runTaskLater(
@@ -75,6 +87,12 @@ public class ReforgeListener implements Listener {
         }
         // If clicking in player inventory while GUI is open
         else {
+            // Handle Creative mode "Destroy Item" (Bin) slot
+            if (player.getGameMode() == GameMode.CREATIVE && event.getSlot() == 45) {
+                event.setCancelled(false);
+                return;
+            }
+
             // Special handling for clicking an item to move it to the reforge slot
             ItemStack clickedItem = event.getCurrentItem();
             if (clickedItem != null && clickedItem.getType() != Material.AIR) {
@@ -82,6 +100,10 @@ public class ReforgeListener implements Listener {
 
                 // If it's a normal click (not shift) and the slot is empty
                 if (!event.isShiftClick() && (currentInSlot == null || currentInSlot.getType() == Material.AIR)) {
+                    if (!gui.canPlaceItem(clickedItem)) {
+                        event.setCancelled(true);
+                        return;
+                    }
                     event.setCancelled(true);
                     gui.getInventory().setItem(gui.getItemSlot(), clickedItem.clone());
                     clickedItem.setAmount(0);
@@ -89,6 +111,10 @@ public class ReforgeListener implements Listener {
                 }
                 // If shift-clicking, already handled or will be handled
                 else if (event.isShiftClick() && (currentInSlot == null || currentInSlot.getType() == Material.AIR)) {
+                    if (!gui.canPlaceItem(clickedItem)) {
+                        event.setCancelled(true);
+                        return;
+                    }
                     event.setCancelled(true);
                     gui.getInventory().setItem(gui.getItemSlot(), clickedItem.clone());
                     clickedItem.setAmount(0);
@@ -117,6 +143,12 @@ public class ReforgeListener implements Listener {
                 event.setCancelled(true);
                 return;
             }
+            if (slot == gui.getItemSlot()) {
+                if (!gui.canPlaceItem(event.getOldCursor())) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
         }
     }
 
@@ -136,7 +168,13 @@ public class ReforgeListener implements Listener {
         // Return item to player
         ItemStack item = gui.getInventory().getItem(gui.getItemSlot());
         if (item != null && item.getType() != Material.AIR) {
-            player.getInventory().addItem(item);
+            gui.getInventory().setItem(gui.getItemSlot(), null); // Clear slot
+            HashMap<Integer, ItemStack> leftover = player.getInventory().addItem(item);
+            if (!leftover.isEmpty()) {
+                for (ItemStack lo : leftover.values()) {
+                    player.getWorld().dropItemNaturally(player.getLocation(), lo);
+                }
+            }
         }
 
         ReforgeGUI.removeActiveGUI(player);

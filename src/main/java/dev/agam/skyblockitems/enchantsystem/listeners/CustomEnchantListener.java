@@ -46,6 +46,7 @@ public class CustomEnchantListener implements Listener {
     // Internal trackers
     private final Map<UUID, Integer> miningCombo = new ConcurrentHashMap<>();
     private final Map<UUID, Long> lastMineTime = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> lastGreedTime = new ConcurrentHashMap<>();
     private final Map<UUID, Double> soulCharge = new ConcurrentHashMap<>();
 
     public CustomEnchantListener(SkyBlockItems plugin) {
@@ -61,53 +62,72 @@ public class CustomEnchantListener implements Listener {
         }, 20L, 20L);
     }
 
-    private void updateAuraSkillsStats(org.bukkit.entity.Player player) {
+    private void updateAuraSkillsStats(Player player) {
         if (!plugin.isAuraSkillsEnabled())
             return;
-
-        var user = plugin.getAuraSkillsHook().getUser(player.getUniqueId());
-        if (user == null)
-            return;
-
-        // Reset our modifiers first (simplified approach)
-        // In a full implementation, we'd use NamespacedIds to clear previous modifiers
 
         Map<String, Double> totals = new HashMap<>();
         for (ItemStack item : getRelevantItems(player)) {
             if (item == null || item.getType().isAir())
                 continue;
+
+            // Collect enchants from both enchants.yml and custom-enchants.yml
             Map<String, Integer> enchants = plugin.getEnchantManager().parseLore(item.getItemMeta().getLore());
+            enchants.putAll(parseEnchantIds(item.getItemMeta().getLore()));
 
             for (var entry : enchants.entrySet()) {
                 var conf = plugin.getEnchantManager().getEnchant(entry.getKey());
-                if (conf != null && conf.getAuraskillsStat() != null) {
-                    var lvlConf = conf.getLevel(entry.getValue());
-                    if (lvlConf != null) {
-                        totals.put(conf.getAuraskillsStat(),
-                                totals.getOrDefault(conf.getAuraskillsStat(), 0.0) + lvlConf.getDoubleValue());
+                String statName = null;
+                if (conf != null) {
+                    statName = conf.getAuraskillsStat();
+                } else {
+                    // Check custom enchants
+                    var customConf = plugin.getCustomEnchantManager().getEnchant(entry.getKey());
+                    if (customConf != null) {
+                        // Custom enchants might use a different stat mapping or just hardcode for now
+                        if (customConf.getId().equalsIgnoreCase("STRENGTH_BOOST"))
+                            statName = "strength";
+                        // Add more mappings if needed
                     }
+                }
+
+                if (statName != null) {
+                    double perLevel = 1.0; // Default or from config if available
+                    totals.put(statName, totals.getOrDefault(statName, 0.0) + (entry.getValue() * perLevel));
                 }
             }
         }
 
-        // Apply totals
-        for (var entry : totals.entrySet()) {
-            // This is a placeholder for the actual AuraSkills modifier call
-            // user.addModifier(...)
+        // Apply totals via hook
+        var hook = plugin.getAuraSkillsHook();
+        // Clear old modifiers (AuraSkills modifiers with same ID overwrite, but we
+        // should handle removal if 0)
+        String[] possibleStats = { "strength", "wisdom", "luck", "health", "regeneration", "toughness", "crit_chance",
+                "crit_damage" };
+        for (String stat : possibleStats) {
+            double total = totals.getOrDefault(stat, 0.0);
+            if (total > 0) {
+                hook.addStatModifier(player, stat, "SBI_ENCHANT_" + stat.toUpperCase(), total);
+            } else {
+                hook.removeStatModifier(player, "SBI_ENCHANT_" + stat.toUpperCase());
+            }
         }
     }
 
-    private void applyPeriodicEffects(Player player) {
-        // 1. GREED
-        Map<CustomEnchant, Integer> enchants = getEffectiveEnchants(player);
-        for (CustomEnchant enchant : enchants.keySet()) {
-            if (enchant.getId().equalsIgnoreCase("GREED")) {
-                if (plugin.getVaultHook().isEnabled()) {
-                    double amount = 1 + random.nextInt(5);
-                    plugin.getVaultHook().depositMoney(player, amount);
-                }
-            }
+    private Map<String, Integer> parseEnchantIds(List<String> lore) {
+        Map<String, Integer> result = new HashMap<>();
+        if (lore == null)
+            return result;
+        Map<CustomEnchant, Integer> custom = parseCustomEnchants(lore);
+        for (var entry : custom.entrySet()) {
+            result.put(entry.getKey().getId().toLowerCase(), entry.getValue());
         }
+        return result;
+    }
+
+    private void applyPeriodicEffects(Player player) {
+        updateAuraSkillsStats(player);
+        // Periodic effects for enchants can be added here
     }
 
     @EventHandler
@@ -163,22 +183,14 @@ public class CustomEnchantListener implements Listener {
                 if (!e.isEnabled())
                     continue;
 
-                // 1. EXP_GRINDER
-                if (e.getId().equalsIgnoreCase("EXP_GRINDER")) {
-                    if (random.nextDouble() < 0.5) {
-                        victim.getWorld().spawn(victim.getLocation(), org.bukkit.entity.ExperienceOrb.class)
-                                .setExperience(30);
-                    }
-                }
-            }
-        }
+        // Other defensive effects
     }
 
     private Map<CustomEnchant, Integer> parseCustomEnchants(List<String> lore) {
         Map<CustomEnchant, Integer> result = new HashMap<>();
 
         for (String line : lore) {
-            String cleanLine = ChatColor.stripColor(line);
+            String cleanLine = dev.agam.skyblockitems.enchantsystem.utils.ColorUtils.stripColor(line);
 
             // Parse comma-separated enchants
             String[] entries = cleanLine.split(",");
@@ -252,38 +264,6 @@ public class CustomEnchantListener implements Listener {
                     soulCharge.put(player.getUniqueId(), 0.0);
                     player.sendMessage(ChatColor.DARK_PURPLE + "Soul strike unleashed!");
                 }
-            }
-        }
-    }
-
-    @EventHandler
-    public void onDeath(PlayerDeathEvent event) {
-        Player player = event.getEntity();
-        Map<CustomEnchant, Integer> enchants = getEffectiveEnchants(player);
-
-        boolean hasSavings = enchants.keySet().stream().anyMatch(e -> e.getId().equalsIgnoreCase("SAVINGS"));
-
-        if (hasSavings && plugin.getVaultHook().isEnabled()) {
-            double currentBalance = plugin.getVaultHook().getBalance(player);
-            if (currentBalance > 0) {
-                double rebate = currentBalance * 0.5;
-                plugin.getVaultHook().depositMoney(player, rebate);
-                player.sendMessage(
-                        ChatColor.GOLD + "Savings enchantment saved " + plugin.getVaultHook().format(rebate) + "!");
-            }
-        }
-    }
-
-    @EventHandler
-    public void onExp(org.bukkit.event.player.PlayerExpChangeEvent event) {
-        Player player = event.getPlayer();
-        Map<CustomEnchant, Integer> enchants = getEffectiveEnchants(player);
-
-        for (Map.Entry<CustomEnchant, Integer> entry : enchants.entrySet()) {
-            if (entry.getKey().getId().equalsIgnoreCase("EXP_SHARE")) {
-                int level = entry.getValue();
-                double bonus = 1.0 + (level * 0.1);
-                event.setAmount((int) (event.getAmount() * bonus));
             }
         }
     }
@@ -424,6 +404,15 @@ public class CustomEnchantListener implements Listener {
         // 3. FARMING_FORTUNE & HARVESTING (דאבל/טריפל דרופ)
         int fortuneLevel = getFortuneLevel(enchants, type);
         if (fortuneLevel > 0) {
+            // Only work on fully grown crops for both
+            if (isCrop(type) && !isFullyGrownCrop(block))
+                return;
+
+            // HARVESTING specific: Only natural logs
+            boolean isHarvesting = enchants.keySet().stream().anyMatch(e -> e.getId().equalsIgnoreCase("HARVESTING"));
+            if (isHarvesting && isLog(type) && block.hasMetadata("PLACED_BY_PLAYER"))
+                return;
+
             double chance = fortuneLevel * 0.25; // 25% chance for extra drop per level
             if (random.nextDouble() < chance) {
                 Collection<ItemStack> drops = block.getDrops(tool);
@@ -442,28 +431,18 @@ public class CustomEnchantListener implements Listener {
             long now = System.currentTimeMillis();
             long last = lastMineTime.getOrDefault(uuid, 0L);
 
-            if (now - last > 10000) { // 10s timeout
+            if (now - last > 2000) { // 2s timeout (User requested)
                 miningCombo.put(uuid, 1);
             } else {
-                int combo = Math.min(200, miningCombo.getOrDefault(uuid, 0) + 1);
+                int combo = miningCombo.getOrDefault(uuid, 0) + 1;
                 miningCombo.put(uuid, combo);
 
-                // +3 mining speed (Haste) every combo milestone or just flat boost?
-                // User said: +3 מהירות כרייה. We'll give Haste II (3 total) if combo > 1
-                if (combo > 1) {
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 40, 2));
+                // User said: שיחכה 4 בלוקים שהוא חוצב ברצף ואז הוא מפעיל את הטורבו
+                if (combo >= 4) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 60, 2)); // 3s Haste III
                 }
             }
             lastMineTime.put(uuid, now);
-        }
-
-        // 5. EXP_SHARE (בונוס אקספי על חציבת בלוקים מהעולם)
-        int expShareLevel = getEffectiveEnchantLevel(player, "EXP_SHARE");
-        if (expShareLevel > 0 && !block.hasMetadata("PLACED_BY_PLAYER")) {
-            if (random.nextDouble() < 0.2) { // 20% chance to drop bonus XP
-                block.getWorld().spawn(block.getLocation(), org.bukkit.entity.ExperienceOrb.class)
-                        .setExperience(expShareLevel * 2);
-            }
         }
 
         // Existing Telekinesis logic
@@ -553,17 +532,7 @@ public class CustomEnchantListener implements Listener {
     }
 
     public void handleManaSpend(Player player, double manaSpent) {
-        Map<CustomEnchant, Integer> enchants = getEffectiveEnchants(player);
-        for (CustomEnchant e : enchants.keySet()) {
-            if (e.getId().equalsIgnoreCase("GUARDIAN_MANA")) {
-                double defense = Math.min(50.0, manaSpent * 0.25);
-                // Temporary defense boost?
-                // We'll give Resistance effect or a temporary MMOItems stat if possible
-                player.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 100, (int) (defense / 20))); // Approx
-                                                                                                                  // mapping
-                player.sendMessage(ChatColor.AQUA + "Guardian Mana protected you!");
-            }
-        }
+        // Guardian Mana removed
     }
 
     private List<ItemStack> getRelevantItems(Player player) {

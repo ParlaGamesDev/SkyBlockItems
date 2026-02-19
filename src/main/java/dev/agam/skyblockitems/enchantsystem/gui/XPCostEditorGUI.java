@@ -69,10 +69,9 @@ public class XPCostEditorGUI implements BaseGUI {
 
         // Back button
         int size = inventory.getSize();
-        inventory.setItem(size - 9, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.back"), Material.ARROW));
+        // Back button (Standardized: slot size - 5, Arrow material)
         inventory.setItem(size - 5, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.close"), Material.EMERALD));
+                plugin.getConfig().getConfigurationSection("gui.items.back"), Material.ARROW));
 
         // Fill remaining empty slots with configured glass pane
         Material fillerMat = Material
@@ -93,7 +92,7 @@ public class XPCostEditorGUI implements BaseGUI {
         int slot = event.getSlot();
         int size = inventory.getSize();
 
-        if (slot == size - 9 || slot == size - 5) {
+        if (slot == size - 5) {
             parent.reopen();
             return;
         }

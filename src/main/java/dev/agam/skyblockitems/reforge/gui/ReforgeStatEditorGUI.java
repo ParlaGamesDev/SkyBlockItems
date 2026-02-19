@@ -62,7 +62,7 @@ public class ReforgeStatEditorGUI implements BaseGUI {
             if (slot % 9 == 8)
                 slot += 2;
 
-            ItemStack item = new ItemStack(Material.PAPER);
+            ItemStack item = new ItemStack(getStatMaterial(entry.getKey()));
             ItemMeta meta = item.getItemMeta();
 
             String cleanName = plugin.getReforgeManager().formatStatName(entry.getKey());
@@ -103,16 +103,43 @@ public class ReforgeStatEditorGUI implements BaseGUI {
         addStat.setItemMeta(addMeta);
         inventory.setItem(49, addStat);
 
-        // Back Button
+        // Back Button (Standardized: slot 48, Arrow material)
         ItemStack back = new ItemStack(Material.ARROW);
         ItemMeta backMeta = back.getItemMeta();
-        backMeta.setDisplayName(
-                ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.editor.buttons.back")));
-        List<String> backLore = new ArrayList<>();
-        backLore.add(ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.editor.buttons.back-lore")));
-        backMeta.setLore(backLore);
+        backMeta.setDisplayName(ColorUtils.colorize(plugin.getConfigManager().getMessage("gui.items.back.name")));
+        backMeta.setLore(ColorUtils.colorizeList(plugin.getConfigManager().getMessageList("gui.items.back.lore")));
         back.setItemMeta(backMeta);
-        inventory.setItem(45, back);
+        inventory.setItem(48, back);
+    }
+
+    private Material getStatMaterial(String statId) {
+        String id = statId.toUpperCase().replace("-", "_");
+        if (id.contains("DAMAGE") && !id.contains("REDUCTION"))
+            return Material.IRON_SWORD;
+        if (id.contains("SPEED"))
+            return Material.FEATHER;
+        if (id.contains("CRITICAL"))
+            return Material.BLAZE_POWDER;
+        if (id.contains("HEALTH"))
+            return Material.APPLE;
+        if (id.contains("DEFENSE") || id.contains("ARMOR"))
+            return Material.IRON_CHESTPLATE;
+        if (id.contains("REDUCTION"))
+            return Material.SHIELD;
+        if (id.contains("MINING") || id.contains("EFFICIENCY"))
+            return Material.IRON_PICKAXE;
+        if (id.contains("MANA"))
+            return Material.LAPIS_LAZULI;
+        if (id.contains("LIFESTEAL"))
+            return Material.REDSTONE;
+        if (id.contains("AUTOSMELT"))
+            return Material.LAVA_BUCKET;
+        if (id.contains("JUMP"))
+            return Material.RABBIT_FOOT;
+        if (id.contains("OXYGEN") || id.contains("WATER"))
+            return Material.WATER_BUCKET;
+
+        return Material.PAPER;
     }
 
     @Override
@@ -126,8 +153,8 @@ public class ReforgeStatEditorGUI implements BaseGUI {
         if (clicked == null || clicked.getType() == Material.AIR)
             return;
 
-        // Back
-        if (slot == 45) {
+        // Back button
+        if (slot == 48) {
             parent.open();
             return;
         }
@@ -139,7 +166,7 @@ public class ReforgeStatEditorGUI implements BaseGUI {
         }
 
         // Edit/Delete Stat
-        if (slot >= 10 && slot <= 43 && clicked.getType() == Material.PAPER) {
+        if (slot >= 10 && slot <= 43 && clicked.getType() != Material.GRAY_STAINED_GLASS_PANE) {
             ItemMeta meta = clicked.getItemMeta();
             if (meta == null || !meta.hasLore())
                 return;
@@ -155,7 +182,9 @@ public class ReforgeStatEditorGUI implements BaseGUI {
             if (event.isShiftClick() && event.isRightClick()) {
                 stats.remove(statId);
                 setupGUI();
-            } else if (event.isLeftClick()) {
+            } else {
+                // Any other click (including left) triggers prompt, as it didn't seem to work
+                // before
                 promptInput("reforge.editor.stat-editor.edit-value-prompt", (valueStr) -> {
                     try {
                         double value = Double.parseDouble(valueStr);

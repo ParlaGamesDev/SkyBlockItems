@@ -92,10 +92,10 @@ public class ReforgeEnchantSelectorGUI implements BaseGUI {
             inventory.setItem(slot++, item);
         }
 
-        // Back button
-        inventory.setItem(49, createButton(Material.BARRIER,
-                plugin.getConfigManager().getMessage("reforge.editor.buttons.back"),
-                Arrays.asList(plugin.getConfigManager().getMessage("reforge.editor.buttons.back-lore"))));
+        // Back button (Standardized: slot 49, Arrow material)
+        inventory.setItem(49, createButton(Material.ARROW,
+                plugin.getConfigManager().getMessage("gui.items.back.name"),
+                plugin.getConfigManager().getMessageList("gui.items.back.lore")));
 
         // Filler
         Material fillerMat = Material.getMaterial(

@@ -154,12 +154,17 @@ public class EnchantManager {
             List<String> lore = item.getItemMeta().getLore();
             for (String line : lore) {
                 String strippedLine = ChatColor.stripColor(line);
-                for (String conflictId : conflicts) {
-                    String conflictName = getDisplayNameForId(conflictId);
-                    String strippedConflictName = ChatColor.stripColor(ColorUtils.colorize(conflictName));
+                String[] parts = strippedLine.split(",");
+                for (String part : parts) {
+                    String trimmedPart = part.trim();
+                    for (String conflictId : conflicts) {
+                        String conflictName = getDisplayNameForId(conflictId);
+                        String strippedConflictName = ChatColor.stripColor(ColorUtils.colorize(conflictName));
 
-                    if (strippedLine.startsWith(strippedConflictName)) {
-                        return conflictName;
+                        if (trimmedPart.equals(strippedConflictName)
+                                || trimmedPart.startsWith(strippedConflictName + " ")) {
+                            return conflictName;
+                        }
                     }
                 }
             }
@@ -344,7 +349,8 @@ public class EnchantManager {
             EnchantConfig conf = getEnchant(id);
             if (conf == null)
                 continue;
-            String roman = toRoman(enchants.get(id));
+            int level = enchants.get(id);
+            String roman = (conf.getMaxLevel() <= 1) ? "" : toRoman(level);
             entries.add(ChatColor.GRAY + ChatColor.stripColor(ColorUtils.colorize(conf.getDisplayName()))
                     + (roman.isEmpty() ? "" : " " + roman));
         }
@@ -411,20 +417,28 @@ public class EnchantManager {
             }
 
             // 2. For custom/non-vanilla enchants: add custom lore + cosmetic glow
-            if (!hasVanillaEnchant) {
-                String roman = toRoman(level);
-                String name = ChatColor.stripColor(ColorUtils.colorize(displayName));
-                List<String> lore = new ArrayList<>();
-                lore.add(ChatColor.GRAY + name + (roman.isEmpty() ? "" : " " + roman));
-                meta.setLore(lore);
+            int maxLevel = 1;
+            EnchantConfig conf = getEnchant(displayName); // This might not work if it's a CustomEnchant
+            // Better: find the max level from either manager
+            CustomEnchant ce = plugin.getCustomEnchantManager().getEnchant(displayName);
+            if (ce != null)
+                maxLevel = ce.getMaxLevel();
+            else if (enchants.containsKey(displayName.toLowerCase()))
+                maxLevel = enchants.get(displayName.toLowerCase()).getMaxLevel();
 
-                // Modern API (1.20.5+) - Cleanest way to show glint without side effects
-                meta.setEnchantmentGlintOverride(true);
-            }
+            String roman = (maxLevel <= 1) ? "" : toRoman(level);
+            String name = ChatColor.stripColor(ColorUtils.colorize(displayName));
+            List<String> lore = new ArrayList<>();
+            lore.add(ChatColor.GRAY + name + (roman.isEmpty() ? "" : " " + roman));
+            meta.setLore(lore);
 
-            book.setItemMeta(meta);
+            // Modern API (1.20.5+) - Cleanest way to show glint without side effects
+            meta.setEnchantmentGlintOverride(true);
         }
-        return book;
+
+        book.setItemMeta(meta);
+    }return book;
+
     }
 
     public int getPriorWorkPenalty(ItemStack item) {

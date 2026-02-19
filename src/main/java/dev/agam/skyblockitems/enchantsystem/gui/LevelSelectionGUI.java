@@ -92,12 +92,12 @@ public class LevelSelectionGUI implements BaseGUI {
             inventory.setItem(LEVEL_SLOTS[slotIndex], levelIcon);
         }
 
-        // Back button
+        // Back button (Standardized: Arrow material)
         Material backMat = Material
-                .getMaterial(plugin.getConfig().getString("gui.level-select.back-material", "BARRIER"));
-        ItemStack backButton = new ItemStack(backMat != null ? backMat : Material.BARRIER);
+                .getMaterial(plugin.getConfig().getString("gui.level-select.back-material", "ARROW"));
+        ItemStack backButton = new ItemStack(backMat != null ? backMat : Material.ARROW);
         ItemMeta backMeta = backButton.getItemMeta();
-        backMeta.setDisplayName(plugin.getConfigManager().getMessage("guide.back"));
+        backMeta.setDisplayName(plugin.getConfigManager().getMessage("gui.items.back.name"));
         backButton.setItemMeta(backMeta);
         inventory.setItem(plugin.getConfig().getInt("gui.level-select.back-slot", 49), backButton);
 
@@ -331,7 +331,7 @@ public class LevelSelectionGUI implements BaseGUI {
         String romanValue = (enchant.getMaxLevel() == 1) ? "" : " " + toRoman(level);
         String successMsg = plugin.getConfigManager().getMessageRaw("enchanting.success")
                 .replace("{enchant}", enchant.getDisplayName())
-                .replace("{level}", romanValue.trim())
+                .replace("{level}", romanValue)
                 .replace("{cost}", String.valueOf(totalCost));
         player.sendMessage(ColorUtils.colorize(successMsg));
 

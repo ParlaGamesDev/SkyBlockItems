@@ -798,25 +798,7 @@ enchants:
       9: { value: "9", xp-cost: 100 }
       10: { value: "10", xp-cost: 110 }
 
-  toughness_boost:
-    display-name: "&5Toughness Boost"
-    description: "&7מחזק את העמידות שלך ומפחית את הנזק\nשאתה סופג מהתקפות של אויבים שונים."
-    material: NETHERITE_INGOT
-    targets: [ARMOR]
-    auraskills-stat: "toughness"
-    required-enchanting-level: 0
-    anvil-multiplier: 2
-    levels:
-      1: { value: "1", xp-cost: 20 }
-      2: { value: "2", xp-cost: 30 }
-      3: { value: "3", xp-cost: 40 }
-      4: { value: "4", xp-cost: 50 }
-      5: { value: "5", xp-cost: 60 }
-      6: { value: "6", xp-cost: 70 }
-      7: { value: "7", xp-cost: 80 }
-      8: { value: "8", xp-cost: 90 }
-      9: { value: "9", xp-cost: 100 }
-      10: { value: "10", xp-cost: 110 }
+
 
   crit_chance_boost:
     display-name: "&cCrit Chance Boost"
@@ -878,22 +860,4 @@ enchants:
       9: { value: "9", xp-cost: 100 }
       10: { value: "10", xp-cost: 110 }
 
-  speed_stat_boost:
-    display-name: "&fSpeed Stat Boost"
-    description: "&7מגדיל את מהירות התנועה הכללית שלך,\nמה שמאפשר לך לרוץ ולנווט בעולם במהירות."
-    material: RABBIT_FOOT
-    targets: [BOOTS]
-    auraskills-stat: "speed"
-    required-enchanting-level: 0
-    anvil-multiplier: 2
-    levels:
-      1: { value: "1", xp-cost: 15 }
-      2: { value: "2", xp-cost: 25 }
-      3: { value: "3", xp-cost: 35 }
-      4: { value: "4", xp-cost: 45 }
-      5: { value: "5", xp-cost: 55 }
-      6: { value: "6", xp-cost: 65 }
-      7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
+

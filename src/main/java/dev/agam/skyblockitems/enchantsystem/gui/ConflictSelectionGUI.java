@@ -118,11 +118,9 @@ public class ConflictSelectionGUI implements BaseGUI {
                     plugin.getConfig().getConfigurationSection("gui.items.next-page"), Material.ARROW));
         }
 
-        // Back / Save
-        inventory.setItem(48, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.back"), Material.ARROW));
+        // Back / Save (Standardized: slot 49, Arrow material)
         inventory.setItem(49, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.close"), Material.EMERALD));
+                plugin.getConfig().getConfigurationSection("gui.items.back"), Material.ARROW));
 
         // Fill remaining empty slots with configured glass pane
         Material fillerMat = Material.getMaterial(
@@ -144,7 +142,7 @@ public class ConflictSelectionGUI implements BaseGUI {
         int slot = event.getSlot();
 
         // Back / Save
-        if (slot == 48 || slot == 49) {
+        if (slot == 49) {
             parent.open();
             return;
         }

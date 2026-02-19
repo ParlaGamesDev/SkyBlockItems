@@ -84,15 +84,10 @@ public class ReforgeItemTypeSelectorGUI implements BaseGUI {
                 break; // Leave space for bottom row
         }
 
-        // Back button
-        inventory.setItem(27, createPropertyItem(Material.ARROW,
+        // Back button (Standardized: slot 31, Arrow material)
+        inventory.setItem(31, createPropertyItem(Material.ARROW,
                 plugin.getConfigManager().getMessage("gui.items.back.name"),
                 plugin.getConfigManager().getMessageList("gui.items.back.lore")));
-
-        // Close/Save button
-        inventory.setItem(31, createPropertyItem(Material.EMERALD,
-                plugin.getConfigManager().getMessage("gui.items.close.name"),
-                plugin.getConfigManager().getMessageList("gui.items.close.lore")));
 
         // Filler
         Material fillerMat = Material.getMaterial(
@@ -145,8 +140,8 @@ public class ReforgeItemTypeSelectorGUI implements BaseGUI {
 
         int slot = event.getSlot();
 
-        // Back/Save buttons
-        if (slot == 27 || slot == 31) {
+        // Back button
+        if (slot == 31) {
             parentGUI.updateItemTypes(currentItemTypes);
             parentGUI.reopen();
             return;

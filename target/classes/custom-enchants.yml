@@ -13,7 +13,7 @@ custom-enchants:
     display-name: "&bMANA EFFICIENCY"
     description: "&7מוריד 10% מאנה לשימוש לכל רמה"
     material: LAPIS_LAZULI
-    targets: [ "SWORD", "BOW", "WAND" ]
+    targets: [ "SWORD", "BOW" ]
     max-level: 5
     levels:
       1: { xp-cost: 20 }
@@ -26,7 +26,7 @@ custom-enchants:
     display-name: "&dCHRONOS"
     description: "&7מוריד את זמן ההמתנה של יכולות בקצת"
     material: CLOCK
-    targets: [ "SWORD", "BOW", "WAND" ]
+    targets: [ "SWORD", "BOW" ]
     max-level: 3
     levels:
       1: { xp-cost: 50 }

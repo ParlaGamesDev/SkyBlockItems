@@ -285,17 +285,28 @@ public class AbilityListener implements Listener {
             return;
         }
 
-        if (mana > 0) {
-            // Apply MANA_EFFICIENCY
-            int efficiencyLevel = plugin.getCustomEnchantListener().getEffectiveEnchantLevel(player, "MANA_EFFICIENCY");
-            if (efficiencyLevel > 0) {
-                double reduction = efficiencyLevel * 0.1;
-                mana = mana * (1.0 - reduction);
+        // 1. Check Level Requirements (MMOItems & AuraSkills)
+        if (plugin.isMMOItemsEnabled() && event instanceof PlayerInteractEvent) {
+            ItemStack item = player.getInventory().getItemInMainHand();
+            if (item != null && !item.getType().isAir()) {
+                net.Indyuce.mmoitems.api.player.PlayerData mmoData = net.Indyuce.mmoitems.api.player.PlayerData
+                        .get(player);
+                net.Indyuce.mmoitems.api.item.mmoitem.MMOItem mmoItem = net.Indyuce.mmoitems.api.item.mmoitem.LiveMMOItem
+                        .get(item);
+                if (mmoItem != null && !mmoData.getRPG().canUse(mmoItem, true)) {
+                    // MMOItems will handle the "Not high enough level" message automatically if
+                    // redirected correctly,
+                    // but we've already done a basic check.
+                    return;
+                }
             }
+        }
 
-            try {
-                dev.aurelium.auraskills.api.AuraSkillsApi auraApi = dev.aurelium.auraskills.api.AuraSkillsApi.get();
-                if (auraApi != null) {
+        if (mana > 0) {
+            // MANA_EFFICIENCY removed
+            if (plugin.isAuraSkillsEnabled()) {
+                try {
+                    dev.aurelium.auraskills.api.AuraSkillsApi auraApi = dev.aurelium.auraskills.api.AuraSkillsApi.get();
                     dev.aurelium.auraskills.api.user.SkillsUser user = auraApi.getUser(player.getUniqueId());
                     if (user.getMana() < mana) {
                         String msg = plugin.getConfigManager().getMessage("players.not-enough-mana",
@@ -305,18 +316,16 @@ public class AbilityListener implements Listener {
                         return;
                     }
                     user.setMana(user.getMana() - mana);
-
-                    // Apply GUARDIAN_MANA
-                    plugin.getCustomEnchantListener().handleManaSpend(player, mana);
+                } catch (Exception ignored) {
                 }
-            } catch (NoClassDefFoundError | Exception ignored) {
             }
         }
 
         // Apply CHRONOS
         int chronosLevel = plugin.getCustomEnchantListener().getEffectiveEnchantLevel(player, "CHRONOS");
         if (chronosLevel > 0) {
-            double reduction = chronosLevel * 0.1; // 10% per level
+            // Rebuilt: Each level gives 10% reduction, max 30% at level 3.
+            double reduction = Math.min(0.3, chronosLevel * 0.1);
             cooldown = cooldown * (1.0 - reduction);
         }
 

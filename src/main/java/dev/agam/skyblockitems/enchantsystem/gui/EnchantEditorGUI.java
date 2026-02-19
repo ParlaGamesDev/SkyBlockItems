@@ -82,6 +82,9 @@ public class EnchantEditorGUI implements BaseGUI {
         ItemMeta maxLevelMeta = maxLevelItem.getItemMeta();
         if (maxLevelMeta != null) {
             List<String> lore = maxLevelMeta.hasLore() ? new ArrayList<>(maxLevelMeta.getLore()) : new ArrayList<>();
+            lore.add("");
+            lore.add(ColorUtils.colorize("&7Current: &e" + enchant.getMaxLevel()));
+            lore.add("");
             for (String ctrl : plugin.getConfigManager().getMessages().getStringList("editor.level-controls")) {
                 lore.add(ColorUtils.colorize(ctrl));
             }
@@ -96,6 +99,9 @@ public class EnchantEditorGUI implements BaseGUI {
         ItemMeta reqLevelMeta = reqLevelItem.getItemMeta();
         if (reqLevelMeta != null) {
             List<String> lore = reqLevelMeta.hasLore() ? new ArrayList<>(reqLevelMeta.getLore()) : new ArrayList<>();
+            lore.add("");
+            lore.add(ColorUtils.colorize("&7Current: &e" + enchant.getRequiredEnchantingLevel()));
+            lore.add("");
             for (String ctrl : plugin.getConfigManager().getMessages().getStringList("editor.level-controls")) {
                 lore.add(ColorUtils.colorize(ctrl));
             }

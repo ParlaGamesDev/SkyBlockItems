@@ -189,8 +189,9 @@ public class SkyBlockItems extends JavaPlugin {
 
         getServer().getPluginManager()
                 .registerEvents(new dev.agam.skyblockitems.enchantsystem.listeners.GuiListener(this), this);
-        this.customEnchantListener = new dev.agam.skyblockitems.enchantsystem.listeners.CustomEnchantListener(this);
         getServer().getPluginManager().registerEvents(this.customEnchantListener, this);
+        getServer().getPluginManager()
+                .registerEvents(new dev.agam.skyblockitems.enchantsystem.listeners.BlockPlaceListener(this), this);
 
         if (auraSkillsEnabled) {
             try {

@@ -150,11 +150,10 @@ public class ReforgeEditorGUI implements BaseGUI {
                 Arrays.asList(
                         plugin.getConfigManager().getMessage("reforge.editor.buttons.save-lore"))));
 
-        // Back button
-        inventory.setItem(45, createPropertyItem(Material.BARRIER,
-                plugin.getConfigManager().getMessage("reforge.editor.buttons.back"),
-                Arrays.asList(
-                        plugin.getConfigManager().getMessage("reforge.editor.buttons.back-lore"))));
+        // Back button (Standardized: slot 48, Arrow material)
+        inventory.setItem(48, createPropertyItem(Material.ARROW,
+                plugin.getConfigManager().getMessage("gui.items.back.name"),
+                plugin.getConfigManager().getMessageList("gui.items.back.lore")));
 
         // Filler
         Material fillerMat = Material.getMaterial(
@@ -200,7 +199,7 @@ public class ReforgeEditorGUI implements BaseGUI {
         }
 
         // Back
-        if (slot == 45) {
+        if (slot == 48) {
             new ReforgeListGUI(plugin, player).open();
             return;
         }

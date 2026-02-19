@@ -127,9 +127,9 @@ public class EnchantmentGuideGUI implements BaseGUI {
                     plugin.getConfig().getConfigurationSection("gui.items.next-page"), Material.ARROW));
         }
 
-        // Back button
+        // Back button (Standardized: slot 49, Arrow material)
         inventory.setItem(49, ColorUtils.getItemFromConfig(
-                plugin.getConfig().getConfigurationSection("gui.items.back"), Material.BARRIER));
+                plugin.getConfig().getConfigurationSection("gui.items.back"), Material.ARROW));
 
         // Search button (Slot 48)
         ItemStack searchItem = ColorUtils.getItemFromConfig(

@@ -47,4 +47,40 @@ public class AuraSkillsHook {
         }
         return 0;
     }
+
+    /**
+     * Add a stat modifier to a player.
+     */
+    public void addStatModifier(Player player, String statName, String modifierName, double value) {
+        try {
+            SkillsUser user = api.getUser(player.getUniqueId());
+            if (user == null)
+                return;
+
+            dev.aurelium.auraskills.api.stat.Stat stat = api.getGlobalRegistry().getStat(
+                    dev.aurelium.auraskills.api.registry.NamespacedId.fromDefault(statName.toLowerCase()));
+            if (stat == null)
+                return;
+
+            user.addStatModifier(new dev.aurelium.auraskills.api.stat.StatModifier(
+                    dev.aurelium.auraskills.api.registry.NamespacedId.fromDefault(modifierName),
+                    stat,
+                    value));
+        } catch (Exception ignored) {
+        }
+    }
+
+    /**
+     * Remove a stat modifier from a player.
+     */
+    public void removeStatModifier(Player player, String modifierName) {
+        try {
+            SkillsUser user = api.getUser(player.getUniqueId());
+            if (user == null)
+                return;
+
+            user.removeStatModifier(dev.aurelium.auraskills.api.registry.NamespacedId.fromDefault(modifierName));
+        } catch (Exception ignored) {
+        }
+    }
 }

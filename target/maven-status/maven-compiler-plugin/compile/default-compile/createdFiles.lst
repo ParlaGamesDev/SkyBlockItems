@@ -29,6 +29,7 @@ dev\agam\skyblockitems\commands\ReforgeCommand.class
 dev\agam\skyblockitems\enchantsystem\gui\XPCostEditorGUI.class
 dev\agam\skyblockitems\reforge\StatApplier.class
 dev\agam\skyblockitems\abilities\booleans\NightVisionStat.class
+dev\agam\skyblockitems\reforge\gui\ReforgeGUI$1.class
 dev\agam\skyblockitems\commands\AnvilCommand.class
 dev\agam\skyblockitems\enchantsystem\managers\EnchantManager$EnchantConfig.class
 dev\agam\skyblockitems\reforge\gui\ReforgeEnchantSelectorGUI.class

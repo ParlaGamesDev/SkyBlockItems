@@ -243,15 +243,12 @@ public class ReforgeApplier {
                 String receiptStr = pdc.get(PDC_STATS_RECEIPT, PersistentDataType.STRING);
                 Map<String, Double> receipt = deserializeStats(receiptStr);
                 // Check stats before removal
-                plugin.getLogger().info("[DEBUG] Removing Old Stats: " + receipt);
-
                 statApplier.removeStatsFromReceipt(item, mmoItem, receipt);
 
                 // Commit changes and re-wrap
                 ItemStack tmp = mmoItem.newBuilder().buildSilently();
                 item.setItemMeta(tmp.getItemMeta());
                 mmoItem = new LiveMMOItem(item); // Re-wrap with clean state
-                plugin.getLogger().info("[DEBUG] Re-wrapped item after stat removal.");
             }
 
             // 1.5 SUBTRACT old enchantments from PDC receipt
@@ -325,7 +322,7 @@ public class ReforgeApplier {
 
             // Build the PERFECT lore manually (Structural Preservation)
             Reforge oldReforge = oldReforgeId != null ? plugin.getReforgeManager().getReforge(oldReforgeId) : null;
-            List<String> perfectLore = buildPerfectLore(preMutationLore, baseLore, reforge, addedStats,
+            List<String> perfectLore = buildPerfectLore(preMutationLore, baseLore, reforge, oldReforge, addedStats,
                     preservedAbilities,
                     oldReforgeAbilities);
 
@@ -380,6 +377,7 @@ public class ReforgeApplier {
      * This is the creative solution - we construct exactly what we want!
      */
     private List<String> buildPerfectLore(List<String> rawPreMutationLore, List<String> builtLore, Reforge reforge,
+            Reforge oldReforge,
             Map<String, Double> addedStats, List<List<String>> preservedAbilities, Set<String> oldReforgeAbilities) {
         List<String> result = new ArrayList<>();
         // 0. Prepare Value Map from MMOItems build (for fresh numbers)
@@ -417,7 +415,6 @@ public class ReforgeApplier {
         // 3. Prepare Structure Base (Original Lore minus
         // reforge-abilities/annotations/enchants)
         List<String> structureBase = new ArrayList<>(rawPreMutationLore);
-        Reforge oldReforge = oldReforgeId != null ? plugin.getReforgeManager().getReforge(oldReforgeId) : null;
         cleanLore(structureBase, reforge, oldReforge, oldReforgeAbilities);
 
         // 4. Iterate and update
@@ -537,8 +534,6 @@ public class ReforgeApplier {
 
                 if (!isResidual) {
                     result.add(line); // Description or extra lines
-                } else {
-                    plugin.getLogger().info("[DEBUG] Discarded residual stat line: " + strippedFlat);
                 }
             }
         }
@@ -671,13 +666,7 @@ public class ReforgeApplier {
         if (!reforgeEnchantsLines.isEmpty()) {
             // Always at the top
             result.addAll(0, reforgeEnchantsLines);
-            // Add a gap after enchants if there's more lore
-            if (result.size() > reforgeEnchantsLines.size()) {
-                String next = ColorUtils.stripColor(result.get(reforgeEnchantsLines.size())).trim();
-                if (!next.isEmpty()) {
-                    result.add(reforgeEnchantsLines.size(), "");
-                }
-            }
+            // No gap after enchants as per user request
         }
 
         // 8. Final Rarity Line
@@ -715,12 +704,15 @@ public class ReforgeApplier {
         Set<String> namesToRemove = new HashSet<>();
 
         // Add enchant names from old reforge
-        if (oldReforge != null) {
+        if (oldReforge != null && oldReforge.getEnchants() != null) {
             for (String s : oldReforge.getEnchants()) {
                 try {
                     String enchantId = s.split(":")[0].toUpperCase();
                     String displayName = plugin.getEnchantManager().getDisplayNameForId(enchantId.toLowerCase());
-                    if (displayName.equals(enchantId.toLowerCase())) {
+                    if (displayName == null || displayName.isEmpty())
+                        continue;
+
+                    if (displayName.equalsIgnoreCase(enchantId)) {
                         displayName = Arrays.stream(enchantId.split("_"))
                                 .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
                                 .collect(Collectors.joining(" "));

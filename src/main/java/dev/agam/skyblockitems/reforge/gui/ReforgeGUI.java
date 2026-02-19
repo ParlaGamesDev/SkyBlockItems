@@ -36,6 +36,7 @@ public class ReforgeGUI implements BaseGUI {
 
     private final int itemSlot;
     private final int rollButtonSlot;
+    private int animationTask = -1;
 
     public ReforgeGUI(SkyBlockItems plugin, Player player) {
         this.plugin = plugin;
@@ -212,6 +213,34 @@ public class ReforgeGUI implements BaseGUI {
         activeGUIs.remove(player.getName());
     }
 
+    public void startInvalidAnimation() {
+        if (animationTask != -1) {
+            Bukkit.getScheduler().cancelTask(animationTask);
+            animationTask = -1;
+        }
+
+        animationTask = plugin.getServer().getScheduler().runTaskTimer(plugin, new Runnable() {
+            int ticks = 0;
+            boolean red = true;
+
+            @Override
+            public void run() {
+                if (ticks >= 20 || inventory.getViewers().isEmpty()) { // 1 second total (20 ticks)
+                    updateRollButton(); // Final reset
+                    Bukkit.getScheduler().cancelTask(animationTask);
+                    animationTask = -1;
+                    return;
+                }
+
+                if (ticks % 4 == 0) { // Slightly faster flash
+                    updateSidebars(red ? Material.RED_STAINED_GLASS_PANE : Material.GRAY_STAINED_GLASS_PANE);
+                    red = !red;
+                }
+                ticks++;
+            }
+        }, 0L, 1L).getTaskId();
+    }
+
     /**
      * Handles the reforge roll action.
      */
@@ -221,6 +250,15 @@ public class ReforgeGUI implements BaseGUI {
         if (item == null || item.getType() == Material.AIR) {
             player.sendMessage(getMessage("reforge.place-item"));
             playSound(player, "error");
+            startInvalidAnimation();
+            return;
+        }
+
+        ReforgeApplier applier = new ReforgeApplier(plugin);
+        if (!applier.isReforgeable(item)) {
+            player.sendMessage(getMessage("reforge.not-reforgeable"));
+            playSound(player, "error");
+            startInvalidAnimation();
             return;
         }
 
@@ -242,7 +280,6 @@ public class ReforgeGUI implements BaseGUI {
         }
 
         // Get applicable reforges
-        ReforgeApplier applier = new ReforgeApplier(plugin);
         String currentReforgeId = applier.getCurrentReforge(item);
 
         // Fixed Randomization: Ensure new reforge is different from current one
@@ -253,6 +290,7 @@ public class ReforgeGUI implements BaseGUI {
             List<Reforge> allApplicable = plugin.getReforgeManager().getApplicableReforges(itemType, currentRarity);
             if (allApplicable.isEmpty()) {
                 player.sendMessage(getMessage("reforge.invalid-item"));
+                startInvalidAnimation();
             } else {
                 // We have applicable ones, but getRandomReforge returned null because they are
                 // all the current one
@@ -307,7 +345,9 @@ public class ReforgeGUI implements BaseGUI {
             if (clicked != null && clicked.getType() != Material.AIR) {
                 // Check blacklist
                 if (plugin.getConfigManager().isBlacklisted(clicked.getType().name())) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("general.blacklisted-item"));
+                    player.sendMessage(plugin.getConfigManager().getMessage("errors.blacklisted-item"));
+                    playSound(player, "error");
+                    startInvalidAnimation();
                     return;
                 }
 
@@ -431,6 +471,34 @@ public class ReforgeGUI implements BaseGUI {
 
     public int getRollButtonSlot() {
         return rollButtonSlot;
+    }
+
+    /**
+     * Checks if an item can be placed in the reforge slot.
+     */
+    public boolean canPlaceItem(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR)
+            return true;
+
+        // 1. Check blacklist
+        if (plugin.getConfigManager().isBlacklisted(item.getType().name())) {
+            player.sendMessage(plugin.getConfigManager().getMessage("errors.blacklisted-item"));
+            playSound(player, "error");
+            startInvalidAnimation();
+            return false;
+        }
+
+        // 2. Check reforgeable
+        ReforgeApplier applier = new ReforgeApplier(plugin);
+        if (!applier.isReforgeable(item)) {
+            String reasonKey = applier.getNotReforgeableReason(item);
+            player.sendMessage(plugin.getConfigManager().getMessage(reasonKey + "-lore"));
+            playSound(player, "error");
+            startInvalidAnimation();
+            return false;
+        }
+
+        return true;
     }
 
     public static ReforgeGUI getActiveGUI(Player player) {
