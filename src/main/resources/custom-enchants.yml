@@ -1,15 +1,4 @@
-
-  CHRONOS:
-    enabled: true
-    display-name: "&dCHRONOS"
-    description: "&7מוריד את זמן ההמתנה של יכולות בקצת"
-    material: CLOCK
-    targets: [ "SWORD", "BOW" ]
-    max-level: 3
-    levels:
-      1: { xp-cost: 50 }
-      2: { xp-cost: 100 }
-      3: { xp-cost: 150 }
+custom-enchants:
   FARMING_FORTUNE:
     enabled: true
     display-name: "&aFARMING FORTUNE"
@@ -30,8 +19,8 @@
     material: NETHERITE_PICKAXE
     targets: [ "PICKAXE" ]
     max-level: 1
-    xp-costs:
-      1: 60
+    levels:
+      1: { xp-cost: 60 }
   EXP_GRINDER:
     enabled: true
     display-name: "&2EXP GRINDER"
@@ -39,8 +28,8 @@
     material: EXPERIENCE_BOTTLE
     targets: [ "CHESTPLATE", "LEGGINGS", "BOOTS", "HELMET" ]
     max-level: 1
-    xp-costs:
-      1: 40
+    levels:
+      1: { xp-cost: 40 }
   BERSERK:
     enabled: true
     display-name: "&4BERSERK"
@@ -48,8 +37,8 @@
     material: STONE_SWORD
     targets: [ "SWORD", "AXE" ]
     max-level: 1
-    xp-costs:
-      1: 100
+    levels:
+      1: { xp-cost: 100 }
   MONSTER_SOUL:
     enabled: true
     display-name: "&8MONSTER SOUL"
@@ -57,8 +46,8 @@
     material: DIAMOND_SWORD
     targets: [ "SWORD", "AXE" ]
     max-level: 1
-    xp-costs:
-      1: 150
+    levels:
+      1: { xp-cost: 150 }
 
   REPLENISH:
     enabled: true
@@ -68,8 +57,8 @@
     targets: [ "HOE" ]
     max-level: 1
     obtainable: false
-    xp-costs:
-      1: 0
+    levels:
+      1: { xp-cost: 0 }
   HARVESTING:
     enabled: true
     display-name: "&eHARVESTING"
@@ -90,8 +79,8 @@
     material: MELON_SEEDS
     targets: [ "HOE" ]
     max-level: 1
-    xp-costs:
-      1: 20
+    levels:
+      1: { xp-cost: 20 }
   TRAMPLE_GUARD:
     enabled: true
     display-name: "&6TRAMPLE GUARD"
@@ -99,6 +88,6 @@
     material: BEETROOT_SEEDS
     targets: [ "BOOTS" ]
     max-level: 1
-    xp-costs:
-      1: 30
+    levels:
+      1: { xp-cost: 30 }
 

@@ -391,7 +391,7 @@ public class ReforgeManager {
      */
     public void saveReforge(String id, String displayName, List<String> itemTypes,
             String rarityReq, double cost,
-            Map<String, Double> stats, List<String> enchants) {
+            Map<String, Double> stats, List<String> enchants, ReforgeGem gem) {
         reforgesConfig.set("reforges." + id + ".display-name", displayName);
         reforgesConfig.set("reforges." + id + ".item-types", itemTypes);
         reforgesConfig.set("reforges." + id + ".rarity-requirement", rarityReq);
@@ -400,8 +400,55 @@ public class ReforgeManager {
         reforgesConfig.set("reforges." + id + ".enchants", enchants.isEmpty() ? null : enchants);
         reforgesConfig.set("reforges." + id + ".abilities", null); // Wipe abilities if they existed
 
+        if (gem != null) {
+            String path = "reforges." + id + ".gem.";
+            reforgesConfig.set(path + "name", gem.getName());
+            reforgesConfig.set(path + "lore", gem.getLore());
+            reforgesConfig.set(path + "material", gem.getMaterial());
+            reforgesConfig.set(path + "custom-model-data", gem.getCustomModelData());
+        } else {
+            reforgesConfig.set("reforges." + id + ".gem", null);
+        }
+
         saveConfig();
         reload();
+    }
+
+    /**
+     * Gets a gem item stack for the given gem ID.
+     * Note: Gems are defined within individual reforges in our system.
+     * 
+     * @param gemId The gem ID to search for
+     * @return The Gem ItemStack, or null if not found
+     */
+    public org.bukkit.inventory.ItemStack getGemItem(String gemId) {
+        for (Reforge reforge : reforges.values()) {
+            ReforgeGem gem = reforge.getGem();
+            if (gem != null && gem.getId().equalsIgnoreCase(gemId)) {
+                org.bukkit.Material mat = org.bukkit.Material.matchMaterial(gem.getMaterial().toUpperCase());
+                if (mat == null)
+                    mat = org.bukkit.Material.STONE;
+
+                org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(mat);
+                org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+                if (meta != null) {
+                    meta.setDisplayName(gem.getName());
+                    meta.setLore(gem.getLore());
+                    if (gem.getCustomModelData() != 0) {
+                        meta.setCustomModelData(gem.getCustomModelData());
+                    }
+
+                    // Add a hidden tag to identify it as a reforge gem
+                    meta.getPersistentDataContainer().set(
+                            new org.bukkit.NamespacedKey(plugin, "reforge_gem_id"),
+                            org.bukkit.persistence.PersistentDataType.STRING, gem.getId());
+
+                    item.setItemMeta(meta);
+                }
+                return item;
+            }
+        }
+        return null;
     }
 
     /**

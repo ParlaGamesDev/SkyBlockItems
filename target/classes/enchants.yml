@@ -738,25 +738,6 @@ enchants:
     levels:
       1: { value: "1", xp-cost: 40 }
 
-  strength_boost:
-    display-name: "&4Strength Boost"
-    description: "&7מגדיל את כוח ההתקפה שלך, מה שמאפשר\nלהוריד יותר חיים לאויבים במכות חרב ומייס."
-    material: BLAZE_ROD
-    targets: [SWORD, AXE, MACE]
-    auraskills-stat: "strength"
-    required-enchanting-level: 0
-    anvil-multiplier: 2
-    levels:
-      1: { value: "1", xp-cost: 15 }
-      2: { value: "2", xp-cost: 25 }
-      3: { value: "3", xp-cost: 35 }
-      4: { value: "4", xp-cost: 45 }
-      5: { value: "5", xp-cost: 55 }
-      6: { value: "6", xp-cost: 65 }
-      7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
 
   wisdom_boost:
     display-name: "&bWisdom Boost"
@@ -798,25 +779,7 @@ enchants:
       9: { value: "9", xp-cost: 100 }
       10: { value: "10", xp-cost: 110 }
 
-  toughness_boost:
-    display-name: "&5Toughness Boost"
-    description: "&7מחזק את העמידות שלך ומפחית את הנזק\nשאתה סופג מהתקפות של אויבים שונים."
-    material: NETHERITE_INGOT
-    targets: [ARMOR]
-    auraskills-stat: "toughness"
-    required-enchanting-level: 0
-    anvil-multiplier: 2
-    levels:
-      1: { value: "1", xp-cost: 20 }
-      2: { value: "2", xp-cost: 30 }
-      3: { value: "3", xp-cost: 40 }
-      4: { value: "4", xp-cost: 50 }
-      5: { value: "5", xp-cost: 60 }
-      6: { value: "6", xp-cost: 70 }
-      7: { value: "7", xp-cost: 80 }
-      8: { value: "8", xp-cost: 90 }
-      9: { value: "9", xp-cost: 100 }
-      10: { value: "10", xp-cost: 110 }
+
 
   crit_chance_boost:
     display-name: "&cCrit Chance Boost"
@@ -878,22 +841,4 @@ enchants:
       9: { value: "9", xp-cost: 100 }
       10: { value: "10", xp-cost: 110 }
 
-  water_speed:
-    display-name: "&bWater Speed Boost"
-    description: "&7מגדיל את מהירות השחייה והתנועה\nבתוך המים."
-    material: PRISMARINE_SHARD
-    targets: [BOOTS]
-    auraskills-stat: "speed"
-    required-enchanting-level: 0
-    anvil-multiplier: 2
-    levels:
-      1: { value: "5", xp-cost: 15 }
-      2: { value: "10", xp-cost: 25 }
-      3: { value: "15", xp-cost: 35 }
-      4: { value: "20", xp-cost: 45 }
-      5: { value: "25", xp-cost: 55 }
-      6: { value: "30", xp-cost: 65 }
-      7: { value: "35", xp-cost: 75 }
-      8: { value: "40", xp-cost: 85 }
-      9: { value: "45", xp-cost: 95 }
-      10: { value: "50", xp-cost: 105 }
+

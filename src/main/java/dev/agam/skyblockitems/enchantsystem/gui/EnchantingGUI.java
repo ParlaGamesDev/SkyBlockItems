@@ -427,6 +427,17 @@ public class EnchantingGUI implements BaseGUI {
         // Enchantment Guide Open
         if (slot == 49) {
             player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+            // Return item to player before opening guide
+            if (itemToEnchant != null && itemToEnchant.getType() != Material.AIR && itemToEnchant.getAmount() > 0) {
+                HashMap<Integer, ItemStack> leftover = player.getInventory().addItem(itemToEnchant);
+                if (!leftover.isEmpty()) {
+                    for (ItemStack drop : leftover.values()) {
+                        player.getWorld().dropItemNaturally(player.getLocation(), drop);
+                    }
+                }
+                inventory.setItem(ITEM_SLOT, null);
+                itemToEnchant = null;
+            }
             this.returningFromLevelSelect = true;
             new EnchantmentGuideGUI(plugin, player, this).open();
             return;
@@ -443,11 +454,19 @@ public class EnchantingGUI implements BaseGUI {
     private void handleEnchantClick(ItemStack clicked) {
         String clickedName = ChatColor.stripColor(clicked.getItemMeta().getDisplayName());
 
-        // Check normal enchants
-        for (EnchantConfig enchant : plugin.getEnchantManager().getEnchants().values()) {
+        // Check normal enchants - Sort by name length descending to catch longer
+        // matches first (e.g. Blast Protection before Protection)
+        List<EnchantConfig> sortedEnchants = new ArrayList<>(plugin.getEnchantManager().getEnchants().values());
+        sortedEnchants.sort((a, b) -> {
+            String nameA = ChatColor.stripColor(ColorUtils.colorize(a.getDisplayName()));
+            String nameB = ChatColor.stripColor(ColorUtils.colorize(b.getDisplayName()));
+            return Integer.compare(nameB.length(), nameA.length());
+        });
+
+        for (EnchantConfig enchant : sortedEnchants) {
             String enchantName = ChatColor.stripColor(ColorUtils.colorize(enchant.getDisplayName()));
 
-            if (clickedName.equals(enchantName) || clickedName.contains(enchantName)) {
+            if (clickedName.equalsIgnoreCase(enchantName) || clickedName.contains(enchantName)) {
                 // Check conflict
                 String conflictWith = plugin.getEnchantManager().getConflict(itemToEnchant, enchant);
                 if (conflictWith != null) {
@@ -476,11 +495,18 @@ public class EnchantingGUI implements BaseGUI {
             }
         }
 
-        // Check custom enchants
-        for (CustomEnchant customEnchant : plugin.getCustomEnchantManager().getAllEnchants()) {
+        // Check custom enchants - Sort by name length descending
+        List<CustomEnchant> sortedCustom = new ArrayList<>(plugin.getCustomEnchantManager().getAllEnchants());
+        sortedCustom.sort((a, b) -> {
+            String nameA = ChatColor.stripColor(ColorUtils.colorize(a.getDisplayName()));
+            String nameB = ChatColor.stripColor(ColorUtils.colorize(b.getDisplayName()));
+            return Integer.compare(nameB.length(), nameA.length());
+        });
+
+        for (CustomEnchant customEnchant : sortedCustom) {
             String enchantName = ChatColor.stripColor(ColorUtils.colorize(customEnchant.getDisplayName()));
 
-            if (clickedName.equals(enchantName) || clickedName.contains(enchantName)) {
+            if (clickedName.equalsIgnoreCase(enchantName) || clickedName.contains(enchantName)) {
                 EnchantConfig config = customEnchant.toEnchantConfig();
 
                 // Check conflict
@@ -568,12 +594,18 @@ public class EnchantingGUI implements BaseGUI {
             categories.add("AXE");
             categories.add("TOOL");
         }
-        if (type.endsWith("_PICKAXE"))
+        if (type.endsWith("_PICKAXE")) {
+            categories.add("PICKAXE");
             categories.add("TOOL");
-        if (type.endsWith("_SHOVEL") || type.endsWith("_SPADE"))
+        }
+        if (type.endsWith("_SHOVEL") || type.endsWith("_SPADE")) {
+            categories.add("SHOVEL");
             categories.add("TOOL");
-        if (type.endsWith("_HOE"))
+        }
+        if (type.endsWith("_HOE")) {
+            categories.add("HOE");
             categories.add("TOOL");
+        }
         if (type.contains("BOW"))
             categories.add("BOW");
         if (type.contains("CROSSBOW"))

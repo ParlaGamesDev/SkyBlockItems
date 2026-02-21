@@ -3,6 +3,8 @@ package dev.agam.skyblockitems.abilities;
 import dev.agam.skyblockitems.SkyBlockItems;
 import io.lumine.mythic.lib.api.item.NBTItem;
 
+import java.util.Map;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
@@ -291,12 +293,8 @@ public class AbilityListener implements Listener {
             if (item != null && !item.getType().isAir()) {
                 net.Indyuce.mmoitems.api.player.PlayerData mmoData = net.Indyuce.mmoitems.api.player.PlayerData
                         .get(player);
-                net.Indyuce.mmoitems.api.item.mmoitem.MMOItem mmoItem = net.Indyuce.mmoitems.api.item.mmoitem.LiveMMOItem
-                        .get(item);
-                if (mmoItem != null && !mmoData.getRPG().canUse(mmoItem, true)) {
-                    // MMOItems will handle the "Not high enough level" message automatically if
-                    // redirected correctly,
-                    // but we've already done a basic check.
+                io.lumine.mythic.lib.api.item.NBTItem nbt = io.lumine.mythic.lib.api.item.NBTItem.get(item);
+                if (nbt != null && nbt.hasType() && !mmoData.getRPG().canUse(nbt, true)) {
                     return;
                 }
             }
@@ -321,12 +319,17 @@ public class AbilityListener implements Listener {
             }
         }
 
-        // Apply CHRONOS
-        int chronosLevel = plugin.getCustomEnchantListener().getEffectiveEnchantLevel(player, "CHRONOS");
-        if (chronosLevel > 0) {
-            // Rebuilt: Each level gives 10% reduction, max 30% at level 3.
-            double reduction = Math.min(0.3, chronosLevel * 0.1);
-            cooldown = cooldown * (1.0 - reduction);
+        // Apply Cooldown Reduction from MythicLib
+        if (plugin.isMMOItemsEnabled()) {
+            try {
+                io.lumine.mythic.lib.api.player.MMOPlayerData mmoData = io.lumine.mythic.lib.api.player.MMOPlayerData
+                        .get(player);
+                double reductionPercent = mmoData.getStatMap().getStat("COOLDOWN_REDUCTION");
+                if (reductionPercent > 0) {
+                    cooldown = cooldown * (1.0 - (Math.min(reductionPercent, 100.0) / 100.0));
+                }
+            } catch (Exception ignored) {
+            }
         }
 
         if (ability.activate(player, event, cooldown, mana, damage, range)) {

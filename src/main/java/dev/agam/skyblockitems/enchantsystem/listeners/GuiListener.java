@@ -45,6 +45,10 @@ public class GuiListener implements Listener {
             statEditorGui.onClick(event);
         } else if (holder instanceof dev.agam.skyblockitems.reforge.gui.ReforgeAbilitySelectorGUI abilitySelectorGui) {
             abilitySelectorGui.onClick(event);
+        } else if (holder instanceof dev.agam.skyblockitems.reforge.gui.ReforgeVIPGUI vipGui) {
+            vipGui.onClick(event);
+        } else if (holder instanceof dev.agam.skyblockitems.reforge.gui.ReforgeGemEditorGUI gemEditorGui) {
+            gemEditorGui.onClick(event);
         }
     }
 

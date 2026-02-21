@@ -1,37 +1,4 @@
 custom-enchants:
-  SAVINGS:
-    enabled: true
-    display-name: "&6SAVINGS"
-    description: "&7חוסך 50% מהמטבעות שלך במוות"
-    material: SUNFLOWER
-    targets: [ "ALL" ]
-    max-level: 1
-    xp-costs:
-      1: 50
-  MANA_EFFICIENCY:
-    enabled: true
-    display-name: "&bMANA EFFICIENCY"
-    description: "&7מוריד 10% מאנה לשימוש לכל רמה"
-    material: LAPIS_LAZULI
-    targets: [ "SWORD", "BOW" ]
-    max-level: 5
-    levels:
-      1: { xp-cost: 20 }
-      2: { xp-cost: 40 }
-      3: { xp-cost: 60 }
-      4: { xp-cost: 80 }
-      5: { xp-cost: 100 }
-  CHRONOS:
-    enabled: true
-    display-name: "&dCHRONOS"
-    description: "&7מוריד את זמן ההמתנה של יכולות בקצת"
-    material: CLOCK
-    targets: [ "SWORD", "BOW" ]
-    max-level: 3
-    levels:
-      1: { xp-cost: 50 }
-      2: { xp-cost: 100 }
-      3: { xp-cost: 150 }
   FARMING_FORTUNE:
     enabled: true
     display-name: "&aFARMING FORTUNE"
@@ -52,8 +19,8 @@ custom-enchants:
     material: NETHERITE_PICKAXE
     targets: [ "PICKAXE" ]
     max-level: 1
-    xp-costs:
-      1: 60
+    levels:
+      1: { xp-cost: 60 }
   EXP_GRINDER:
     enabled: true
     display-name: "&2EXP GRINDER"
@@ -61,8 +28,8 @@ custom-enchants:
     material: EXPERIENCE_BOTTLE
     targets: [ "CHESTPLATE", "LEGGINGS", "BOOTS", "HELMET" ]
     max-level: 1
-    xp-costs:
-      1: 40
+    levels:
+      1: { xp-cost: 40 }
   BERSERK:
     enabled: true
     display-name: "&4BERSERK"
@@ -70,8 +37,8 @@ custom-enchants:
     material: STONE_SWORD
     targets: [ "SWORD", "AXE" ]
     max-level: 1
-    xp-costs:
-      1: 100
+    levels:
+      1: { xp-cost: 100 }
   MONSTER_SOUL:
     enabled: true
     display-name: "&8MONSTER SOUL"
@@ -79,17 +46,9 @@ custom-enchants:
     material: DIAMOND_SWORD
     targets: [ "SWORD", "AXE" ]
     max-level: 1
-    xp-costs:
-      1: 150
-  GUARDIAN_MANA:
-    enabled: true
-    display-name: "&3GUARDIAN MANA"
-    description: "&725% מהמאנה שהשתמשת ליכולות הופך להגנה ל-5 שניות"
-    material: LAPIS_LAZULI
-    targets: [ "CHESTPLATE" ]
-    max-level: 1
-    xp-costs:
-      1: 80
+    levels:
+      1: { xp-cost: 150 }
+
   REPLENISH:
     enabled: true
     display-name: "&aREPLENISH"
@@ -98,8 +57,8 @@ custom-enchants:
     targets: [ "HOE" ]
     max-level: 1
     obtainable: false
-    xp-costs:
-      1: 0
+    levels:
+      1: { xp-cost: 0 }
   HARVESTING:
     enabled: true
     display-name: "&eHARVESTING"
@@ -120,8 +79,8 @@ custom-enchants:
     material: MELON_SEEDS
     targets: [ "HOE" ]
     max-level: 1
-    xp-costs:
-      1: 20
+    levels:
+      1: { xp-cost: 20 }
   TRAMPLE_GUARD:
     enabled: true
     display-name: "&6TRAMPLE GUARD"
@@ -129,25 +88,6 @@ custom-enchants:
     material: BEETROOT_SEEDS
     targets: [ "BOOTS" ]
     max-level: 1
-    xp-costs:
-      1: 30
-  EXP_SHARE:
-    enabled: true
-    display-name: "&bEXP SHARE"
-    description: "&7בונוס XP על חומרים טבעיים מכל סוג"
-    material: EXPERIENCE_BOTTLE
-    targets: [ "ALL" ]
-    max-level: 3
     levels:
-      1: { xp-cost: 25 }
-      2: { xp-cost: 50 }
-      3: { xp-cost: 75 }
-  GREED:
-    enabled: true
-    display-name: "&eGREED"
-    description: "&7מביא לך 1-5 כסף כל כמה שניות"
-    material: SUNFLOWER
-    targets: [ "SWORD", "PICKAXE", "AXE", "SHOVEL", "HOE" ]
-    max-level: 1
-    xp-costs:
-      1: 200
+      1: { xp-cost: 30 }
+

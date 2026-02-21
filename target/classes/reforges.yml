@@ -22,7 +22,7 @@
 
 settings:
   stat-format: "&#FAE8B8({value})"
-  
+
 reforges:
   starter:
     display-name: "&fStarter"

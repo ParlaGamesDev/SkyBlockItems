@@ -22,6 +22,10 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.NamespacedKey;
+import io.lumine.mythic.lib.player.modifier.ModifierType;
+import io.lumine.mythic.lib.player.modifier.ModifierSource;
+import io.lumine.mythic.lib.api.stat.modifier.StatModifier;
+import io.lumine.mythic.lib.api.player.EquipmentSlot;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,11 +66,9 @@ public class CustomEnchantListener implements Listener {
         }, 20L, 20L);
     }
 
-    private void updateAuraSkillsStats(Player player) {
-        if (!plugin.isAuraSkillsEnabled())
-            return;
+    private void updatePlayerStats(Player player) {
+        Map<String, Double> auraTotals = new HashMap<>();
 
-        Map<String, Double> totals = new HashMap<>();
         for (ItemStack item : getRelevantItems(player)) {
             if (item == null || item.getType().isAir())
                 continue;
@@ -75,43 +77,46 @@ public class CustomEnchantListener implements Listener {
             Map<String, Integer> enchants = plugin.getEnchantManager().parseLore(item.getItemMeta().getLore());
             enchants.putAll(parseEnchantIds(item.getItemMeta().getLore()));
 
+            boolean isMMO = false;
+            if (plugin.isMMOItemsEnabled()) {
+                io.lumine.mythic.lib.api.item.NBTItem nbt = io.lumine.mythic.lib.api.item.NBTItem.get(item);
+                isMMO = nbt != null && nbt.hasType();
+            }
+
             for (var entry : enchants.entrySet()) {
-                var conf = plugin.getEnchantManager().getEnchant(entry.getKey());
+                String id = entry.getKey();
+                int level = entry.getValue();
+
+                // Standard AuraSkills stats
+                var conf = plugin.getEnchantManager().getEnchant(id);
                 String statName = null;
                 if (conf != null) {
                     statName = conf.getAuraskillsStat();
-                } else {
-                    // Check custom enchants
-                    var customConf = plugin.getCustomEnchantManager().getEnchant(entry.getKey());
-                    if (customConf != null) {
-                        // Custom enchants might use a different stat mapping or just hardcode for now
-                        if (customConf.getId().equalsIgnoreCase("STRENGTH_BOOST"))
-                            statName = "strength";
-                        // Add more mappings if needed
-                    }
                 }
 
                 if (statName != null) {
-                    double perLevel = 1.0; // Default or from config if available
-                    totals.put(statName, totals.getOrDefault(statName, 0.0) + (entry.getValue() * perLevel));
+                    double perLevel = 1.0;
+                    auraTotals.put(statName, auraTotals.getOrDefault(statName, 0.0) + (level * perLevel));
                 }
             }
         }
 
-        // Apply totals via hook
-        var hook = plugin.getAuraSkillsHook();
-        // Clear old modifiers (AuraSkills modifiers with same ID overwrite, but we
-        // should handle removal if 0)
-        String[] possibleStats = { "strength", "wisdom", "luck", "health", "regeneration", "toughness", "crit_chance",
-                "crit_damage" };
-        for (String stat : possibleStats) {
-            double total = totals.getOrDefault(stat, 0.0);
-            if (total > 0) {
-                hook.addStatModifier(player, stat, "SBI_ENCHANT_" + stat.toUpperCase(), total);
-            } else {
-                hook.removeStatModifier(player, "SBI_ENCHANT_" + stat.toUpperCase());
+        // 1. Apply AuraSkills totals
+        if (plugin.isAuraSkillsEnabled()) {
+            var hook = plugin.getAuraSkillsHook();
+            String[] possibleStats = { "strength", "wisdom", "luck", "health", "regeneration", "toughness",
+                    "crit_chance",
+                    "crit_damage" };
+            for (String stat : possibleStats) {
+                double total = auraTotals.getOrDefault(stat, 0.0);
+                if (total > 0) {
+                    hook.addStatModifier(player, stat, "SBI_ENCHANT_" + stat.toUpperCase(), total);
+                } else {
+                    hook.removeStatModifier(player, "SBI_ENCHANT_" + stat.toUpperCase());
+                }
             }
         }
+
     }
 
     private Map<String, Integer> parseEnchantIds(List<String> lore) {
@@ -126,7 +131,7 @@ public class CustomEnchantListener implements Listener {
     }
 
     private void applyPeriodicEffects(Player player) {
-        updateAuraSkillsStats(player);
+        updatePlayerStats(player);
         // Periodic effects for enchants can be added here
     }
 
@@ -179,11 +184,8 @@ public class CustomEnchantListener implements Listener {
                 continue;
             Map<CustomEnchant, Integer> enchants = parseCustomEnchants(piece.getItemMeta().getLore());
 
-            for (CustomEnchant e : enchants.keySet()) {
-                if (!e.isEnabled())
-                    continue;
-
-        // Other defensive effects
+            // Other defensive effects
+        }
     }
 
     private Map<CustomEnchant, Integer> parseCustomEnchants(List<String> lore) {
@@ -535,7 +537,7 @@ public class CustomEnchantListener implements Listener {
         // Guardian Mana removed
     }
 
-    private List<ItemStack> getRelevantItems(Player player) {
+    public List<ItemStack> getRelevantItems(Player player) {
         List<ItemStack> items = new ArrayList<>();
         items.add(player.getInventory().getItemInMainHand());
         items.add(player.getInventory().getItemInOffHand());

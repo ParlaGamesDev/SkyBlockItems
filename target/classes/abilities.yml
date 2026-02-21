@@ -320,13 +320,6 @@ custom-abilities:
       - "&7למשך <#DDA0DD>{damage} &7שניות."
       - "&7זמן המתנה של <#FF6B6B>{cooldown} &7שניות."
 
-  GRAPPLING_HOOK:
-    name: "וו תפיסה"
-    trigger: ON_ARROW_HIT
-    description:
-      - "&7יורה חץ מקשת וטס איתו עד"
-      - "&7לנקודת הפגיעה. מונע נזק נפילה."
-      - "&7זמן המתנה של <#FF6B6B>5.0 &7שניות."
 
 abilities:
   lightning-beam:

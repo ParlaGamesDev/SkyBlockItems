@@ -82,6 +82,14 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
                 new dev.agam.skyblockitems.reforge.gui.ReforgeListGUI(plugin, player).open();
             }
 
+            case "givereforgegem" -> {
+                if (!player.hasPermission("skyblockitems.admin.reforge")) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
+                    return true;
+                }
+                handleGiveReforgeGem(player, args);
+            }
+
             case "rarity" -> {
                 // Delegate to RarityCommand
                 String[] rarityArgs = new String[args.length - 1];
@@ -153,6 +161,30 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
                 "{player}", targetPlayer.getName()));
     }
 
+    private void handleGiveReforgeGem(Player player, String[] args) {
+        if (args.length < 2) {
+            player.sendMessage(ColorUtils.colorize("&cUsage: /sbi givereforgegem <gemId> [player]"));
+            return;
+        }
+
+        String gemId = args[1];
+        Player target = (args.length > 2) ? Bukkit.getPlayer(args[2]) : player;
+
+        if (target == null) {
+            player.sendMessage(ColorUtils.colorize("&cPlayer not found."));
+            return;
+        }
+
+        ItemStack gem = plugin.getReforgeManager().getGemItem(gemId);
+        if (gem == null) {
+            player.sendMessage(ColorUtils.colorize("&cGem '" + gemId + "' not found in any reforge configuration."));
+            return;
+        }
+
+        target.getInventory().addItem(gem);
+        player.sendMessage(ColorUtils.colorize("&aGave " + gemId + " to " + target.getName()));
+    }
+
     private void handleBlacklist(Player player, String[] args) {
         if (!player.hasPermission("skyblockitems.blacklist")) {
             player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
@@ -201,7 +233,8 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
-            List<String> subs = Arrays.asList("reload", "givebook", "blacklist", "enchants", "reforges", "rarity");
+            List<String> subs = Arrays.asList("reload", "givebook", "blacklist", "enchants", "reforges", "rarity",
+                    "givereforgegem");
             return filterCompletions(subs, args[0]);
         }
 
@@ -219,6 +252,15 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
                     return new dev.agam.skyblockitems.rarity.RarityCommand(plugin).onTabComplete(sender, command, alias,
                             rarityArgs);
                 }
+                case "givereforgegem" -> {
+                    List<String> gemIds = new ArrayList<>();
+                    for (var reforge : plugin.getReforgeManager().getAllReforges()) {
+                        if (reforge.getGem() != null) {
+                            gemIds.add(reforge.getGem().getId());
+                        }
+                    }
+                    return filterCompletions(gemIds, args[1]);
+                }
             }
         }
 
@@ -228,6 +270,9 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
                 System.arraycopy(args, 1, rarityArgs, 0, args.length - 1);
                 return new dev.agam.skyblockitems.rarity.RarityCommand(plugin).onTabComplete(sender, command, alias,
                         rarityArgs);
+            }
+            if (args[0].equalsIgnoreCase("givereforgegem")) {
+                return null; // Player names
             }
         }
 

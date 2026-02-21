@@ -1,6 +1,7 @@
 package dev.agam.skyblockitems.enchantsystem.hooks;
 
 import dev.aurelium.auraskills.api.AuraSkillsApi;
+import dev.aurelium.auraskills.api.registry.NamespacedId;
 import dev.aurelium.auraskills.api.user.SkillsUser;
 import org.bukkit.entity.Player;
 
@@ -57,13 +58,12 @@ public class AuraSkillsHook {
             if (user == null)
                 return;
 
-            dev.aurelium.auraskills.api.stat.Stat stat = api.getGlobalRegistry().getStat(
-                    dev.aurelium.auraskills.api.registry.NamespacedId.fromDefault(statName.toLowerCase()));
+            dev.aurelium.auraskills.api.stat.Stat stat = api.getGlobalRegistry().getStat(NamespacedId.fromString(statName.toLowerCase()));
             if (stat == null)
                 return;
 
             user.addStatModifier(new dev.aurelium.auraskills.api.stat.StatModifier(
-                    dev.aurelium.auraskills.api.registry.NamespacedId.fromDefault(modifierName),
+                    modifierName,
                     stat,
                     value));
         } catch (Exception ignored) {
@@ -79,7 +79,7 @@ public class AuraSkillsHook {
             if (user == null)
                 return;
 
-            user.removeStatModifier(dev.aurelium.auraskills.api.registry.NamespacedId.fromDefault(modifierName));
+            user.removeStatModifier(modifierName);
         } catch (Exception ignored) {
         }
     }

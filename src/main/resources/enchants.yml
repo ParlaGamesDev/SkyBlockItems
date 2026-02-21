@@ -738,25 +738,6 @@ enchants:
     levels:
       1: { value: "1", xp-cost: 40 }
 
-  strength_boost:
-    display-name: "&4Strength Boost"
-    description: "&7מגדיל את כוח ההתקפה שלך, מה שמאפשר\nלהוריד יותר חיים לאויבים במכות חרב ומייס."
-    material: BLAZE_ROD
-    targets: [SWORD, AXE, MACE]
-    auraskills-stat: "strength"
-    required-enchanting-level: 0
-    anvil-multiplier: 2
-    levels:
-      1: { value: "1", xp-cost: 15 }
-      2: { value: "2", xp-cost: 25 }
-      3: { value: "3", xp-cost: 35 }
-      4: { value: "4", xp-cost: 45 }
-      5: { value: "5", xp-cost: 55 }
-      6: { value: "6", xp-cost: 65 }
-      7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
 
   wisdom_boost:
     display-name: "&bWisdom Boost"

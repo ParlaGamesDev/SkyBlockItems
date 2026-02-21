@@ -76,6 +76,7 @@ public class SkyBlockItems extends JavaPlugin {
             this.chatInputManager = new ChatInputManager();
             this.enchantManager = new EnchantManager(this);
             this.customEnchantManager = new CustomEnchantManager(this);
+            this.customEnchantListener = new dev.agam.skyblockitems.enchantsystem.listeners.CustomEnchantListener(this);
             try {
                 this.abilityManager = new AbilityManager();
                 this.abilityManager.registerAbilities();
@@ -214,6 +215,7 @@ public class SkyBlockItems extends JavaPlugin {
         getCommand("enchant").setExecutor(new dev.agam.skyblockitems.commands.EnchantCommand(this));
         getCommand("anvil").setExecutor(new dev.agam.skyblockitems.commands.AnvilCommand(this));
         getCommand("reforge").setExecutor(new dev.agam.skyblockitems.commands.ReforgeCommand(this));
+        getCommand("blacksmith").setExecutor(new dev.agam.skyblockitems.commands.BlacksmithCommand(this));
 
         dev.agam.skyblockitems.rarity.RarityCommand rarityCmd = new dev.agam.skyblockitems.rarity.RarityCommand(this);
         getCommand("rarity").setExecutor(rarityCmd);

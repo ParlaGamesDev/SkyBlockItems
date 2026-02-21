@@ -182,32 +182,22 @@ public class LevelSelectionGUI implements BaseGUI {
     }
 
     private int getCurrentEnchantLevel() {
-        // Check vanilla enchant
+        if (itemToEnchant == null || !itemToEnchant.hasItemMeta())
+            return 0;
+        ItemMeta meta = itemToEnchant.getItemMeta();
+
+        // 1. Check Vanilla
         if (enchant.getVanillaEnchant() != null) {
             Enchantment vanillaEnchant = Enchantment.getByName(enchant.getVanillaEnchant());
-            if (vanillaEnchant != null && itemToEnchant.getItemMeta().hasEnchant(vanillaEnchant)) {
-                return itemToEnchant.getItemMeta().getEnchantLevel(vanillaEnchant);
+            if (vanillaEnchant != null && meta.hasEnchant(vanillaEnchant)) {
+                return meta.getEnchantLevel(vanillaEnchant);
             }
         }
 
-        // Check lore (comma-separated format)
-        if (itemToEnchant.hasItemMeta() && itemToEnchant.getItemMeta().hasLore()) {
-            String cleanEnchant = ChatColor.stripColor(
-                    ChatColor.translateAlternateColorCodes('&', enchant.getDisplayName()));
-
-            for (String line : itemToEnchant.getItemMeta().getLore()) {
-                String cleanLine = ChatColor.stripColor(line);
-                // Split by comma to check each enchant entry
-                String[] entries = cleanLine.split(",");
-                for (String entry : entries) {
-                    String trimmed = entry.trim();
-                    if (trimmed.startsWith(cleanEnchant + " ")) {
-                        // Extract roman numeral after enchant name
-                        String lvlStr = trimmed.substring(cleanEnchant.length()).trim();
-                        return fromRoman(lvlStr);
-                    }
-                }
-            }
+        // 2. Check Custom/Lore
+        if (meta.hasLore()) {
+            Map<String, Integer> currentEnchants = plugin.getEnchantManager().parseLore(meta.getLore());
+            return currentEnchants.getOrDefault(enchant.getId().toLowerCase(), 0);
         }
 
         return 0;
@@ -341,92 +331,7 @@ public class LevelSelectionGUI implements BaseGUI {
     }
 
     private void applyEnchantment(int level, LevelConfig levelConfig) {
-        ItemMeta meta = itemToEnchant.getItemMeta();
-        List<String> oldLore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
-
-        // Apply vanilla enchantment if defined
-        boolean hasVanillaEnchant = false;
-        if (enchant.getVanillaEnchant() != null) {
-            Enchantment vanillaEnchant = Enchantment.getByName(enchant.getVanillaEnchant());
-            if (vanillaEnchant != null) {
-                meta.addEnchant(vanillaEnchant, level, true);
-                hasVanillaEnchant = true;
-            }
-        }
-
-        // Apply cosmetic glow for custom enchants that don't have a vanilla enchant
-        if (!hasVanillaEnchant) {
-            meta.setEnchantmentGlintOverride(true);
-        }
-
-        // Apply attribute modifier
-        if (enchant.getAttributeName() != null) {
-            try {
-                Attribute attribute = Attribute.valueOf(enchant.getAttributeName());
-                EquipmentSlot slot = EquipmentSlot.valueOf(enchant.getAttributeSlot());
-                NamespacedKey key = new NamespacedKey(plugin,
-                        "enchant_" + enchant.getId() + "_" + UUID.randomUUID().toString().substring(0, 8));
-                EquipmentSlotGroup slotGroup = getSlotGroup(slot);
-                AttributeModifier modifier = new AttributeModifier(key, levelConfig.getDoubleValue(),
-                        AttributeModifier.Operation.ADD_NUMBER, slotGroup);
-                meta.addAttributeModifier(attribute, modifier);
-            } catch (Exception ignored) {
-            }
-        }
-
-        // Update lore
-        List<String> enchantEntries = new ArrayList<>();
-        List<String> regularLore = new ArrayList<>();
-        String enchantNameClean = ChatColor
-                .stripColor(ChatColor.translateAlternateColorCodes('&', enchant.getDisplayName()));
-
-        for (String line : oldLore) {
-            String lineClean = ChatColor.stripColor(line);
-
-            if (line.startsWith(ChatColor.GRAY.toString()) && isEnchantLine(lineClean)) {
-                String[] parts = lineClean.split(",");
-                for (String part : parts) {
-                    String trimmed = part.trim();
-                    if (!trimmed.isEmpty() && !trimmed.startsWith(enchantNameClean)) {
-                        enchantEntries.add(trimmed);
-                    }
-                }
-            } else {
-                regularLore.add(line);
-            }
-        }
-
-        // Add the current enchantment
-        String romanValue = (enchant.getMaxLevel() == 1) ? "" : " " + toRoman(level);
-        enchantEntries.add(enchantNameClean + romanValue);
-
-        // Build new lore
-        List<String> newLore = new ArrayList<>();
-
-        // Add enchants (3 per line)
-        StringBuilder currentLine = new StringBuilder();
-        int count = 0;
-        for (int i = 0; i < enchantEntries.size(); i++) {
-            if (count > 0)
-                currentLine.append(", ");
-            currentLine.append(enchantEntries.get(i));
-            count++;
-
-            if (count == 3 || i == enchantEntries.size() - 1) {
-                newLore.add(ChatColor.GRAY + currentLine.toString());
-                currentLine = new StringBuilder();
-                count = 0;
-            }
-        }
-
-        // Add Regular Lore
-        newLore.addAll(regularLore);
-
-        meta.setLore(newLore);
-        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-
-        itemToEnchant.setItemMeta(meta);
+        plugin.getEnchantManager().applyEnchantment(itemToEnchant, enchant.getId(), level);
     }
 
     private boolean isEnchantLine(String text) {

@@ -143,29 +143,17 @@ public class EnchantManager {
         // Check vanilla enchants on item
         for (Map.Entry<Enchantment, Integer> entry : item.getEnchantments().entrySet()) {
             String vanillaId = entry.getKey().getKey().getKey().toLowerCase();
-            // Check if this vanilla
             if (conflicts.contains(vanillaId)) {
                 return getDisplayNameForId(vanillaId);
             }
         }
 
-        // Check for custom enchants and our custom-defined vanilla enchants in lore
+        // Check lore-based enchants using ID-based matching via parseLore
         if (item.getItemMeta().hasLore()) {
-            List<String> lore = item.getItemMeta().getLore();
-            for (String line : lore) {
-                String strippedLine = ChatColor.stripColor(line);
-                String[] parts = strippedLine.split(",");
-                for (String part : parts) {
-                    String trimmedPart = part.trim();
-                    for (String conflictId : conflicts) {
-                        String conflictName = getDisplayNameForId(conflictId);
-                        String strippedConflictName = ChatColor.stripColor(ColorUtils.colorize(conflictName));
-
-                        if (trimmedPart.equals(strippedConflictName)
-                                || trimmedPart.startsWith(strippedConflictName + " ")) {
-                            return conflictName;
-                        }
-                    }
+            Map<String, Integer> loreEnchants = parseLore(item.getItemMeta().getLore());
+            for (String conflictId : conflicts) {
+                if (loreEnchants.containsKey(conflictId.toLowerCase())) {
+                    return getDisplayNameForId(conflictId);
                 }
             }
         }
@@ -178,16 +166,21 @@ public class EnchantManager {
         if (lore == null)
             return result;
 
-        Map<String, String> nameToId = new HashMap<>();
+        // Build name->id list, sorted by name length descending
+        // This ensures "Blast Protection" is matched before "Protection"
+        List<Map.Entry<String, String>> nameToIdSorted = new ArrayList<>();
 
         // Include base enchants
-        enchants.forEach((id, c) -> nameToId
-                .put(ChatColor.stripColor(ColorUtils.colorize(c.getDisplayName())).toLowerCase(), id.toLowerCase()));
+        enchants.forEach((id, c) -> nameToIdSorted.add(Map.entry(
+                ChatColor.stripColor(ColorUtils.colorize(c.getDisplayName())).toLowerCase(), id.toLowerCase())));
 
         // Include custom enchants
-        plugin.getCustomEnchantManager().getAllEnchants().forEach(ce -> nameToId
-                .put(ChatColor.stripColor(ColorUtils.colorize(ce.getDisplayName())).toLowerCase(),
-                        ce.getId().toLowerCase()));
+        plugin.getCustomEnchantManager().getAllEnchants().forEach(ce -> nameToIdSorted.add(Map.entry(
+                ChatColor.stripColor(ColorUtils.colorize(ce.getDisplayName())).toLowerCase(),
+                ce.getId().toLowerCase())));
+
+        // Sort longest name first to prevent prefix collisions
+        nameToIdSorted.sort((a, b) -> Integer.compare(b.getKey().length(), a.getKey().length()));
 
         for (String line : lore) {
             String clean = ChatColor.stripColor(line).toLowerCase();
@@ -195,7 +188,7 @@ public class EnchantManager {
             String[] parts = clean.split(",");
             for (String part : parts) {
                 String trimmed = part.trim();
-                for (Map.Entry<String, String> entry : nameToId.entrySet()) {
+                for (Map.Entry<String, String> entry : nameToIdSorted) {
                     String name = entry.getKey();
                     if (trimmed.startsWith(name)) {
                         String levelPart = trimmed.substring(name.length()).trim();
@@ -322,18 +315,31 @@ public class EnchantManager {
     public List<String> rebuildLore(List<String> original, Map<String, Integer> enchants) {
         List<String> nonEnchantLines = new ArrayList<>();
         if (original != null) {
-            Set<String> enchantNames = new HashSet<>();
+            // Build a list of enchant names sorted longest-first
+            // This prevents "Protection" from matching "Blast Protection"
+            List<String> enchantNames = new ArrayList<>();
             this.enchants.values().forEach(
                     e -> enchantNames.add(ChatColor.stripColor(ColorUtils.colorize(e.getDisplayName())).toLowerCase()));
+            plugin.getCustomEnchantManager().getAllEnchants().forEach(
+                    ce -> enchantNames
+                            .add(ChatColor.stripColor(ColorUtils.colorize(ce.getDisplayName())).toLowerCase()));
+            enchantNames.sort((a, b) -> Integer.compare(b.length(), a.length()));
 
             for (String line : original) {
                 String clean = ChatColor.stripColor(line).toLowerCase().trim();
                 boolean isEnchant = false;
-                for (String name : enchantNames) {
-                    if (clean.contains(name)) {
-                        isEnchant = true;
-                        break;
+                // Check each comma-separated segment
+                String[] parts = clean.split(",");
+                for (String part : parts) {
+                    String trimmed = part.trim();
+                    for (String name : enchantNames) {
+                        if (trimmed.equals(name) || trimmed.startsWith(name + " ")) {
+                            isEnchant = true;
+                            break;
+                        }
                     }
+                    if (isEnchant)
+                        break;
                 }
                 if (!isEnchant)
                     nonEnchantLines.add(line);
@@ -437,8 +443,7 @@ public class EnchantManager {
         }
 
         book.setItemMeta(meta);
-    }return book;
-
+        return book;
     }
 
     public int getPriorWorkPenalty(ItemStack item) {

@@ -19,6 +19,10 @@ commands:
     description: Opens the Reforge GUI
     permission: skyblock.reforge
     aliases: [rf]
+  blacksmith:
+    description: Opens the standard Reforge GUI
+    permission: skyblock.blacksmith
+    aliases: [bs]
   rarity:
     description: Manage item rarities
     permission: skyblockitems.admin.rarity

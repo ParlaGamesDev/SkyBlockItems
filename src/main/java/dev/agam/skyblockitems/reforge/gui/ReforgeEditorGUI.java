@@ -4,6 +4,7 @@ import dev.agam.skyblockitems.SkyBlockItems;
 import dev.agam.skyblockitems.enchantsystem.gui.BaseGUI;
 import dev.agam.skyblockitems.enchantsystem.utils.ColorUtils;
 import dev.agam.skyblockitems.reforge.Reforge;
+import dev.agam.skyblockitems.reforge.ReforgeGem;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -32,6 +33,7 @@ public class ReforgeEditorGUI implements BaseGUI {
     private double cost;
     private Map<String, Double> stats;
     private List<String> enchants;
+    private ReforgeGem gem;
 
     public ReforgeEditorGUI(SkyBlockItems plugin, Player player, String reforgeId, boolean isNew) {
         this.plugin = plugin;
@@ -49,6 +51,7 @@ public class ReforgeEditorGUI implements BaseGUI {
                 this.cost = reforge.getCost();
                 this.stats = new HashMap<>(reforge.getStats());
                 this.enchants = new ArrayList<>(reforge.getEnchants());
+                this.gem = reforge.getGem();
             }
         } else {
             // Defaults for new reforge
@@ -144,6 +147,16 @@ public class ReforgeEditorGUI implements BaseGUI {
                         plugin.getConfigManager().getMessage("reforge.editor.properties.enchants.click"),
                         plugin.getConfigManager().getMessage("reforge.editor.properties.enchants.example"))));
 
+        // Reforge Gem
+        String gemStatus = gem != null ? "<#2ecc71>Required" : "<#dfe6e9>None";
+        inventory.setItem(21, createPropertyItem(Material.CLOCK,
+                "Reforge Gem",
+                Arrays.asList(
+                        plugin.getConfigManager().getMessage("reforge.editor.labels.current-value") + " " + gemStatus,
+                        "",
+                        "Click to edit Gem requirement",
+                        "(If set, this reforge becomes VIP)")));
+
         // Save button
         inventory.setItem(49, createPropertyItem(Material.EMERALD_BLOCK,
                 plugin.getConfigManager().getMessage("reforge.editor.buttons.save"),
@@ -192,7 +205,7 @@ public class ReforgeEditorGUI implements BaseGUI {
         // Save
         if (slot == 49) {
             plugin.getReforgeManager().saveReforge(reforgeId, displayName, itemTypes,
-                    rarityRequirement, cost, stats, enchants);
+                    rarityRequirement, cost, stats, enchants, gem);
             player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.editor.saved")));
             new ReforgeListGUI(plugin, player).open();
             return;
@@ -201,6 +214,12 @@ public class ReforgeEditorGUI implements BaseGUI {
         // Back
         if (slot == 48) {
             new ReforgeListGUI(plugin, player).open();
+            return;
+        }
+
+        // Gem Editor
+        if (slot == 21) {
+            new ReforgeGemEditorGUI(plugin, player, gem, this).open();
             return;
         }
 
@@ -285,6 +304,11 @@ public class ReforgeEditorGUI implements BaseGUI {
      */
     public void updateItemTypes(List<String> newItemTypes) {
         this.itemTypes = new ArrayList<>(newItemTypes);
+    }
+
+    public void updateGem(ReforgeGem newGem) {
+        this.gem = newGem;
+        setupGUI();
     }
 
     @Override

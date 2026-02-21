@@ -18,6 +18,7 @@ public class Reforge {
     private final double cost;
     private final Map<String, Double> stats;
     private final List<String> enchants;
+    private final ReforgeGem gem;
 
     /**
      * Constructs a Reforge from a ConfigurationSection.
@@ -43,6 +44,24 @@ public class Reforge {
 
         // Load enchants
         this.enchants = section.getStringList("enchants");
+
+        // Load gem
+        ConfigurationSection gemSection = section.getConfigurationSection("gem");
+        this.gem = gemSection != null ? new ReforgeGem(gemSection) : null;
+    }
+
+    /**
+     * @return The gem required for this reforge, or null if none
+     */
+    public ReforgeGem getGem() {
+        return gem;
+    }
+
+    /**
+     * @return true if this reforge requires a gem
+     */
+    public boolean hasGem() {
+        return gem != null;
     }
 
     /**

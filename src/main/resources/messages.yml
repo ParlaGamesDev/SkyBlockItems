@@ -280,6 +280,25 @@ reforge:
   success: "&aבוצע בהצלחה! החפץ שלך הפך ל-&e{reforge}&a!"
   error: "&cאירעה שגיאה בעיבוד החפץ. נסה שוב."
 
+  vip:
+    gui-title: "<#d63aff>&lחישול VIP"
+    insert-item: "<#e74c3c>&lשים פריט"
+    insert-item-lore: "&7הנח כאן את הפריט שברצונך לחשל."
+    insert-gem: "<#e74c3c>&lשים אבן"
+    insert-gem-lore: "&7הנח כאן את אבן החישל הדרושה."
+    invalid-stone: "<#e74c3c>&lאבן לא תקינה"
+    invalid-stone-lore: "&7זו אינה אבן חישל תקינה."
+    unknown-stone: "<#e74c3c>&lאבן לא מוכרת"
+    unknown-stone-lore: "&7לא נמצא חישול שמשתמש באבן זו."
+    incompatible-stone: "<#e74c3c>&lאבן לא מתאימה"
+    incompatible-stone-lore: "&7אבן זו אינה מתאימה לסוג הפריט."
+    combine-button: "<#2ecc71>&lחשל!"
+    combine-button-reforge: "&7חישול: {reforge}"
+    combine-button-cost: "&7עלות: &a{cost} מטבעות"
+    combine-button-click: "&eלחץ כדי להחיל!"
+    not-enough-money: "<#e74c3c>אין לך מספיק כסף!"
+    success: "&aהחלת בהצלחה &e{reforge} &aבעזרת &e{gem}&a!"
+
   stat-names:
     attack_damage: "<#ffe5d9>נזק התקפה"
     attack-speed: "<#ffe5d9>מהירות התקפה"
@@ -516,7 +535,6 @@ enchant-descriptions:
   vanishing_curse: "החפץ נעלם לאחר המוות."
   
   # AuraSkills Enchants
-  strength_boost: "מחזק את השרירים ומגדיל את כוח ההתקפה הפיזי."
   wisdom_boost: "מרחיב את התודעה ומגדיל את צבירת ה-XP והמאנה."
   luck_boost: "מושך אנרגיות חיוביות ומגדיל את המזל במציאת פריטים."
   water_speed: "מגדיל את מהירות השחייה והתנועה בתוך המים."
@@ -524,7 +542,6 @@ enchant-descriptions:
   # Custom Enchants
   savings: "שומר על אחוז מהכסף שלך בעת מוות."
   mana_efficiency: "מפחית את עלות המאנה של השימוש ביכולות."
-  chronos: "מכווץ את הזמן ומפחית את ה-Cooldown של יכולות."
   farming_fortune: "מגדיל את הסיכוי לקצור יבולים כפולים ומשולשים."
   turbo_miner: "מעניק מהירות כרייה נוספת כשכורים ברצף."
   exp_grinder: "מעניק סיכוי לקבל נקודות ניסיון (XP) כשאתה נפגע."
