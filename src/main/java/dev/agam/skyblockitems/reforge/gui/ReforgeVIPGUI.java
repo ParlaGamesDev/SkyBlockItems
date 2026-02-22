@@ -55,25 +55,19 @@ public class ReforgeVIPGUI implements BaseGUI {
     private void setupGUI() {
         inventory.clear();
 
-        // Borders and Fillers according to input_file_1.png
-        ItemStack border = ColorUtils.createFillerItem(Material.GRAY_STAINED_GLASS_PANE);
+        // Fill entire inventory with background color first
         ItemStack filler = ColorUtils.createFillerItem(Material.PURPLE_STAINED_GLASS_PANE);
-
-        // Perimeter and specific slots - adjusted per user screenshot
-        // (input_file_2.png)
         for (int i = 0; i < inventory.getSize(); i++) {
-            if (i % 9 == 0 || i % 9 == 8) {
-                inventory.setItem(i, border);
-            } else {
-                inventory.setItem(i, filler);
-            }
+            inventory.setItem(i, filler);
         }
 
-        // Input slots are empty/clear (will show the slot below or background)
+        // Apply edge borders (gray by default)
+        updateSidebars(Material.GRAY_STAINED_GLASS_PANE);
+
+        // Clear input slots
         inventory.setItem(itemSlot, null);
         inventory.setItem(gemSlot, null);
 
-        updateSidebars(Material.GRAY_STAINED_GLASS_PANE);
         updateAnvil();
     }
 
@@ -134,8 +128,16 @@ public class ReforgeVIPGUI implements BaseGUI {
                             meta.setDisplayName(ColorUtils.colorize(getMessage("reforge.vip.combine-button")));
                             lore.add(ColorUtils.colorize(getMessage("reforge.vip.combine-button-reforge")
                                     .replace("{reforge}", target.getDisplayName())));
+
+                            // Get cost based on item rarity
+                            io.lumine.mythic.lib.api.item.NBTItem nbt = io.lumine.mythic.lib.api.item.NBTItem.get(item);
+                            dev.agam.skyblockitems.rarity.Rarity itemRarity = plugin.getRarityManager()
+                                    .getRarityForItem(item, nbt);
+                            String rarityId = (itemRarity != null) ? itemRarity.getIdentifier() : "COMMON";
+                            double cost = target.getDataFor(rarityId).getCost();
+
                             lore.add(ColorUtils.colorize(getMessage("reforge.vip.combine-button-cost").replace("{cost}",
-                                    String.valueOf((int) target.getCost()))));
+                                    String.valueOf((int) cost))));
                             lore.add("");
                             lore.add(ColorUtils.colorize(getMessage("reforge.vip.combine-button-click")));
                             updateSidebars(Material.LIME_STAINED_GLASS_PANE);
@@ -194,24 +196,28 @@ public class ReforgeVIPGUI implements BaseGUI {
                 ItemStack currentGem = inventory.getItem(gemSlot);
                 if (currentGem == null || currentGem.getType().isAir()) {
                     ItemStack toPlace = clicked.clone();
-                    // NEW LIMIT: Not more than 2 items
-                    if (toPlace.getAmount() > 2) {
-                        toPlace.setAmount(2);
-                        clicked.setAmount(clicked.getAmount() - 2);
+
+                    // Take only exactly 1 and leave the rest
+                    if (toPlace.getAmount() > 1) {
+                        toPlace.setAmount(1);
+                        clicked.setAmount(clicked.getAmount() - 1);
+                        player.sendMessage(plugin.getConfigManager().getMessage("reforge.vip.one-item-limit"));
                     } else {
                         event.setCurrentItem(null);
                     }
+
                     inventory.setItem(gemSlot, toPlace);
                 } else {
                     player.sendMessage(plugin.getConfigManager().getMessage("errors.remove-current-first"));
                 }
             } else {
                 // ITEM PLACEMENT
-
-                // FIRST: Check if the item is reforgeable (MMOItems "REFORGEABLE" stat = true)
+                // FIRST: Check if the item is reforgeable
                 ReforgeApplier applier = new ReforgeApplier(plugin);
                 if (!applier.isReforgeable(clicked)) {
                     String reasonKey = applier.getNotReforgeableReason(clicked);
+                    if (reasonKey == null)
+                        reasonKey = "reforge.not-reforgeable";
                     player.sendMessage(plugin.getConfigManager().getMessage(reasonKey + "-lore"));
                     playSound("BLOCK_NOTE_BLOCK_BASS", 0.5f);
                     startInvalidAnimation();
@@ -221,13 +227,16 @@ public class ReforgeVIPGUI implements BaseGUI {
                 ItemStack currentItem = inventory.getItem(itemSlot);
                 if (currentItem == null || currentItem.getType().isAir()) {
                     ItemStack toPlace = clicked.clone();
-                    // NEW LIMIT: Not more than 2 items
-                    if (toPlace.getAmount() > 2) {
-                        toPlace.setAmount(2);
-                        clicked.setAmount(clicked.getAmount() - 2);
+
+                    // Take only exactly 1 and leave the rest
+                    if (toPlace.getAmount() > 1) {
+                        toPlace.setAmount(1);
+                        clicked.setAmount(clicked.getAmount() - 1);
+                        player.sendMessage(plugin.getConfigManager().getMessage("reforge.vip.one-item-limit"));
                     } else {
                         event.setCurrentItem(null);
                     }
+
                     inventory.setItem(itemSlot, toPlace);
                 } else {
                     player.sendMessage(plugin.getConfigManager().getMessage("errors.remove-current-first"));
@@ -274,8 +283,14 @@ public class ReforgeVIPGUI implements BaseGUI {
             return;
         }
 
+        // Get cost based on item rarity
+        io.lumine.mythic.lib.api.item.NBTItem nbt = io.lumine.mythic.lib.api.item.NBTItem.get(itemStack);
+        dev.agam.skyblockitems.rarity.Rarity itemRarity = plugin.getRarityManager().getRarityForItem(itemStack, nbt);
+        String rarityId = (itemRarity != null) ? itemRarity.getIdentifier() : "COMMON";
+        double cost = reforge.getDataFor(rarityId).getCost();
+
         // Validate cost
-        if (plugin.getVaultHook() != null && !plugin.getVaultHook().hasMoney(player, reforge.getCost())) {
+        if (plugin.getVaultHook() != null && !plugin.getVaultHook().hasMoney(player, cost)) {
             player.sendMessage(ColorUtils.colorize(getMessage("reforge.vip.not-enough-money")));
             playSound("BLOCK_NOTE_BLOCK_BASS", 0.5f);
             startInvalidAnimation();
@@ -293,7 +308,7 @@ public class ReforgeVIPGUI implements BaseGUI {
 
         // Deduct cost
         if (plugin.getVaultHook() != null) {
-            plugin.getVaultHook().takeMoney(player, reforge.getCost());
+            plugin.getVaultHook().takeMoney(player, cost);
         }
 
         // Apply

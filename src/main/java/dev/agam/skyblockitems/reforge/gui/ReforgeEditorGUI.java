@@ -29,10 +29,8 @@ public class ReforgeEditorGUI implements BaseGUI {
     // Editable properties
     private String displayName;
     private List<String> itemTypes;
-    private String rarityRequirement;
-    private double cost;
-    private Map<String, Double> stats;
-    private List<String> enchants;
+    private Map<String, Reforge.RarityData> rarityDataMap;
+    private String selectedRarity = "COMMON";
     private ReforgeGem gem;
 
     public ReforgeEditorGUI(SkyBlockItems plugin, Player player, String reforgeId, boolean isNew) {
@@ -47,20 +45,19 @@ public class ReforgeEditorGUI implements BaseGUI {
             if (reforge != null) {
                 this.displayName = reforge.getDisplayName();
                 this.itemTypes = new ArrayList<>(reforge.getItemTypes());
-                this.rarityRequirement = reforge.getRarityRequirement();
-                this.cost = reforge.getCost();
-                this.stats = new HashMap<>(reforge.getStats());
-                this.enchants = new ArrayList<>(reforge.getEnchants());
+                this.rarityDataMap = new HashMap<>(reforge.getRarityDataMap());
                 this.gem = reforge.getGem();
             }
         } else {
             // Defaults for new reforge
             this.displayName = "&e" + reforgeId;
-            this.itemTypes = new ArrayList<>(Arrays.asList("SWORD"));
-            this.rarityRequirement = "COMMON";
-            this.cost = 10000;
-            this.stats = new HashMap<>();
-            this.enchants = new ArrayList<>();
+            this.itemTypes = new ArrayList<>(Arrays.asList("ALL"));
+            this.rarityDataMap = new HashMap<>();
+
+            // Initialize standard rarities
+            for (String r : Arrays.asList("COMMON", "RARE", "EPIC", "LEGENDARY", "MYTHIC", "DIVINE")) {
+                rarityDataMap.put(r, new Reforge.RarityData(10000, new HashMap<>(), new ArrayList<>()));
+            }
         }
 
         String title = ColorUtils
@@ -77,6 +74,8 @@ public class ReforgeEditorGUI implements BaseGUI {
 
     private void setupGUI() {
         inventory.clear();
+
+        // 1. Core Properties (Top Row)
 
         // Display Name
         inventory.setItem(10, createPropertyItem(Material.NAME_TAG,
@@ -97,26 +96,43 @@ public class ReforgeEditorGUI implements BaseGUI {
                         plugin.getConfigManager().getMessage("reforge.editor.properties.item-types.click"),
                         plugin.getConfigManager().getMessage("reforge.editor.properties.item-types.example"))));
 
-        // Rarity Requirement
-        inventory.setItem(12, createPropertyItem(Material.PAPER,
-                plugin.getConfigManager().getMessage("reforge.editor.properties.rarity-req.name"),
+        // Rarity SELECTOR (Slot 12)
+        inventory.setItem(12, createPropertyItem(Material.NETHER_STAR,
+                "§d§lSelect Rarity to Edit",
                 Arrays.asList(
-                        plugin.getConfigManager().getMessage("reforge.editor.labels.current-value") + " <#a29bfe>"
-                                + rarityRequirement,
+                        "§7Editing Data for: §b§l" + selectedRarity,
                         "",
-                        plugin.getConfigManager().getMessage("reforge.editor.properties.rarity-req.click"))));
+                        "§eClick to cycle rarities!",
+                        "§8(Stats, Cost, and Enchants below",
+                        "§8apply to the selected rarity only)")));
+
+        // Reforge Gem
+        String gemStatus = gem != null ? "<#2ecc71>Required" : "<#dfe6e9>None";
+        inventory.setItem(13, createPropertyItem(Material.CLOCK,
+                "Reforge Gem",
+                Arrays.asList(
+                        plugin.getConfigManager().getMessage("reforge.editor.labels.current-value") + " " + gemStatus,
+                        "",
+                        "Click to edit Gem requirement",
+                        "(If set, this reforge becomes VIP)")));
+
+        // 2. Dynamic Properties (Middle Row - Based on Selected Rarity)
+        Reforge.RarityData data = rarityDataMap.getOrDefault(selectedRarity,
+                new Reforge.RarityData(0, new HashMap<>(), new ArrayList<>()));
 
         // Cost
         inventory.setItem(14, createPropertyItem(Material.GOLD_INGOT,
-                plugin.getConfigManager().getMessage("reforge.editor.properties.cost.name"),
+                plugin.getConfigManager().getMessage("reforge.editor.properties.cost.name") + " (§b" + selectedRarity
+                        + "§f)",
                 Arrays.asList(
                         plugin.getConfigManager().getMessage("reforge.editor.labels.current-value") + " <#2ecc71>"
-                                + (int) cost + " מטבעות",
+                                + (int) data.getCost() + " מטבעות",
                         "",
                         plugin.getConfigManager().getMessage("reforge.editor.properties.cost.click"))));
 
         // Stats
         StringBuilder statsDisplay = new StringBuilder();
+        Map<String, Double> stats = data.getStats();
         if (stats.isEmpty()) {
             statsDisplay.append(plugin.getConfigManager().getMessage("reforge.editor.properties.stats.none"));
         } else {
@@ -127,7 +143,8 @@ public class ReforgeEditorGUI implements BaseGUI {
             }
         }
         inventory.setItem(19, createPropertyItem(Material.DIAMOND,
-                plugin.getConfigManager().getMessage("reforge.editor.properties.stats.name"),
+                plugin.getConfigManager().getMessage("reforge.editor.properties.stats.name") + " (§b" + selectedRarity
+                        + "§f)",
                 Arrays.asList(
                         plugin.getConfigManager().getMessage("reforge.editor.labels.current-value"),
                         statsDisplay.toString(),
@@ -136,8 +153,10 @@ public class ReforgeEditorGUI implements BaseGUI {
                         plugin.getConfigManager().getMessage("reforge.editor.properties.stats.example"))));
 
         // Enchants
+        List<String> enchants = data.getEnchants();
         inventory.setItem(20, createPropertyItem(Material.ENCHANTED_BOOK,
-                plugin.getConfigManager().getMessage("reforge.editor.properties.enchants.name"),
+                plugin.getConfigManager().getMessage("reforge.editor.properties.enchants.name") + " (§b"
+                        + selectedRarity + "§f)",
                 Arrays.asList(
                         plugin.getConfigManager().getMessage("reforge.editor.labels.current-value"),
                         enchants.isEmpty()
@@ -146,16 +165,6 @@ public class ReforgeEditorGUI implements BaseGUI {
                         "",
                         plugin.getConfigManager().getMessage("reforge.editor.properties.enchants.click"),
                         plugin.getConfigManager().getMessage("reforge.editor.properties.enchants.example"))));
-
-        // Reforge Gem
-        String gemStatus = gem != null ? "<#2ecc71>Required" : "<#dfe6e9>None";
-        inventory.setItem(21, createPropertyItem(Material.CLOCK,
-                "Reforge Gem",
-                Arrays.asList(
-                        plugin.getConfigManager().getMessage("reforge.editor.labels.current-value") + " " + gemStatus,
-                        "",
-                        "Click to edit Gem requirement",
-                        "(If set, this reforge becomes VIP)")));
 
         // Save button
         inventory.setItem(49, createPropertyItem(Material.EMERALD_BLOCK,
@@ -204,8 +213,7 @@ public class ReforgeEditorGUI implements BaseGUI {
 
         // Save
         if (slot == 49) {
-            plugin.getReforgeManager().saveReforge(reforgeId, displayName, itemTypes,
-                    rarityRequirement, cost, stats, enchants, gem);
+            plugin.getReforgeManager().saveReforge(reforgeId, displayName, itemTypes, rarityDataMap, gem);
             player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.editor.saved")));
             new ReforgeListGUI(plugin, player).open();
             return;
@@ -218,7 +226,7 @@ public class ReforgeEditorGUI implements BaseGUI {
         }
 
         // Gem Editor
-        if (slot == 21) {
+        if (slot == 13 || slot == 21) {
             new ReforgeGemEditorGUI(plugin, player, gem, this).open();
             return;
         }
@@ -236,17 +244,22 @@ public class ReforgeEditorGUI implements BaseGUI {
             new ReforgeItemTypeSelectorGUI(plugin, player, itemTypes, this).open();
         }
 
-        // Edit Rarity Requirement (Cycle)
+        // Cycle Rarity Selector (Slot 12)
         else if (slot == 12) {
-            rarityRequirement = cycleRarity(rarityRequirement);
+            List<String> rarities = Arrays.asList("COMMON", "RARE", "EPIC", "LEGENDARY", "MYTHIC", "DIVINE");
+            int index = rarities.indexOf(selectedRarity);
+            selectedRarity = rarities.get((index + 1) % rarities.size());
             setupGUI();
         }
 
-        // Edit Cost
+        // Edit Cost (for currently selected Rarity)
         else if (slot == 14) {
             promptInput("reforge.editor.properties.cost.prompt", input -> {
                 try {
-                    cost = Double.parseDouble(input);
+                    double newCost = Double.parseDouble(input);
+                    Reforge.RarityData old = rarityDataMap.get(selectedRarity);
+                    rarityDataMap.put(selectedRarity,
+                            new Reforge.RarityData(newCost, old.getStats(), old.getEnchants()));
                     setupGUI();
                 } catch (NumberFormatException e) {
                     player.sendMessage(
@@ -257,23 +270,17 @@ public class ReforgeEditorGUI implements BaseGUI {
 
         // Edit Stats (Open GUI)
         else if (slot == 19) {
-            new ReforgeStatEditorGUI(plugin, player, displayName, stats, this).open();
+            Reforge.RarityData data = rarityDataMap.get(selectedRarity);
+            new ReforgeStatEditorGUI(plugin, player, displayName + " (" + selectedRarity + ")", data.getStats(), this)
+                    .open();
         }
 
         // Edit Enchants (Open GUI Selector)
         else if (slot == 20) {
-            new ReforgeEnchantSelectorGUI(plugin, player, enchants, this).open();
+            Reforge.RarityData data = rarityDataMap.get(selectedRarity);
+            new ReforgeEnchantSelectorGUI(plugin, player, data.getEnchants(), this).open();
         }
 
-    }
-
-    private String cycleRarity(String current) {
-        List<String> rarities = Arrays.asList("COMMON", "RARE", "EPIC", "LEGENDARY");
-        int index = rarities.indexOf(current.toUpperCase());
-        if (index == -1 || index == rarities.size() - 1) {
-            return rarities.get(0);
-        }
-        return rarities.get(index + 1);
     }
 
     private void promptInput(String messageKey, java.util.function.Consumer<String> callback) {
@@ -287,10 +294,20 @@ public class ReforgeEditorGUI implements BaseGUI {
     }
 
     /**
-     * Updates enchants list from sub-GUI.
+     * Updates enchants list from sub-GUI for the SELECTED rarity.
      */
     public void updateEnchants(List<String> newEnchants) {
-        this.enchants = newEnchants;
+        Reforge.RarityData old = rarityDataMap.get(selectedRarity);
+        rarityDataMap.put(selectedRarity, new Reforge.RarityData(old.getCost(), old.getStats(), newEnchants));
+        setupGUI();
+    }
+
+    /**
+     * Updates stats map from sub-GUI for the SELECTED rarity.
+     */
+    public void updateStats(Map<String, Double> newStats) {
+        Reforge.RarityData old = rarityDataMap.get(selectedRarity);
+        rarityDataMap.put(selectedRarity, new Reforge.RarityData(old.getCost(), newStats, old.getEnchants()));
         setupGUI();
     }
 

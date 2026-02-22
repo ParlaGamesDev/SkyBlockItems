@@ -105,22 +105,25 @@ public class ReforgeListGUI implements BaseGUI {
             meta.setDisplayName(ColorUtils.colorize(reforge.getDisplayName()));
 
             List<String> lore = new ArrayList<>();
+            Reforge.RarityData commonData = reforge.getDataFor("COMMON");
             lore.add(ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.id-label")
                     .replace("{id}", reforge.getId())));
             lore.add(ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.cost-label")
-                    .replace("{cost}", String.valueOf((int) reforge.getCost()))));
+                    .replace("{cost}", String.valueOf((int) reforge.getDataFor("COMMON").getCost()))));
+
+            if (reforge.hasGem()) {
+                lore.add(ColorUtils.colorize(" <#fdcb6e>⚡ VIP • Requires: " + reforge.getGem().getName()));
+            }
+
             lore.add("");
             lore.add(ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.types-label")
                     .replace("{types}", String.join(", ", reforge.getItemTypes()))));
-            lore.add(ColorUtils.colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.rarity-label")
-                    .replace("{req}", reforge.getRarityRequirement())
-                    .replace(" → {upgrade}", "")));
             lore.add("");
 
-            if (!reforge.getStats().isEmpty()) {
+            if (!commonData.getStats().isEmpty()) {
                 lore.add(ColorUtils
                         .colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.stats-header")));
-                for (Map.Entry<String, Double> entry : reforge.getStats().entrySet()) {
+                for (Map.Entry<String, Double> entry : commonData.getStats().entrySet()) {
                     lore.add(ColorUtils
                             .colorize(
                                     "  <#636e72>• <#dfe6e9>" + plugin.getReforgeManager().formatStatName(entry.getKey())
@@ -129,10 +132,10 @@ public class ReforgeListGUI implements BaseGUI {
                 lore.add("");
             }
 
-            if (!reforge.getEnchants().isEmpty()) {
+            if (!commonData.getEnchants().isEmpty()) {
                 lore.add(ColorUtils
                         .colorize(plugin.getConfigManager().getMessage("reforge.editor.labels.enchants-header")
-                                .replace("{enchants}", String.join(", ", reforge.getEnchants()))));
+                                .replace("{enchants}", String.join(", ", commonData.getEnchants()))));
             }
 
             lore.add("");

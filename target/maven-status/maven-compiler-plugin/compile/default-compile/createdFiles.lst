@@ -16,6 +16,7 @@ dev\agam\skyblockitems\reforge\ReforgeApplier.class
 dev\agam\skyblockitems\enchantsystem\managers\EnchantManager.class
 dev\agam\skyblockitems\enchantsystem\listeners\CustomEnchantListener$1.class
 dev\agam\skyblockitems\reforge\gui\ReforgeVIPGUI$1.class
+dev\agam\skyblockitems\reforge\Reforge$RarityData.class
 dev\agam\skyblockitems\enchantsystem\gui\EnchantListGUI.class
 dev\agam\skyblockitems\enchantsystem\gui\BaseGUI.class
 dev\agam\skyblockitems\reforge\ReforgeManager.class

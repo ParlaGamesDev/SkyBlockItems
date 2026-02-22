@@ -25,7 +25,7 @@ public class ReforgeGem {
     }
 
     public ReforgeGem(ConfigurationSection section) {
-        this.id = section.getName();
+        this.id = section.getString("id", section.getName());
         this.name = ColorUtils.colorize(section.getString("name", id));
         this.lore = ColorUtils.colorizeList(section.getStringList("lore"));
         this.material = section.getString("material", "STONE");

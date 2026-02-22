@@ -328,7 +328,7 @@ public class ReforgeManager {
     public List<Reforge> getApplicableReforges(String itemType, String currentRarity) {
         return reforges.values().stream()
                 .filter(reforge -> reforge.isCompatibleWith(itemType))
-                .filter(reforge -> reforge.meetsRarityRequirement(currentRarity))
+                .filter(reforge -> !reforge.hasGem()) // Exclude VIP (gem-required) reforges from random pool
                 .collect(Collectors.toList());
     }
 
@@ -390,18 +390,29 @@ public class ReforgeManager {
      * Update or create a reforge in the configuration and reload.
      */
     public void saveReforge(String id, String displayName, List<String> itemTypes,
-            String rarityReq, double cost,
-            Map<String, Double> stats, List<String> enchants, ReforgeGem gem) {
+            Map<String, Reforge.RarityData> rarityDataMap, ReforgeGem gem) {
         reforgesConfig.set("reforges." + id + ".display-name", displayName);
         reforgesConfig.set("reforges." + id + ".item-types", itemTypes);
-        reforgesConfig.set("reforges." + id + ".rarity-requirement", rarityReq);
-        reforgesConfig.set("reforges." + id + ".cost", cost);
-        reforgesConfig.set("reforges." + id + ".stats", stats.isEmpty() ? null : stats);
-        reforgesConfig.set("reforges." + id + ".enchants", enchants.isEmpty() ? null : enchants);
-        reforgesConfig.set("reforges." + id + ".abilities", null); // Wipe abilities if they existed
+        reforgesConfig.set("reforges." + id + ".abilities", null); // Wipe legacy/abilities
+
+        // Remove legacy flat fields
+        reforgesConfig.set("reforges." + id + ".cost", null);
+        reforgesConfig.set("reforges." + id + ".stats", null);
+        reforgesConfig.set("reforges." + id + ".enchants", null);
+        reforgesConfig.set("reforges." + id + ".rarity-requirement", null);
+
+        // Save Per-Rarity Data
+        for (Map.Entry<String, Reforge.RarityData> entry : rarityDataMap.entrySet()) {
+            String path = "reforges." + id + ".rarities." + entry.getKey().toLowerCase() + ".";
+            Reforge.RarityData data = entry.getValue();
+            reforgesConfig.set(path + "cost", data.getCost());
+            reforgesConfig.set(path + "stats", data.getStats().isEmpty() ? null : data.getStats());
+            reforgesConfig.set(path + "enchants", data.getEnchants().isEmpty() ? null : data.getEnchants());
+        }
 
         if (gem != null) {
             String path = "reforges." + id + ".gem.";
+            reforgesConfig.set(path + "id", gem.getId());
             reforgesConfig.set(path + "name", gem.getName());
             reforgesConfig.set(path + "lore", gem.getLore());
             reforgesConfig.set(path + "material", gem.getMaterial());

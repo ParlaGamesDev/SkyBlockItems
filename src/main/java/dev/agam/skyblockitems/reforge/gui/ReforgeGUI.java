@@ -179,7 +179,7 @@ public class ReforgeGUI implements BaseGUI {
 
                 // Pick a random reforge to show its cost
                 Reforge randomReforge = applicable.get(new Random().nextInt(applicable.size()));
-                int cost = (int) randomReforge.getCost();
+                int cost = (int) randomReforge.getDataFor(currentRarity).getCost();
 
                 lore.add(getMessage("reforge.cost-label").replace("{cost}", String.valueOf(cost)));
                 lore.add("");
@@ -302,16 +302,17 @@ public class ReforgeGUI implements BaseGUI {
 
         // Check economy
         if (plugin.getVaultHook() != null && plugin.getVaultHook().isEnabled()) {
-            if (!plugin.getVaultHook().hasMoney(player, newReforge.getCost())) {
+            double cost = newReforge.getDataFor(currentRarity).getCost();
+            if (!plugin.getVaultHook().hasMoney(player, cost)) {
                 String message = getMessage("reforge.not-enough-money").replace("{cost}",
-                        String.valueOf((int) newReforge.getCost()));
+                        String.valueOf((int) cost));
                 player.sendMessage(message);
                 playSound(player, "error");
                 return;
             }
 
             // Take the money
-            plugin.getVaultHook().takeMoney(player, newReforge.getCost());
+            plugin.getVaultHook().takeMoney(player, cost);
         }
 
         // Apply the reforge

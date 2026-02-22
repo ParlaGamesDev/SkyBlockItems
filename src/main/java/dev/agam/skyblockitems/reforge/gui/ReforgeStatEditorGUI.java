@@ -155,6 +155,9 @@ public class ReforgeStatEditorGUI implements BaseGUI {
 
         // Back button
         if (slot == 48) {
+            if (parent instanceof ReforgeEditorGUI) {
+                ((ReforgeEditorGUI) parent).updateStats(stats);
+            }
             parent.open();
             return;
         }

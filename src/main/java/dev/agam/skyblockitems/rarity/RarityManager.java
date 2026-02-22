@@ -5,6 +5,7 @@ import dev.agam.skyblockitems.enchantsystem.utils.ColorUtils;
 import io.lumine.mythic.lib.api.item.ItemTag;
 import io.lumine.mythic.lib.api.item.NBTItem;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -424,6 +425,19 @@ public class RarityManager {
     public ItemStack processItem(ItemStack item) {
         if (item == null || item.getType().isAir()) {
             return item;
+        }
+
+        // EXCLUSION: Reforge Gems should NEVER have rarity applied
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            NamespacedKey gemKey = new NamespacedKey(plugin, "reforge_gem_id");
+            if (meta.getPersistentDataContainer().has(gemKey, org.bukkit.persistence.PersistentDataType.STRING)) {
+                // If it's a gem, ensure it has NO rarity and skip processing
+                if (hasRarityLore(item)) {
+                    return removeRarity(item, false);
+                }
+                return item;
+            }
         }
 
         NBTItem nbt = NBTItem.get(item);

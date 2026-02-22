@@ -278,7 +278,6 @@ reforge:
     - ""
     - "<#636e72>עלות: <#2ecc71>{cost} מטבעות"
   success: "&aבוצע בהצלחה! החפץ שלך הפך ל-&e{reforge}&a!"
-  error: "&cאירעה שגיאה בעיבוד החפץ. נסה שוב."
 
   vip:
     gui-title: "<#d63aff>&lחישול VIP"
@@ -289,6 +288,7 @@ reforge:
     invalid-stone: "<#e74c3c>&lאבן לא תקינה"
     invalid-stone-lore: "&7זו אינה אבן חישל תקינה."
     unknown-stone: "<#e74c3c>&lאבן לא מוכרת"
+    one-item-limit: "&cניתן להכניס רק חפץ אחד (לא ערימה)!"
     unknown-stone-lore: "&7לא נמצא חישול שמשתמש באבן זו."
     incompatible-stone: "<#e74c3c>&lאבן לא מתאימה"
     incompatible-stone-lore: "&7אבן זו אינה מתאימה לסוג הפריט."
@@ -301,7 +301,7 @@ reforge:
 
   stat-names:
     attack_damage: "<#ffe5d9>נזק התקפה"
-    attack-speed: "<#ffe5d9>מהירות התקפה"
+    attack_speed: "<#ffe5d9>מהירות התקפה"
     critical_strike_chance: "<#f1bf50>סיכוי לקריט"
     critical_strike_power: "<#f1bf50>עוצמת קריט"
     skill_critical_strike_chance: "<#f1bf50>סיכוי לקריט סקיל"

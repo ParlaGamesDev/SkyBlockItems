@@ -104,8 +104,9 @@ public class ReforgeApplier {
             return "reforge.not-mmoitem";
         }
 
-        // Check if REFORGEABLE stat is set to false
-        if (nbtItem.hasTag("MMOITEMS_REFORGEABLE") && !nbtItem.getBoolean("MMOITEMS_REFORGEABLE")) {
+        // Check if REFORGEABLE stat is explicitly false OR missing (if missing, it's
+        // not reforgeable)
+        if (!nbtItem.hasTag("MMOITEMS_REFORGEABLE") || !nbtItem.getBoolean("MMOITEMS_REFORGEABLE")) {
             return "reforge.not-reforgeable";
         }
 
@@ -146,8 +147,10 @@ public class ReforgeApplier {
             if (hasReforge(item)) {
                 removeReforgeLegacy(item, null);
             }
-            applyReforgeLegacy(item, reforge, itemType);
-            applyEnchantmentsLegacy(item, reforge);
+            // For legacy, we just use COMMON or first available
+            Reforge.RarityData data = reforge.getDataFor("COMMON");
+            applyReforgeLegacy(item, reforge, itemType, data);
+            applyEnchantmentsLegacy(item, data);
         }
 
         return true;
@@ -293,7 +296,13 @@ public class ReforgeApplier {
 
             // 2. MERGE new stats into LiveMMOItem
             Map<String, Double> addedStats = new HashMap<>();
-            for (Map.Entry<String, Double> entry : reforge.getStats().entrySet()) {
+
+            // Get data based on item rarity
+            Rarity itemRarity = plugin.getRarityManager().getRarityForItem(item, NBTItem.get(item));
+            String rarityId = (itemRarity != null) ? itemRarity.getIdentifier() : "COMMON";
+            Reforge.RarityData data = reforge.getDataFor(rarityId);
+
+            for (Map.Entry<String, Double> entry : data.getStats().entrySet()) {
                 String cleanId = entry.getKey().replace("mmoitems_", "");
                 String mmoStatId = cleanId.toUpperCase().replace("-", "_");
                 ItemStat<?, ?> stat = net.Indyuce.mmoitems.MMOItems.plugin.getStats().get(mmoStatId);
@@ -322,7 +331,8 @@ public class ReforgeApplier {
 
             // Build the PERFECT lore manually (Structural Preservation)
             Reforge oldReforge = oldReforgeId != null ? plugin.getReforgeManager().getReforge(oldReforgeId) : null;
-            List<String> perfectLore = buildPerfectLore(preMutationLore, baseLore, reforge, oldReforge, addedStats,
+            List<String> perfectLore = buildPerfectLore(preMutationLore, baseLore, reforge, data, oldReforge,
+                    addedStats,
                     preservedAbilities,
                     oldReforgeAbilities);
 
@@ -334,7 +344,7 @@ public class ReforgeApplier {
 
             // Apply enchantments and track them
             List<String> addedEnchantsList = new ArrayList<>();
-            for (String s : reforge.getEnchants()) {
+            for (String s : data.getEnchants()) {
                 try {
                     String[] split = s.split(":");
                     Enchantment e = Enchantment.getByName(split[0].toUpperCase());
@@ -377,6 +387,7 @@ public class ReforgeApplier {
      * This is the creative solution - we construct exactly what we want!
      */
     private List<String> buildPerfectLore(List<String> rawPreMutationLore, List<String> builtLore, Reforge reforge,
+            Reforge.RarityData data,
             Reforge oldReforge,
             Map<String, Double> addedStats, List<List<String>> preservedAbilities, Set<String> oldReforgeAbilities) {
         List<String> result = new ArrayList<>();
@@ -640,7 +651,7 @@ public class ReforgeApplier {
 
         // 7. Enchantments (Applied via Reforge) - NOW AT THE TOP
         List<String> reforgeEnchantsLines = new ArrayList<>();
-        for (String s : reforge.getEnchants()) {
+        for (String s : data.getEnchants()) {
             try {
                 String[] split = s.split(":");
                 String enchantId = split[0].toUpperCase();
@@ -703,9 +714,14 @@ public class ReforgeApplier {
     private void cleanLore(List<String> lore, Reforge reforge, Reforge oldReforge, Set<String> oldReforgeAbilities) {
         Set<String> namesToRemove = new HashSet<>();
 
-        // Add enchant names from old reforge
-        if (oldReforge != null && oldReforge.getEnchants() != null) {
-            for (String s : oldReforge.getEnchants()) {
+        // Add enchant names from old reforge (check all tiers)
+        if (oldReforge != null) {
+            Set<String> allOldEnchants = new HashSet<>();
+            for (Reforge.RarityData tier : oldReforge.getRarityDataMap().values()) {
+                allOldEnchants.addAll(tier.getEnchants());
+            }
+
+            for (String s : allOldEnchants) {
                 try {
                     String enchantId = s.split(":")[0].toUpperCase();
                     String displayName = plugin.getEnchantManager().getDisplayNameForId(enchantId.toLowerCase());
@@ -849,13 +865,20 @@ public class ReforgeApplier {
     private void applyManualBonusAnnotations(List<String> lore, Reforge reforge) {
         // Map of display name components -> (StatID, bonus value)
         Map<String, Map.Entry<String, Double>> bonuses = new HashMap<>();
-        for (Map.Entry<String, Double> entry : reforge.getStats().entrySet()) {
-            String statId = entry.getKey().replace("mmoitems_", "").toUpperCase().replace("-", "_");
+        // Use all unique stats across all rarities for annotation matching
+        Set<String> allStatKeys = new HashSet<>();
+        for (Reforge.RarityData tier : reforge.getRarityDataMap().values()) {
+            allStatKeys.addAll(tier.getStats().keySet());
+        }
+
+        for (String statKey : allStatKeys) {
+            String statId = statKey.replace("mmoitems_", "").toUpperCase().replace("-", "_");
             String statDisplayName = getStatDisplayName(statId);
             if (statDisplayName != null) {
-                // Stripped name like "Strength"
+                // Determine a value to show (average or from first tier)
+                double value = reforge.getDataFor("COMMON").getStats().getOrDefault(statKey, 0.0);
                 bonuses.put(ColorUtils.stripColor(statDisplayName).trim(),
-                        new AbstractMap.SimpleEntry<>(statId, entry.getValue()));
+                        new AbstractMap.SimpleEntry<>(statId, value));
             }
         }
 
@@ -917,17 +940,17 @@ public class ReforgeApplier {
         return getCurrentReforge(item) != null;
     }
 
-    private void applyReforgeLegacy(ItemStack item, Reforge reforge, String itemType) {
+    private void applyReforgeLegacy(ItemStack item, Reforge reforge, String itemType, Reforge.RarityData data) {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.getPersistentDataContainer().set(PDC_REFORGE_ID, PersistentDataType.STRING, reforge.getId());
             item.setItemMeta(meta);
         }
-        statApplier.applyStats(item, reforge, itemType);
+        statApplier.applyStats(item, data, itemType);
     }
 
-    private void applyEnchantmentsLegacy(ItemStack item, Reforge reforge) {
-        for (String s : reforge.getEnchants()) {
+    private void applyEnchantmentsLegacy(ItemStack item, Reforge.RarityData data) {
+        for (String s : data.getEnchants()) {
             try {
                 String[] split = s.split(":");
                 Enchantment ench = Enchantment.getByName(split[0].toUpperCase());

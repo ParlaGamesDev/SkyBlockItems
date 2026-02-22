@@ -44,14 +44,14 @@ public class StatApplier {
     }
 
     /**
-     * Applies stats from a reforge to an item.
+     * Applies stats from a reforge's rarity data to an item.
      * Uses the Data-Driven MMOItems API when possible.
      */
-    public void applyStats(ItemStack item, Reforge reforge, String itemType) {
-        if (item == null || reforge == null)
+    public void applyStats(ItemStack item, Reforge.RarityData data, String itemType) {
+        if (item == null || data == null)
             return;
 
-        Map<String, Double> stats = reforge.getStats();
+        Map<String, Double> stats = data.getStats();
         if (stats.isEmpty())
             return;
 
@@ -139,25 +139,28 @@ public class StatApplier {
     }
 
     /**
-     * Removes stats from an item.
+     * Removes stats from an item based on a reforge.
+     * For legacy items, uses the COMMON tier as default.
      */
     public void removeStats(ItemStack item, Reforge reforge) {
         if (item == null || reforge == null)
             return;
 
+        Map<String, Double> statsToRemove = reforge.getDataFor("COMMON").getStats();
+
         if (dev.agam.skyblockitems.integration.MMOItemsStatIntegration.isMMOItem(item)) {
-            removeStatsFromMMOItem(item, reforge);
+            removeStatsFromMMOItem(item, statsToRemove);
         } else {
-            removeStatsManually(item, reforge.getStats());
+            removeStatsManually(item, statsToRemove);
         }
     }
 
-    private void removeStatsFromMMOItem(ItemStack item, Reforge reforge) {
+    private void removeStatsFromMMOItem(ItemStack item, Map<String, Double> stats) {
         try {
             LiveMMOItem mmoItem = new LiveMMOItem(item);
             boolean modified = false;
 
-            for (Map.Entry<String, Double> entry : reforge.getStats().entrySet()) {
+            for (Map.Entry<String, Double> entry : stats.entrySet()) {
                 String statKey = entry.getKey();
                 if (statKey.startsWith("mmoitems_")) {
                     String cleanId = statKey.substring("mmoitems_".length());
@@ -172,11 +175,10 @@ public class StatApplier {
                     if (stat != null && mmoItem.hasData(stat)) {
                         DoubleData current = (DoubleData) mmoItem.getData(stat);
                         double newValue = current.getValue() - entry.getValue();
-                        if (newValue <= 0)
+                        if (newValue <= 0.0001)
                             mmoItem.removeData(stat);
                         else {
-                            current.setValue(newValue);
-                            mmoItem.setData(stat, current);
+                            mmoItem.setData(stat, new DoubleData(newValue));
                         }
                         modified = true;
                     }
@@ -188,7 +190,7 @@ public class StatApplier {
                 item.setItemMeta(rebuilt.getItemMeta());
             }
         } catch (Exception e) {
-            removeStatsManually(item, reforge.getStats());
+            removeStatsManually(item, stats);
         }
     }
 
