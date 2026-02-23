@@ -1,103 +1,1127 @@
 # =============================================================================
 #                       SkyBlockItems - Reforge System
 # =============================================================================
-# מערכת חישולים בסגנון Hypixel Skyblock
-#
-# פורמט הגדרת Reforge:
-# reforges:
-#   <id>:
-#     display-name: "שם החישול"
-#     item-types: [SWORD, BOW, ARMOR, etc.]
-#     rarity-requirement: COMMON
-#     rarity-upgrade: RARE
-#     cost: 1000
-#     stats:
-#       mmoitems_attack_damage: 10
-#     enchants:
-#       - "SHARPNESS:5"
-#     abilities:
-#       - "ABILITY_ID"
-#
-# =============================================================================
 
 settings:
-  stat-format: "&#FAE8B8({value})"
-
+  stat-format: '&#FAE8B8({value})'
 reforges:
-  starter:
-    display-name: "&fStarter"
-    item-types: ["SWORD", "AXE", "BOW", "ARMOR"]
-    rarity-requirement: COMMON
-    rarity-upgrade: NONE
-    cost: 1000
-    stats:
-      mmoitems_attack_damage: 5
-      mmoitems_defense: 5
-    enchants: []
-    abilities: []
-
-  keen:
-    display-name: "&cKeen"
-    item-types: ["SWORD", "AXE"]
-    rarity-requirement: COMMON
-    rarity-upgrade: NONE
-    cost: 5000
-    stats:
-      mmoitems_attack_damage: 15
-      mmoitems_critical_strike_chance: 10
-      mmoitems_critical_strike_power: 25
-    enchants: []
-    abilities: []
-
-  titanium:
-    display-name: "&8Titanium"
-    item-types: ["ARMOR", "HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS"]
-    rarity-requirement: RARE
-    rarity-upgrade: EPIC
-    cost: 10000
-    stats:
-      mmoitems_defense: 35
-      mmoitems_max_health: 50
-    enchants:
-      - "PROTECTION:3"
-    abilities: []
-
-  necrotic:
-    display-name: "&5Necrotic"
-    item-types: ["ARMOR", "HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS"]
-    rarity-requirement: RARE
-    rarity-upgrade: NONE
-    cost: 15000
-    stats:
-      mmoitems_max_mana: 100
-    enchants: []
-    abilities: []
-
-  precise:
-    display-name: "&6Precise"
-    item-types: ["BOW", "CROSSBOW"]
-    rarity-requirement: COMMON
-    rarity-upgrade: NONE
-    cost: 4000
-    stats:
-      mmoitems_critical_strike_chance: 15
-      mmoitems_attack_damage: 10
-    enchants:
-      - "POWER:3"
-    abilities: []
-
+  powerfull:
+    display-name: <gradient:#FF4500:#FF8C00>עוצמתי</gradient> <#ffffff>|
+    item-types:
+    - SWORD
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_attack_damage: 25.0
+        enchants: []
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_attack_damage: 35.0
+        enchants: []
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_attack_damage: 45.0
+        enchants: []
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_attack_damage: 55.0
+        enchants: []
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_damage: 65.0
+        enchants: []
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_damage: 75.0
+        enchants: []
+  god:
+    display-name: <gradient:#FFD700:#FFA500>אלוהי</gradient> <#ffffff>|
+    item-types:
+    - SWORD
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_attack_damage: 90.0
+          mmoitems_critical_strike_power: 55.0
+        enchants:
+        - SHARPNESS:5
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_attack_damage: 100.0
+          mmoitems_critical_strike_power: 65.0
+        enchants:
+        - SHARPNESS:5
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_attack_damage: 110.0
+          mmoitems_critical_strike_power: 75.0
+        enchants:
+        - SHARPNESS:5
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_attack_damage: 120.0
+          mmoitems_critical_strike_power: 85.0
+        enchants:
+        - SHARPNESS:6
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_damage: 130.0
+          mmoitems_critical_strike_power: 95.0
+        enchants:
+        - SHARPNESS:6
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_damage: 140.0
+          mmoitems_critical_strike_power: 105.0
+        enchants:
+        - SHARPNESS:6
+    gem:
+      id: god_gem
+      name: <gradient:#FFD700:#FFA500>אלוהי</gradient>
+      lore:
+      - '&7לחץ לשימוש בסדן כדי להוסיף את החישול!'
+      material: NETHER_STAR
+  fierce:
+    display-name: <gradient:#8B0000:#FF0000>אכזרי</gradient> <#ffffff>|
+    item-types:
+    - SWORD
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_critical_strike_chance: 15.0
+        enchants: []
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_critical_strike_chance: 25.0
+        enchants: []
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_critical_strike_chance: 35.0
+        enchants: []
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_critical_strike_chance: 45.0
+        enchants: []
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_critical_strike_chance: 55.0
+        enchants: []
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_critical_strike_chance: 65.0
+        enchants: []
   legendary:
-    display-name: "&6&lLegendary"
-    item-types: ["SWORD", "BOW", "ARMOR"]
-    rarity-requirement: EPIC
-    rarity-upgrade: LEGENDARY
-    cost: 50000
-    stats:
-      mmoitems_attack_damage: 40
-      mmoitems_critical_strike_chance: 20
-      mmoitems_critical_strike_power: 50
-      mmoitems_max_health: 60
-      mmoitems_defense: 30
-      mmoitems_movement_speed: 5
-    enchants: []
-    abilities: []
+    display-name: <gradient:#DA70D6:#FF00FF>אגדי</gradient> <#ffffff>|
+    item-types:
+    - SWORD
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_attack_damage: 45.0
+          mmoitems_critical_strike_chance: 1.0
+          mmoitems_max_health: 110.0
+        enchants:
+        - SHARPNESS:4
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_attack_damage: 55.0
+          mmoitems_critical_strike_chance: 5.0
+          mmoitems_max_health: 120.0
+        enchants:
+        - SHARPNESS:4
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_attack_damage: 65.0
+          mmoitems_critical_strike_chance: 15.0
+          mmoitems_max_health: 130.0
+        enchants:
+        - SHARPNESS:4
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_attack_damage: 75.0
+          mmoitems_critical_strike_chance: 25.0
+          mmoitems_max_health: 140.0
+        enchants:
+        - SHARPNESS:5
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_damage: 85.0
+          mmoitems_critical_strike_chance: 35.0
+          mmoitems_max_health: 150.0
+        enchants:
+        - SHARPNESS:5
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_damage: 95.0
+          mmoitems_critical_strike_chance: 45.0
+          mmoitems_max_health: 160.0
+        enchants:
+        - SHARPNESS:5
+    gem:
+      id: legendary_gem
+      name: <gradient:#DA70D6:#FF00FF>אגדי</gradient>
+      lore:
+      - '&7לחץ לשימוש בסדן כדי להוסיף את החישול!'
+      material: DIAMOND
+  deadly:
+    display-name: <gradient:#006400:#32CD32>קטלני</gradient> <#ffffff>|
+    item-types:
+    - SWORD
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_attack_speed: 15.0
+          mmoitems_attack_damage: 40.0
+        enchants: []
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_attack_speed: 25.0
+          mmoitems_attack_damage: 50.0
+        enchants: []
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_attack_speed: 35.0
+          mmoitems_attack_damage: 60.0
+        enchants: []
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_attack_speed: 45.0
+          mmoitems_attack_damage: 70.0
+        enchants: []
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_speed: 55.0
+          mmoitems_attack_damage: 80.0
+        enchants: []
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_speed: 65.0
+          mmoitems_attack_damage: 90.0
+        enchants: []
+  resistance:
+    display-name: <gradient:#003366:#3366FF>חסינות</gradient> <#ffffff>|
+    item-types:
+    - HELMET
+    - CHESTPLATE
+    - LEGGINGS
+    - BOOTS
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_defense: 80.0
+        enchants:
+        - PROTECTION:4
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_defense: 90.0
+        enchants:
+        - PROTECTION:4
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_defense: 100.0
+        enchants:
+        - PROTECTION:4
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_defense: 110.0
+        enchants:
+        - PROTECTION:5
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_defense: 120.0
+        enchants:
+        - PROTECTION:5
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_defense: 130.0
+        enchants:
+        - PROTECTION:5
+  ancient:
+    display-name: <gradient:#556B2F:#8FBC8F>עתיק</gradient> <#ffffff>|
+    item-types:
+    - HELMET
+    - CHESTPLATE
+    - LEGGINGS
+    - BOOTS
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_additional-toughness: 10.0
+          mmoitems_max_health: 270.0
+        enchants:
+        - PROTECTION:5
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_additional-toughness: 20.0
+          mmoitems_max_health: 280.0
+        enchants:
+        - PROTECTION:5
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_additional-toughness: 30.0
+          mmoitems_max_health: 290.0
+        enchants:
+        - PROTECTION:5
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_additional-toughness: 40.0
+          mmoitems_max_health: 300.0
+        enchants:
+        - PROTECTION:6
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_additional-toughness: 50.0
+          mmoitems_max_health: 310.0
+        enchants:
+        - PROTECTION:6
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_additional-toughness: 60.0
+          mmoitems_max_health: 320.0
+        enchants:
+        - PROTECTION:6
+    gem:
+      id: ancient_gem
+      name: <gradient:#556B2F:#8FBC8F>עתיק</gradient>
+      lore:
+      - '&7לחץ לשימוש בסדן כדי להוסיף את החישול!'
+      material: PRISMARINE_SHARD
+  royal:
+    display-name: <gradient:#4169E1:#00BFFF>מלכותי</gradient> <#ffffff>|
+    item-types:
+    - HELMET
+    - CHESTPLATE
+    - LEGGINGS
+    - BOOTS
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_max_health: 560.0
+          mmoitems_defense: 35.0
+        enchants: []
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_max_health: 570.0
+          mmoitems_defense: 45.0
+        enchants: []
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_max_health: 580.0
+          mmoitems_defense: 55.0
+        enchants: []
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_max_health: 590.0
+          mmoitems_defense: 65.0
+        enchants: []
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_max_health: 600.0
+          mmoitems_defense: 75.0
+        enchants: []
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_max_health: 610.0
+          mmoitems_defense: 85.0
+        enchants: []
+    gem:
+      id: royal_gem
+      name: <gradient:#4169E1:#00BFFF>מלכותי</gradient>
+      lore:
+      - '&7לחץ לשימוש בסדן כדי להוסיף את החישול!'
+      material: EMERALD
+  durable:
+    display-name: <gradient:#008B8B:#00FFFF>עמיד</gradient> <#ffffff>|
+    item-types:
+    - HELMET
+    - CHESTPLATE
+    - LEGGINGS
+    - BOOTS
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_defense: 90.0
+          mmoitems_max_health: 90.0
+        enchants: []
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_defense: 100.0
+          mmoitems_max_health: 100.0
+        enchants: []
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_defense: 110.0
+          mmoitems_max_health: 110.0
+        enchants: []
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_defense: 120.0
+          mmoitems_max_health: 120.0
+        enchants: []
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_defense: 130.0
+          mmoitems_max_health: 130.0
+        enchants: []
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_defense: 140.0
+          mmoitems_max_health: 140.0
+        enchants: []
+  hardend:
+    display-name: <gradient:#4F4F4F:#A9A9A9>קשיח</gradient> <#ffffff>|
+    item-types:
+    - HELMET
+    - CHESTPLATE
+    - LEGGINGS
+    - BOOTS
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_additional-toughness: 55.0
+        enchants: []
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_additional-toughness: 65.0
+        enchants: []
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_additional-toughness: 75.0
+        enchants: []
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_additional-toughness: 85.0
+        enchants: []
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_additional-toughness: 95.0
+        enchants: []
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_additional-toughness: 105.0
+        enchants: []
+  formidable:
+    display-name: <gradient:#FF4500:#FFD700>אימתני</gradient> <#ffffff>|
+    item-types:
+    - BOW
+    - CROSSBOW
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_projectile_damage: 60.0
+        enchants:
+        - POWER:5
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_projectile_damage: 70.0
+        enchants:
+        - POWER:5
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_projectile_damage: 80.0
+        enchants:
+        - POWER:5
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_projectile_damage: 90.0
+        enchants:
+        - POWER:6
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_projectile_damage: 100.0
+        enchants:
+        - POWER:6
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_projectile_damage: 110.0
+        enchants:
+        - POWER:6
+    gem:
+      id: formidable_gem
+      name: <gradient:#FF4500:#FFD700>אימתני</gradient>
+      lore:
+      - '&7לחץ לשימוש בסדן כדי להוסיף את החישול!'
+      material: QUARTZ
+  focused:
+    display-name: <gradient:#1E90FF:#00CED1>מכוון</gradient> <#ffffff>|
+    item-types:
+    - BOW
+    - CROSSBOW
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_critical_strike_chance: 30.0
+        enchants:
+        - POWER:3
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_critical_strike_chance: 40.0
+        enchants:
+        - POWER:3
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_critical_strike_chance: 50.0
+        enchants:
+        - POWER:3
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_critical_strike_chance: 60.0
+        enchants:
+        - POWER:4
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_critical_strike_chance: 70.0
+        enchants:
+        - POWER:4
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_critical_strike_chance: 80.0
+        enchants:
+        - POWER:4
+  repulse:
+    display-name: <gradient:#FF8C00:#FFFF00>הדיפה</gradient> <#ffffff>|
+    item-types:
+    - BOW
+    - CROSSBOW
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_knockback_resistance: 0.5
+        enchants:
+        - PUNCH:2
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_knockback_resistance: 0.6
+        enchants:
+        - PUNCH:2
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_knockback_resistance: 0.7
+        enchants:
+        - PUNCH:2
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_knockback_resistance: 0.8
+        enchants:
+        - PUNCH:3
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_knockback_resistance: 0.9
+        enchants:
+        - PUNCH:3
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_knockback_resistance: 1.0
+        enchants:
+        - PUNCH:3
+  destrictove:
+    display-name: <gradient:#800000:#FF4500>הרסני</gradient> <#ffffff>|
+    item-types:
+    - BOW
+    - CROSSBOW
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_projectile_damage: 140.0
+        enchants:
+        - POWER:6
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_projectile_damage: 150.0
+        enchants:
+        - POWER:6
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_projectile_damage: 160.0
+        enchants:
+        - POWER:6
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_projectile_damage: 170.0
+        enchants:
+        - POWER:7
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_projectile_damage: 180.0
+        enchants:
+        - POWER:7
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_projectile_damage: 190.0
+        enchants:
+        - POWER:7
+    gem:
+      id: destrictove_gem
+      name: <gradient:#800000:#FF4500>הרסני</gradient>
+      lore:
+      - '&7לחץ לשימוש בסדן כדי להוסיף את החישול!'
+      material: MAGMA_CREAM
+  precies:
+    display-name: <gradient:#7FFF00:#00FF00>דייקן</gradient> <#ffffff>|
+    item-types:
+    - BOW
+    - CROSSBOW
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_critical_strike_power: 50.0
+        enchants:
+        - POWER:4
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_critical_strike_power: 60.0
+        enchants:
+        - POWER:4
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_critical_strike_power: 70.0
+        enchants:
+        - POWER:4
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_critical_strike_power: 80.0
+        enchants:
+        - POWER:5
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_critical_strike_power: 90.0
+        enchants:
+        - POWER:5
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_critical_strike_power: 100.0
+        enchants:
+        - POWER:5
+  wild:
+    display-name: <gradient:#A0522D:#D2691E>פראי</gradient> <#ffffff>|
+    item-types:
+    - AXE
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_attack_speed: 45.0
+        enchants:
+        - EFFICIENCY:4
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_attack_speed: 55.0
+        enchants:
+        - EFFICIENCY:4
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_attack_speed: 65.0
+        enchants:
+        - EFFICIENCY:4
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_attack_speed: 75.0
+        enchants:
+        - EFFICIENCY:5
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_speed: 85.0
+        enchants:
+        - EFFICIENCY:5
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_speed: 95.0
+        enchants:
+        - EFFICIENCY:5
+  malicious:
+    display-name: <gradient:#4B0082:#9400D3>זדוני</gradient> <#ffffff>|
+    item-types:
+    - AXE
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_attack_damage: 65.0
+        enchants:
+        - SHARPNESS:3
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_attack_damage: 75.0
+        enchants:
+        - SHARPNESS:3
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_attack_damage: 85.0
+        enchants:
+        - SHARPNESS:3
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_attack_damage: 95.0
+        enchants:
+        - SHARPNESS:4
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_damage: 105.0
+        enchants:
+        - SHARPNESS:4
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_damage: 115.0
+        enchants:
+        - SHARPNESS:4
+  shattering:
+    display-name: <gradient:#E0FFFF:#AFEEEE>מנפץ</gradient> <#ffffff>|
+    item-types:
+    - AXE
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_pve_damage: 70.0
+        enchants:
+        - SMITE:5
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_pve_damage: 80.0
+        enchants:
+        - SMITE:5
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_pve_damage: 90.0
+        enchants:
+        - SMITE:5
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_pve_damage: 100.0
+        enchants:
+        - SMITE:6
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_pve_damage: 110.0
+        enchants:
+        - SMITE:6
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_pve_damage: 120.0
+        enchants:
+        - SMITE:6
+    gem:
+      id: shattering_gem
+      name: <gradient:#E0FFFF:#AFEEEE>מנפץ</gradient>
+      lore:
+      - '&7לחץ לשימוש בסדן כדי להוסיף את החישול!'
+      material: GHAST_TEAR
+  sharpned:
+    display-name: <gradient:#B0C4DE:#ADD8E6>מושחז</gradient> <#ffffff>|
+    item-types:
+    - AXE
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_attack_damage: 50.0
+        enchants:
+        - SHARPNESS:4
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_attack_damage: 60.0
+        enchants:
+        - SHARPNESS:4
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_attack_damage: 70.0
+        enchants:
+        - SHARPNESS:4
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_attack_damage: 80.0
+        enchants:
+        - SHARPNESS:5
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_damage: 90.0
+        enchants:
+        - SHARPNESS:5
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_attack_damage: 100.0
+        enchants:
+        - SHARPNESS:5
+  stromy:
+    display-name: <gradient:#FFD700:#FFA500>סוער</gradient> <#ffffff>|
+    item-types:
+    - AXE
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_movement_speed: 1.0
+          mmoitems_attack_damage: 1.0
+        enchants:
+        - SHARPNESS:5
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_movement_speed: 1.0
+          mmoitems_attack_damage: 10.0
+        enchants:
+        - SHARPNESS:5
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_movement_speed: 1.0
+          mmoitems_attack_damage: 20.0
+        enchants:
+        - SHARPNESS:5
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_movement_speed: 1.0
+          mmoitems_attack_damage: 30.0
+        enchants:
+        - SHARPNESS:6
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_movement_speed: 10.0
+          mmoitems_attack_damage: 40.0
+        enchants:
+        - SHARPNESS:6
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_movement_speed: 20.0
+          mmoitems_attack_damage: 50.0
+        enchants:
+        - SHARPNESS:6
+    gem:
+      id: stromy_gem
+      name: <gradient:#FFD700:#FFA500>סוער</gradient>
+      lore:
+      - '&7לחץ לשימוש בסדן כדי להוסיף את החישול!'
+      material: FLINT
+  agility:
+    display-name: <gradient:#FFFACD:#FFFF00>זריזות</gradient> <#ffffff>|
+    item-types:
+    - AXE
+    - HOE
+    - PICKAXE
+    - SHOVEL
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_movement_speed: 40.0
+        enchants: []
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_movement_speed: 50.0
+        enchants: []
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_movement_speed: 60.0
+        enchants: []
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_movement_speed: 70.0
+        enchants: []
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_movement_speed: 80.0
+        enchants: []
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_movement_speed: 90.0
+        enchants: []
+  fire:
+    display-name: <gradient:#FF2400:#FFD700>לוהט</gradient> <#ffffff>|
+    item-types:
+    - AXE
+    - HOE
+    - PICKAXE
+    - SHOVEL
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_autosmelt: 1.0
+        enchants: []
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_autosmelt: 1.0
+        enchants: []
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_autosmelt: 1.0
+        enchants: []
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_autosmelt: 1.0
+        enchants: []
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_autosmelt: 1.0
+        enchants: []
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_autosmelt: 1.0
+        enchants: []
+  sturdy:
+    display-name: <gradient:#4682B4:#B0C4DE>עמיד</gradient> <#ffffff>|
+    item-types:
+    - AXE
+    - HOE
+    - PICKAXE
+    - SHOVEL
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_knockback_resistance: 0.9
+        enchants: []
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_knockback_resistance: 1.0
+        enchants: []
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_knockback_resistance: 1.0
+        enchants: []
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_knockback_resistance: 1.0
+        enchants: []
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_knockback_resistance: 1.0
+        enchants: []
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_knockback_resistance: 1.0
+        enchants: []
+  blessed:
+    display-name: <gradient:#87CEFA:#FFFFFF>מבורך</gradient> <#ffffff>|
+    item-types:
+    - AXE
+    - HOE
+    - PICKAXE
+    - SHOVEL
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_mining_efficiency: 120.0
+        enchants:
+        - EFFICIENCY:6
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_mining_efficiency: 130.0
+        enchants:
+        - EFFICIENCY:6
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_mining_efficiency: 140.0
+        enchants:
+        - EFFICIENCY:6
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_mining_efficiency: 150.0
+        enchants:
+        - EFFICIENCY:7
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_mining_efficiency: 160.0
+        enchants:
+        - EFFICIENCY:7
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_mining_efficiency: 170.0
+        enchants:
+        - EFFICIENCY:7
+    gem:
+      id: blessed_gem
+      name: <gradient:#87CEFA:#FFFFFF>מבורך</gradient>
+      lore:
+      - '&7לחץ לשימוש בסדן כדי להוסיף את החישול!'
+      material: GLOWSTONE_DUST
+  pure:
+    display-name: <gradient:#F5F5F5:#FFFFFF>טהור</gradient> <#ffffff>|
+    item-types:
+    - AXE
+    - HOE
+    - PICKAXE
+    - SHOVEL
+    rarities:
+      common:
+        cost: 5000.0
+        stats:
+          mmoitems_movement_speed: 10.0
+          mmoitems_mining_efficiency: 40.0
+        enchants:
+        - EFFICIENCY:7
+      rare:
+        cost: 10000.0
+        stats:
+          mmoitems_movement_speed: 20.0
+          mmoitems_mining_efficiency: 50.0
+        enchants:
+        - EFFICIENCY:7
+      epic:
+        cost: 20000.0
+        stats:
+          mmoitems_movement_speed: 30.0
+          mmoitems_mining_efficiency: 60.0
+        enchants:
+        - EFFICIENCY:7
+      legendary:
+        cost: 35000.0
+        stats:
+          mmoitems_movement_speed: 40.0
+          mmoitems_mining_efficiency: 70.0
+        enchants:
+        - EFFICIENCY:8
+      mythic:
+        cost: 50000.0
+        stats:
+          mmoitems_movement_speed: 50.0
+          mmoitems_mining_efficiency: 80.0
+        enchants:
+        - EFFICIENCY:8
+      divine:
+        cost: 50000.0
+        stats:
+          mmoitems_movement_speed: 60.0
+          mmoitems_mining_efficiency: 90.0
+        enchants:
+        - EFFICIENCY:8
+    gem:
+      id: pure_gem
+      name: <gradient:#F5F5F5:#FFFFFF>טהור</gradient>
+      lore:
+      - '&7לחץ לשימוש בסדן כדי להוסיף את החישול!'
+      material: WHITE_DYE

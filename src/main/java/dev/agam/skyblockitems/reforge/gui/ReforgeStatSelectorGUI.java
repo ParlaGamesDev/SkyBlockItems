@@ -61,10 +61,12 @@ public class ReforgeStatSelectorGUI implements BaseGUI {
                 "SKILL_CRITICAL_STRIKE_CHANCE", "SKILL_CRITICAL_STRIKE_POWER", "PVE_DAMAGE", "PVP_DAMAGE",
                 "WEAPON_DAMAGE", "SKILL_DAMAGE", "PROJECTILE_DAMAGE", "MAGIC_DAMAGE", "PHYSICAL_DAMAGE",
                 "DEFENSE", "FALL_DAMAGE_REDUCTION", "FIRE_DAMAGE_REDUCTION", "PVE_DAMAGE_REDUCTION",
-                "PVP_DAMAGE_REDUCTION", "UNDEAD_DAMAGE", "LIFESTEAL",
-                "ARMOR_TOUGHNESS", "MAX_HEALTH", "KNOCKBACK_RESISTANCE", "MOVEMENT_SPEED",
+                "PVP_DAMAGE_REDUCTION", "UNDEAD_DAMAGE", "LIFESTEAL", "SPELL_VAMPIRISM",
+                "ARMOR_TOUGHNESS", "MAX_HEALTH", "HEALTH_REGENERATION", "KNOCKBACK_RESISTANCE", "MOVEMENT_SPEED",
                 "JUMP_STRENGTH", "MINING_EFFICIENCY", "MOVEMENT_EFFICIENCY", "OXYGEN_BONUS",
-                "SNEAKING_SPEED", "WATER_MOVEMENT_SPEED", "AUTOSMELT"));
+                "SNEAKING_SPEED", "WATER_MOVEMENT_SPEED", "AUTOSMELT",
+                "MAX_MANA", "MANA_REGENERATION", "COOLDOWN_REDUCTION", "MAGIC_RESISTANCE",
+                "DODGE_RATING", "PARRY_RATING", "BLOCK_RATING", "BLOCK_POWER"));
 
         try {
             Collection<ItemStat<?, ?>> stats = MMOItems.plugin.getStats().getAll();
@@ -93,15 +95,15 @@ public class ReforgeStatSelectorGUI implements BaseGUI {
             return Material.BLAZE_POWDER;
         if (id.contains("HEALTH"))
             return Material.APPLE;
-        if (id.contains("DEFENSE") || id.contains("ARMOR"))
+        if (id.contains("DEFENSE") || id.contains("ARMOR") || id.contains("TOUGHNESS"))
             return Material.IRON_CHESTPLATE;
         if (id.contains("REDUCTION"))
             return Material.SHIELD;
         if (id.contains("MINING") || id.contains("EFFICIENCY"))
             return Material.IRON_PICKAXE;
-        if (id.contains("MANA"))
+        if (id.contains("MANA") || id.contains("COOLDOWN"))
             return Material.LAPIS_LAZULI;
-        if (id.contains("LIFESTEAL"))
+        if (id.contains("LIFESTEAL") || id.contains("VAMPIRISM"))
             return Material.REDSTONE;
         if (id.contains("AUTOSMELT"))
             return Material.LAVA_BUCKET;

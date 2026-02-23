@@ -116,7 +116,9 @@ public class SkyBlockItems extends JavaPlugin {
             // 7. Background Tasks
             System.out.println("[SkyBlockItems] [BOOT] Step 7/7: Starting Passive Tasks...");
             new dev.agam.skyblockitems.tasks.PassiveAbilityTask().runTaskTimer(this, 20L, 20L);
-            new dev.agam.skyblockitems.tasks.CooldownLoreTask().runTaskTimer(this, 10L, 10L);
+            // Cooldown is now shown only in chat, not in item lore
+            // new dev.agam.skyblockitems.tasks.CooldownLoreTask().runTaskTimer(this, 10L,
+            // 10L);
             System.out.println("[SkyBlockItems] [BOOT] Step 7/7 complete.");
 
             getLogger().info("SkyBlockItems v" + getDescription().getVersion() + " enriched and enabled!");

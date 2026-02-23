@@ -76,13 +76,9 @@ public class AbilityLoreGenerator {
             for (String line : configDescription) {
                 String processed = line;
 
-                if (params.length >= 1) {
-                    if (cd <= 0 && processed.contains("{cooldown}")) {
-                        processed = processed.replaceAll(",?\\s*.*זמן המתנה של.*\\{cooldown\\}.*שניות\\.?", ".");
-                        processed = processed.replace("{cooldown}", "0");
-                    } else {
-                        processed = processed.replace("{cooldown}", params[0]);
-                    }
+                // Skip any line that mentions cooldown - cooldown is shown in chat only
+                if (processed.contains("{cooldown}")) {
+                    continue;
                 }
                 if (params.length >= 2) {
                     if (mana <= 1.0 && processed.contains("{mana}")) {
