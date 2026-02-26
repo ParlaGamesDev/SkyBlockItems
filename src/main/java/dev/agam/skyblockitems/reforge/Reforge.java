@@ -125,7 +125,28 @@ public class Reforge {
     public boolean isCompatibleWith(String itemType) {
         if (itemTypes.isEmpty() || itemTypes.contains("ALL") || itemTypes.contains("GLOBAL"))
             return true;
-        return itemTypes.stream().anyMatch(type -> type.equalsIgnoreCase(itemType));
+
+        String upperItemType = itemType.toUpperCase();
+        for (String type : itemTypes) {
+            String upperType = type.toUpperCase();
+            if (upperType.equals(upperItemType))
+                return true;
+
+            // Category matching
+            if (upperType.equals("ARMOR")) {
+                if (upperItemType.contains("HELMET") || upperItemType.contains("CHESTPLATE") ||
+                        upperItemType.contains("LEGGINGS") || upperItemType.contains("BOOTS") ||
+                        upperItemType.equals("ARMOR")) {
+                    return true;
+                }
+            }
+            if (upperType.equals("MELEE") || upperType.equals("WEAPON")) {
+                if (upperItemType.contains("SWORD") || upperItemType.contains("AXE")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override

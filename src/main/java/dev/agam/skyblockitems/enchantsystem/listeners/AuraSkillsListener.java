@@ -58,6 +58,6 @@ public class AuraSkillsListener implements Listener {
 
     private void notifyUnlock(Player player, String enchantName) {
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
-        player.sendMessage(ColorUtils.colorize("&a&lNEW ENCHANT UNLOCKED! &7" + enchantName));
+        player.sendMessage(plugin.getConfigManager().getMessage("enchanting.unlocked-alert", "{enchant}", enchantName));
     }
 }

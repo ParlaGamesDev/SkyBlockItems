@@ -86,6 +86,12 @@ public class ReforgeApplier {
         return dev.agam.skyblockitems.integration.ReforgeableStat.isReforgeable(item);
     }
 
+    public String getReforgeId(ItemStack item) {
+        if (item == null || !item.hasItemMeta())
+            return null;
+        return item.getItemMeta().getPersistentDataContainer().get(PDC_REFORGE_ID, PersistentDataType.STRING);
+    }
+
     /**
      * Gets the reason why an item cannot be reforged.
      * 
@@ -164,7 +170,7 @@ public class ReforgeApplier {
         List<String> currentAbility = null;
         for (String line : lore) {
             String stripped = dev.agam.skyblockitems.enchantsystem.utils.ColorUtils.stripColor(line).trim();
-            boolean isFooter = stripped.isEmpty(); // Footer if line is empty (end of block)
+            boolean isFooter = stripped.isEmpty();
 
             // Detect Header
             boolean isHeader = false;
@@ -173,7 +179,12 @@ public class ReforgeApplier {
                     || normalized.startsWith("יכולת אקטיבית:")) {
                 isHeader = true;
             } else {
-                String[] markers = { "RIGHT CLICK", "מקש ימני", "LCLICK", "מקש שמאלי", "מקס ימני", "פעיל" };
+                String[] markers = {
+                        "RIGHT CLICK", "מקש ימני", "LCLICK", "מקש שמאלי", "מקס ימני", "לחיצה ימנית", "לחיצה שמאלית",
+                        "שיפט + לחיצה ימנית", "שיפט + לחיצה שמאלית", "פעיל", "פגיעה באויב", "קבלת פגיעה", "בהריגה",
+                        "חציבה", "עיבוד אדמה", "חקלאות", "בשיפט", "בקפיצה", "פגיעה עם חץ", "עמידה בשמש", "שהייה במים",
+                        "יכולת פסיבית"
+                };
                 for (String s : markers) {
                     if (normalized.contains(normalizeForMatch(s))) {
                         isHeader = true;
@@ -205,7 +216,12 @@ public class ReforgeApplier {
                     }
                 }
 
-                if (isFooter || isRarityLine) {
+                // Description stop condition check
+                // Only stop if it's an empty line, a rarity line, or a STAT line (Label: Value)
+                // We DON'T stop just because there are numbers (common in abilities)
+                boolean isStatLine = stripped.contains(":") && (stripped.contains("%") || stripped.matches(".*\\d+.*"));
+
+                if (isFooter || isRarityLine || isStatLine) {
                     abilities.add(currentAbility);
                     currentAbility = null;
                 } else {
@@ -216,8 +232,8 @@ public class ReforgeApplier {
         if (currentAbility != null && !currentAbility.isEmpty()) {
             abilities.add(currentAbility);
         }
+
         // Deduplicate abilities by stripped header name (case-insensitive)
-        // We prioritize the block with the longest description.
         Map<String, List<String>> deduplicated = new LinkedHashMap<>();
         for (List<String> block : abilities) {
             if (block.isEmpty())
@@ -232,6 +248,65 @@ public class ReforgeApplier {
         return new ArrayList<>(deduplicated.values());
     }
 
+    private void restoreAbilitiesFromNBT(ItemStack item, List<List<String>> preservedAbilities) {
+        NBTItem nbt = NBTItem.get(item);
+        Set<String> existingHeaders = preservedAbilities.stream()
+                .map(block -> ColorUtils.stripColor(block.get(0)).trim().toUpperCase())
+                .collect(Collectors.toSet());
+
+        for (String tag : nbt.getTags()) {
+            if (tag.startsWith("SKYBLOCK_")) {
+                String abilityId = tag.replace("SKYBLOCK_", "");
+                // Resolve the ability object
+                dev.agam.skyblockitems.abilities.SkyBlockAbility ability = plugin.getAbilityManager()
+                        .getAbility(abilityId);
+                if (ability == null)
+                    ability = plugin.getAbilityManager().getAbilityByName(abilityId);
+
+                if (ability != null) {
+                    String cleanName = ColorUtils.stripColor(ability.getDisplayName()).trim().toUpperCase();
+                    if (existingHeaders.stream().anyMatch(h -> h.contains(cleanName)))
+                        continue;
+
+                    // Reconstruct the ability block
+                    List<String> reconstructed = new ArrayList<>();
+                    String params = nbt.getString(tag);
+                    String[] split = params.split("\\s+");
+
+                    Map<String, String> placeholders = new HashMap<>();
+                    if (split.length > 0)
+                        placeholders.put("cooldown", split[0]);
+                    if (split.length > 1)
+                        placeholders.put("mana", split[1]);
+                    if (split.length > 2)
+                        placeholders.put("damage", split[2]);
+                    if (split.length > 3)
+                        placeholders.put("range", split[3]);
+
+                    // Defaults for description placeholders if not in params
+                    placeholders.putIfAbsent("cooldown", String.valueOf(ability.getDefaultCooldown()));
+                    placeholders.putIfAbsent("mana", String.valueOf(ability.getDefaultManaCost()));
+                    placeholders.putIfAbsent("damage", String.valueOf(ability.getDefaultDamage()));
+                    placeholders.putIfAbsent("range", String.valueOf(ability.getDefaultRange()));
+
+                    // Build Header
+                    String headerFormat = plugin.getAbilitiesConfig().getString("ability-header-format",
+                            "&7{ability} &f{trigger}");
+                    String header = ColorUtils.colorize(headerFormat
+                            .replace("{ability}", ability.getDisplayName())
+                            .replace("{trigger}", ability.getDefaultTrigger().getDisplayName()));
+                    reconstructed.add(header);
+
+                    // Build Description
+                    reconstructed.addAll(ability.getDescriptionWithPlaceholders(placeholders));
+
+                    preservedAbilities.add(reconstructed);
+                    existingHeaders.add(ColorUtils.stripColor(header).trim().toUpperCase());
+                }
+            }
+        }
+    }
+
     private void applyReforgeMMOItems(ItemStack item, Reforge reforge, String savedOriginalName, String oldReforgeId) {
         LiveMMOItem mmoItem = new LiveMMOItem(item);
         ItemMeta itemMeta = item.getItemMeta();
@@ -240,6 +315,7 @@ public class ReforgeApplier {
 
         try {
             List<List<String>> preservedAbilities = extractAbilitiesRaw(preMutationLore);
+            restoreAbilitiesFromNBT(item, preservedAbilities);
 
             // 1. SUBTRACT old stats from PDC receipt
             if (pdc.has(PDC_STATS_RECEIPT, PersistentDataType.STRING)) {
@@ -390,301 +466,130 @@ public class ReforgeApplier {
             Reforge.RarityData data,
             Reforge oldReforge,
             Map<String, Double> addedStats, List<List<String>> preservedAbilities, Set<String> oldReforgeAbilities) {
-        List<String> result = new ArrayList<>();
-        // 0. Prepare Value Map from MMOItems build (for fresh numbers)
-        Map<String, String> updatedValuesMap = new HashMap<>();
-        for (String line : builtLore) {
-            String strippedFlat = ColorUtils.stripColor(line).trim().toUpperCase();
-            if (strippedFlat.contains(":")) {
-                String label = strippedFlat.split(":")[0].trim();
-                updatedValuesMap.put(label, line);
-            }
-        }
 
-        // 1. Prepare annotations
+        List<String> result = new ArrayList<>(builtLore);
+
+        // 1. ANNOTATE EXISTING STATS
         Map<String, String> statAnnotations = new HashMap<>();
         String statFormat = plugin.getReforgeManager().getStatFormat();
         for (Map.Entry<String, Double> entry : addedStats.entrySet()) {
             double value = entry.getValue();
             String prefix = value >= 0 ? "+" : "";
             String strVal = (value % 1 == 0) ? String.valueOf((long) value) : String.valueOf(value);
-            String annotation = " " + ColorUtils.colorize(statFormat.replace("{value}", prefix + strVal));
-            statAnnotations.put(entry.getKey(), annotation);
+            statAnnotations.put(entry.getKey(),
+                    " " + ColorUtils.colorize(statFormat.replace("{value}", prefix + strVal)));
         }
 
-        // 2. Determine Rarity Names
-        Set<String> allRarityNames = new HashSet<>();
-        Collection<Rarity> allRarities = this.plugin.getRarityManager().getAllRarities();
-        if (allRarities != null) {
-            for (Rarity r : allRarities) {
-                if (r != null && r.getDisplayName() != null) {
-                    allRarityNames.add(ColorUtils.stripColor(r.getDisplayName()).trim().toUpperCase());
-                }
-            }
-        }
-
-        // 3. Prepare Structure Base (Original Lore minus
-        // reforge-abilities/annotations/enchants)
-        List<String> structureBase = new ArrayList<>(rawPreMutationLore);
-        cleanLore(structureBase, reforge, oldReforge, oldReforgeAbilities);
-
-        // 4. Iterate and update
         Set<String> injectedStats = new HashSet<>();
-        String rarityLine = null;
-        boolean inAbilityBlock_ = false;
-        Pattern STAT_ANN_REGEX = Pattern.compile("\\s*\\([^()]*[+-]\\d+[^()]*\\)");
-
-        for (String line : structureBase) {
-            String strippedFlat = ColorUtils.stripColor(line).trim();
-            if (strippedFlat.isEmpty()) {
-                if (!inAbilityBlock_)
-                    result.add(line); // Preserve gaps
-                continue;
-            }
-
-            String strippedUpper = strippedFlat.toUpperCase();
-
-            // Detect and Capture Rarity
-            if (allRarityNames.contains(strippedUpper)) {
-                rarityLine = line;
-                inAbilityBlock_ = false;
-                continue;
-            }
-
-            // Detect Ability Header (Switch to Body-Skip Mode)
-            boolean isHeader = false;
-            String normalized = normalizeForMatch(strippedFlat);
-            if (normalized.startsWith("ABILITY:") || normalized.startsWith("יכולת:")
-                    || normalized.startsWith("יכולת אקטיבית:")) {
-                isHeader = true;
-            } else {
-                String[] markers = { "RIGHT CLICK", "מקש ימני", "LCLICK", "מקש שמאלי", "מקס ימני", "פעיל" };
-                for (String s : markers) {
-                    if (normalized.contains(normalizeForMatch(s))) {
-                        isHeader = true;
-                        break;
-                    }
-                }
-            }
-
-            if (isHeader) {
-                inAbilityBlock_ = true;
-                continue;
-            }
-
-            if (inAbilityBlock_)
-                continue; // Skip body of original abilities
-
-            // STAT MATCHING & UPDATING
-            boolean matched = false;
-            if (strippedUpper.contains(":")) {
-                String label = strippedUpper.split(":")[0].trim();
-                String updatedValueLine = updatedValuesMap.get(label);
+        for (int i = 0; i < result.size(); i++) {
+            String line = result.get(i);
+            String stripped = ColorUtils.stripColor(line).trim();
+            if (stripped.contains(":") && (stripped.contains("%") || stripped.matches(".*\\d+.*"))) {
+                String label = stripped.split(":")[0].trim().toUpperCase();
 
                 for (String statId : statAnnotations.keySet()) {
-                    boolean isStatMatch = false;
+                    if (injectedStats.contains(statId))
+                        continue;
                     String upperStatId = statId.toUpperCase();
-
-                    if (upperStatId.contains("ATTACK_DAMAGE")
-                            && (strippedUpper.contains("נזק") || strippedUpper.contains("DAMAGE")))
-                        isStatMatch = true;
-                    else if (upperStatId.contains("CRITICAL_STRIKE_CHANCE")
-                            && (strippedUpper.contains("קריט") || strippedUpper.contains("CRITICAL")))
-                        isStatMatch = true;
-                    else if (upperStatId.contains("CRITICAL_STRIKE_POWER")
-                            && (strippedUpper.contains("עוצמת") || strippedUpper.contains("POWER")))
-                        isStatMatch = true;
-                    else if (upperStatId.contains("HEALTH")
-                            && (strippedUpper.contains("חיים") || strippedUpper.contains("HEALTH")))
-                        isStatMatch = true;
-                    else if (upperStatId.contains("MAX_MANA")
-                            && (strippedUpper.contains("מאנה") || strippedUpper.contains("MANA")))
-                        isStatMatch = true;
-                    else if (upperStatId.contains("DEFENSE")
-                            && (strippedUpper.contains("הגנה") || strippedUpper.contains("DEFENSE")))
-                        isStatMatch = true;
-                    else if ((upperStatId.contains("MOVEMENT_SPEED") || upperStatId.contains("SPEED"))
-                            && (strippedUpper.contains("מהירות") || strippedUpper.contains("SPEED")
-                                    || strippedUpper.contains("WALK")))
-                        isStatMatch = true;
-
-                    if (isStatMatch) {
-                        String cleanBase = (updatedValueLine != null ? updatedValueLine : line);
-                        cleanBase = STAT_ANN_REGEX.matcher(cleanBase).replaceAll(""); // Clean duplication
-                        result.add(cleanBase + statAnnotations.get(statId));
-                        injectedStats.add(statId);
-                        matched = true;
-                        break;
-                    }
-                }
-
-                if (!matched && updatedValueLine != null) {
-                    result.add(updatedValueLine); // Update requirement or base stat
-                    matched = true;
-                }
-            }
-
-            if (!matched) {
-                // BUG FIX: Detect residual stat headers.
-                // If the line looks like a stat (Label: Value) but we found no match in
-                // addedStats or baseItem,
-                // and it matches known stat keywords, assume it's leftover from an old reforge
-                // and discard it.
-                boolean isResidual = false;
-                if (strippedUpper.contains(":")) {
-                    String label = strippedUpper.split(":")[0].trim();
-                    String[] keywords = { "נזק", "DAMAGE", "קריט", "CRITICAL", "עוצמת", "POWER", "חיים", "HEALTH",
-                            "מאנה", "MANA", "הגנה", "DEFENSE", "מהירות", "SPEED", "WALK" };
-                    for (String k : keywords) {
-                        if (label.contains(k)) {
-                            isResidual = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!isResidual) {
-                    result.add(line); // Description or extra lines
-                }
-            }
-        }
-
-        // 5. Forced Injection for Stats not in original lore
-        List<String> forced = new ArrayList<>();
-        for (String statId : statAnnotations.keySet()) {
-            if (!injectedStats.contains(statId)) {
-                // Try to find a matching line in the MMOItems build first (best formatting)
-                String forcedLine = null;
-                String upperStatId = statId.toUpperCase();
-
-                for (Map.Entry<String, String> entry : updatedValuesMap.entrySet()) {
-                    String label = entry.getKey().toUpperCase();
                     boolean match = false;
-                    if (upperStatId.contains("HEALTH") && label.contains("חיים"))
+                    if (upperStatId.contains("ATTACK_DAMAGE")
+                            && (label.contains("נזק") || label.contains("DAMAGE") || label.contains("ATTACK")))
                         match = true;
-                    else if (upperStatId.contains("DEFENSE") && label.contains("הגנה"))
+                    else if (upperStatId.contains("PROJECTILE_DAMAGE")
+                            && (label.contains("קליעים") || label.contains("חץ") || label.contains("PROJECTILE")
+                                    || label.contains("ARROW")))
                         match = true;
-                    else if (upperStatId.contains("DAMAGE") && label.contains("נזק"))
+                    else if (upperStatId.contains("CRITICAL_STRIKE_CHANCE")
+                            && (label.contains("סיכוי") || label.contains("CRITICAL") || label.contains("CHANCE")))
                         match = true;
-                    else if (upperStatId.contains("MANA") && label.contains("מאנה"))
+                    else if (upperStatId.contains("CRITICAL_STRIKE_POWER")
+                            && (label.contains("עוצמת") || label.contains("POWER") || label.contains("STRENGTH")))
                         match = true;
-                    else if (upperStatId.contains("CRITICAL_STRIKE_CHANCE") && label.contains("סיכוי"))
+                    else if (upperStatId.contains("HEALTH")
+                            && (label.contains("חיים") || label.contains("HEALTH") || label.contains("HP")))
                         match = true;
-                    else if (upperStatId.contains("CRITICAL_STRIKE_POWER") && label.contains("עוצמת"))
+                    else if (upperStatId.contains("MAX_MANA")
+                            && (label.contains("מאנה") || label.contains("MANA") || label.contains("INTELLIGENCE")))
                         match = true;
-                    else if (upperStatId.contains("SPEED") && (label.contains("מהירות") || label.contains("הליכה")))
+                    else if (upperStatId.contains("DEFENSE")
+                            && (label.contains("הגנה") || label.contains("DEFENSE") || label.contains("ARMOR")))
+                        match = true;
+                    else if ((upperStatId.contains("MOVEMENT_SPEED") || upperStatId.contains("SPEED"))
+                            && (label.contains("מהירות") || label.contains("SPEED") || label.contains("WALK")))
                         match = true;
 
                     if (!match && (label.contains(upperStatId) || upperStatId.contains(label)))
                         match = true;
 
                     if (match) {
-                        forcedLine = entry.getValue() + statAnnotations.get(statId);
+                        result.set(i, line + statAnnotations.get(statId));
+                        injectedStats.add(statId);
                         break;
                     }
                 }
-
-                if (forcedLine == null) {
-                    // Fallback: manually construct it if MMOItems didn't generate it
-                    String statKey = statId.toLowerCase().startsWith("mmoitems_") ? statId.toLowerCase()
-                            : "mmoitems_" + statId.toLowerCase();
-                    String displayName = plugin.getReforgeManager().formatStatName(statKey);
-                    Double value = addedStats.get(statId);
-                    String strVal = (value % 1 == 0) ? String.valueOf((long) (double) value) : String.valueOf(value);
-                    if (upperStatId.contains("CHANCE") || upperStatId.contains("POWER"))
-                        strVal += "%";
-                    forcedLine = ColorUtils
-                            .colorize("&7" + displayName + ": &f" + strVal + statAnnotations.get(statId));
-                }
-
-                forced.add(forcedLine);
             }
         }
-        if (!forced.isEmpty()) {
-            int insertPos = result.size();
-            boolean foundExistingStat = false;
 
-            for (int i = 0; i < result.size(); i++) {
-                String s = ColorUtils.stripColor(result.get(i)).trim().toUpperCase();
-                if (s.isEmpty())
-                    continue;
-
-                // Stop at "Meta" lines (Requirements, Abilities, Rarity)
-                if (s.contains("REQUIRED") || s.contains("דרוש") || s.contains("רמה") ||
-                        s.contains("ABILITY") || s.contains("יכולת") ||
-                        s.contains("נפוץ") || s.contains("נדיר") || s.contains("מיוחד")) {
-
-                    // If we haven't found any stats yet, this is our spot!
-                    if (!foundExistingStat) {
-                        insertPos = i;
-                    }
-                    break;
-                }
-
-                // Identify existing stats
-                if (s.contains(":") && (s.contains("%") || s.matches(".*\\d+.*"))) {
-                    foundExistingStat = true;
-                    insertPos = i + 1;
-                }
-            }
-
-            // Gap management: If we are inserting into a "fresh" item (no stats),
-            // add a gap after forced stats if needed.
-            if (!foundExistingStat && insertPos < result.size()) {
-                result.add(insertPos, ""); // Gap after
-            }
-
-            result.addAll(insertPos, forced);
-        }
-
-        // 6. Original Item Abilities (Preserved)
+        // 2. RESTORE ABILITY DESCRIPTIONS (SURGICALLY)
         if (preservedAbilities != null && !preservedAbilities.isEmpty()) {
-            // Gap before abilities if not at top
-            if (!result.isEmpty() && !ColorUtils.stripColor(result.get(result.size() - 1)).trim().isEmpty()) {
-                result.add("");
-            }
-            for (List<String> abilityBlock : preservedAbilities) {
-                result.addAll(abilityBlock);
-                result.add(""); // Gap after each ability block
-            }
-        }
+            for (List<String> pBlock : preservedAbilities) {
+                if (pBlock.isEmpty())
+                    continue;
+                String pHeaderRegex = ".*" + Pattern.quote(ColorUtils.stripColor(pBlock.get(0)).trim()) + ".*";
 
-        // 7. Enchantments (Applied via Reforge) - NOW AT THE TOP
-        List<String> reforgeEnchantsLines = new ArrayList<>();
-        for (String s : data.getEnchants()) {
-            try {
-                String[] split = s.split(":");
-                String enchantId = split[0].toUpperCase();
-                int level = Integer.parseInt(split[1]);
+                for (int i = 0; i < result.size(); i++) {
+                    String lineContent = ColorUtils.stripColor(result.get(i)).trim();
+                    if (lineContent.matches(pHeaderRegex)) {
+                        // Found the header. Replace descriptions below it.
+                        int end = i + 1;
+                        while (end < result.size()) {
+                            String nextStripped = ColorUtils.stripColor(result.get(end)).trim();
+                            if (nextStripped.isEmpty())
+                                break;
+                            String nextUpper = nextStripped.toUpperCase();
+                            if (nextUpper.contains("ABILITY:") || nextUpper.contains("יכולת:") ||
+                                    nextUpper.contains("RIGHT CLICK") || nextUpper.contains("LCLICK") ||
+                                    nextUpper.contains("פעיל"))
+                                break;
 
-                // Format: Gray + Name + Level
-                String displayName = plugin.getEnchantManager().getDisplayNameForId(enchantId.toLowerCase());
-                if (displayName.equals(enchantId.toLowerCase())) {
-                    // Not a custom enchant, format vanilla name
-                    displayName = Arrays.stream(enchantId.split("_"))
-                            .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase())
-                            .collect(Collectors.joining(" "));
-                } else {
-                    displayName = ColorUtils.stripColor(ColorUtils.colorize(displayName));
+                            boolean isRarity = false;
+                            for (Rarity r : plugin.getRarityManager().getAllRarities()) {
+                                if (nextUpper.equals(ColorUtils.stripColor(r.getDisplayName()).trim().toUpperCase())) {
+                                    isRarity = true;
+                                    break;
+                                }
+                            }
+                            if (isRarity)
+                                break;
+                            if (nextUpper.contains("REQUIRED") || nextUpper.contains("דרוש")
+                                    || nextUpper.contains("רמה"))
+                                break;
+
+                            end++;
+                        }
+                        // Replace
+                        for (int j = 0; j < (end - i); j++)
+                            result.remove(i);
+                        result.addAll(i, pBlock);
+                        break;
+                    }
                 }
-
-                String roman = toRoman(level);
-                reforgeEnchantsLines.add("§7" + displayName + (roman.isEmpty() ? "" : " " + roman));
-            } catch (Exception ignored) {
             }
         }
 
-        if (!reforgeEnchantsLines.isEmpty()) {
-            // Always at the top
-            result.addAll(0, reforgeEnchantsLines);
-            // No gap after enchants as per user request
-        }
-
-        // 8. Final Rarity Line
-        if (rarityLine != null) {
-            if (!result.isEmpty() && !ColorUtils.stripColor(result.get(result.size() - 1)).trim().isEmpty())
-                result.add("");
-            result.add(rarityLine);
+        // 3. REMOVE DUPLICATE REQUIREMENTS
+        Set<String> seenRequirements = new HashSet<>();
+        for (int i = 0; i < result.size(); i++) {
+            String line = result.get(i);
+            String stripped = ColorUtils.stripColor(line).trim().toUpperCase();
+            if (stripped.contains("REQUIRED") || stripped.contains("דרוש") || stripped.contains("רמה")) {
+                if (seenRequirements.contains(stripped)) {
+                    result.remove(i);
+                    i--;
+                } else {
+                    seenRequirements.add(stripped);
+                }
+            }
         }
 
         return result;

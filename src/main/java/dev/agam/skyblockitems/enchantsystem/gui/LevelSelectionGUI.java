@@ -318,6 +318,13 @@ public class LevelSelectionGUI implements BaseGUI {
         plugin.getEnchantManager().incrementPriorWorkPenalty(itemToEnchant);
         player.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1, 1);
 
+        // AuraSkills XP Integration
+        if (plugin.isAuraSkillsEnabled()) {
+            // Balanced Dynamic XP: Base(5) + (Level * 2) + (RequiredLevel / 10)
+            double xpAmount = 5.0 + (level * 2.0) + (enchant.getRequiredEnchantingLevel() / 10.0);
+            plugin.getAuraSkillsHook().addXP(player, "enchanting", xpAmount);
+        }
+
         String romanValue = (enchant.getMaxLevel() == 1) ? "" : " " + toRoman(level);
         String successMsg = plugin.getConfigManager().getMessageRaw("enchanting.success")
                 .replace("{enchant}", enchant.getDisplayName())

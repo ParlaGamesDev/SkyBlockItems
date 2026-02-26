@@ -59,18 +59,12 @@ public class AbilityLoreGenerator {
             }
 
             // 3. Build Header
-            String headerFormat = abilitiesConfig.getString("ability-header-format");
-            if (headerFormat != null && !headerFormat.isEmpty()) {
-                String formattedHeader = headerFormat
-                        .replace("{ability}", configDisplayName)
-                        .replace("{trigger}", configTrigger);
-                loreLines.add(ColorUtils.translate(formattedHeader));
-            } else {
-                String header = SkyBlockItems.getInstance().getConfigManager().getMessage("ability.format")
-                        .replace("{ability}", configDisplayName)
-                        .replace("{trigger}", configTrigger);
-                loreLines.add(ColorUtils.translate(header));
-            }
+            String headerFormat = abilitiesConfig.getString("ability-header-format",
+                    "&7<gradient:#C40000:#FF0000:#FF9B00><bold>{ability}</gradient> &f{trigger}");
+            String formattedHeader = headerFormat
+                    .replace("{ability}", configDisplayName)
+                    .replace("{trigger}", configTrigger);
+            loreLines.add(ColorUtils.translate(formattedHeader));
 
             // 4. Process Description
             for (String line : configDescription) {
@@ -119,10 +113,12 @@ public class AbilityLoreGenerator {
             }
         } else {
             // Fallback
-            String header = SkyBlockItems.getInstance().getConfigManager().getMessage("ability.format")
+            String fallbackHeaderFormat = abilitiesConfig.getString("ability-header-format",
+                    "&7<gradient:#C40000:#FF0000:#FF9B00><bold>{ability}</gradient> &f{trigger}");
+            String fallbackFormattedHeader = fallbackHeaderFormat
                     .replace("{ability}", displayName)
                     .replace("{trigger}", triggerName);
-            loreLines.add(ColorUtils.translate(header));
+            loreLines.add(ColorUtils.translate(fallbackFormattedHeader));
             loreLines.add(SkyBlockItems.getInstance().getConfigManager().getMessage("ability.missing-config")
                     .replace("{id}", abilityId));
         }

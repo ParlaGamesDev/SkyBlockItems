@@ -685,7 +685,7 @@ public class RarityManager {
     /**
      * Strips rarity-related lines from lore.
      */
-    private List<String> stripRarityLore(List<String> lore) {
+    public List<String> stripRarityLore(List<String> lore) {
         List<String> result = new ArrayList<>();
 
         for (String line : lore) {

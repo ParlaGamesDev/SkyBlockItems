@@ -38,6 +38,11 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (args.length == 0) {
+            player.sendMessage(plugin.getConfigManager().getMessage("commands.unknown"));
+            return true;
+        }
+
         String sub = args[0].toLowerCase();
 
         switch (sub) {
@@ -205,16 +210,24 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
                     player.sendMessage(plugin.getConfigManager().getMessage("general.must-hold-item"));
                     return;
                 }
-                plugin.getConfigManager().addToBlacklist(item.getType().name());
+                boolean special = plugin.getConfigManager().isSpecialItem(item);
+                plugin.getConfigManager().addToBlacklist(item);
+
+                String name = (special && item.getItemMeta().hasDisplayName())
+                        ? item.getItemMeta().getDisplayName()
+                        : item.getType().name();
+                if (special && !item.getItemMeta().hasDisplayName())
+                    name += " (Unique)";
+
                 player.sendMessage(plugin.getConfigManager().getMessage("commands.blacklist.added")
-                        .replace("{material}", item.getType().name()));
+                        .replace("{material}", name));
             }
             case "remove" -> {
                 if (item == null || item.getType().isAir()) {
                     player.sendMessage(plugin.getConfigManager().getMessage("general.must-hold-item"));
                     return;
                 }
-                plugin.getConfigManager().removeFromBlacklist(item.getType().name());
+                plugin.getConfigManager().removeFromBlacklist(item);
                 player.sendMessage(plugin.getConfigManager().getMessage("commands.blacklist.removed")
                         .replace("{material}", item.getType().name()));
             }
@@ -222,8 +235,13 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
                 List<String> blacklist = plugin.getConfigManager().getBlacklist();
                 player.sendMessage(plugin.getConfigManager().getMessage("commands.blacklist.list-header"));
                 for (String s : blacklist) {
+                    String display = s;
+                    if (s.startsWith("SPECIFIC:")) {
+                        String[] parts = s.split(":");
+                        display = "§d[Specific] §f" + (parts.length > 1 ? parts[1] : s);
+                    }
                     player.sendMessage(plugin.getConfigManager().getMessage("commands.blacklist.list-item")
-                            .replace("{material}", s));
+                            .replace("{material}", display));
                 }
             }
         }

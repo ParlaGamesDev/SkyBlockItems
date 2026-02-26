@@ -3,6 +3,7 @@ package dev.agam.skyblockitems.enchantsystem.gui;
 import dev.agam.skyblockitems.SkyBlockItems;
 import dev.agam.skyblockitems.enchantsystem.CustomEnchant;
 import dev.agam.skyblockitems.enchantsystem.managers.EnchantManager.EnchantConfig;
+import dev.agam.skyblockitems.enchantsystem.managers.EnchantManager.LevelConfig;
 import dev.agam.skyblockitems.enchantsystem.utils.ColorUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -33,6 +34,7 @@ public class EnchantingGUI implements BaseGUI {
     private final int DECORATIVE_TABLE_SLOT = 28;
     private int page = 0;
     private boolean returningFromLevelSelect = false;
+    private boolean isProcessing = false;
     private SortOrder sortOrder = SortOrder.ALPHABETICAL_AZ;
 
     private enum SortOrder {
@@ -86,78 +88,7 @@ public class EnchantingGUI implements BaseGUI {
                 21, 22, 23, 24, 25,
                 30, 31, 32, 33, 34);
 
-        List<EnchantConfig> applicableEnchants = new ArrayList<>();
-
-        if (itemToEnchant != null && itemToEnchant.getType() != Material.AIR) {
-            Set<String> itemCategories = getItemCategories(itemToEnchant);
-
-            // 1. Add Vanilla Enchants
-            for (EnchantConfig enchant : plugin.getEnchantManager().getEnchants().values()) {
-                if (!enchant.isEnabled())
-                    continue;
-                boolean matches = false;
-                for (String target : enchant.getTargets()) {
-                    if (target.equalsIgnoreCase("GLOBAL") || itemCategories.contains(target.toUpperCase())) {
-                        matches = true;
-                        break;
-                    }
-                }
-                if (matches) {
-                    int required = plugin.getConfig().getInt(
-                            "requirements.enchanting-levels." + enchant.getId().toLowerCase(),
-                            enchant.getRequiredEnchantingLevel());
-                    if (plugin.isAuraSkillsEnabled() && required > 0) {
-                        int playerLevel = plugin.getAuraSkillsHook().getEnchantingLevel(player);
-                        if (playerLevel < required)
-                            continue;
-                    }
-                    applicableEnchants.add(enchant);
-                }
-            }
-
-            // 2. Add Custom Enchants
-            for (CustomEnchant customEnchant : plugin.getCustomEnchantManager().getAllEnchants()) {
-                if (!customEnchant.isEnabled())
-                    continue;
-                EnchantConfig config = customEnchant.toEnchantConfig();
-                boolean matches = false;
-                for (String target : config.getTargets()) {
-                    if (target.equalsIgnoreCase("GLOBAL") || itemCategories.contains(target.toUpperCase())) {
-                        matches = true;
-                        break;
-                    }
-                }
-                if (matches) {
-                    int required = customEnchant.getRequiredEnchantingLevel();
-                    if (plugin.isAuraSkillsEnabled() && required > 0) {
-                        int playerLevel = plugin.getAuraSkillsHook().getEnchantingLevel(player);
-                        if (playerLevel < required)
-                            continue;
-                    }
-                    applicableEnchants.add(config);
-                }
-            }
-
-            // 3. Apply Sorting
-            switch (sortOrder) {
-                case ALPHABETICAL_AZ:
-                    applicableEnchants.sort((e1, e2) -> ChatColor.stripColor(ColorUtils.colorize(e1.getDisplayName()))
-                            .compareTo(ChatColor.stripColor(ColorUtils.colorize(e2.getDisplayName()))));
-                    break;
-                case ALPHABETICAL_ZA:
-                    applicableEnchants.sort((e1, e2) -> ChatColor.stripColor(ColorUtils.colorize(e2.getDisplayName()))
-                            .compareTo(ChatColor.stripColor(ColorUtils.colorize(e1.getDisplayName()))));
-                    break;
-                case LEVEL_HIGH_TO_LOW:
-                    applicableEnchants.sort((e1, e2) -> Integer.compare(e2.getRequiredEnchantingLevel(),
-                            e1.getRequiredEnchantingLevel()));
-                    break;
-                case LEVEL_LOW_TO_HIGH:
-                    applicableEnchants.sort((e1, e2) -> Integer.compare(e1.getRequiredEnchantingLevel(),
-                            e2.getRequiredEnchantingLevel()));
-                    break;
-            }
-        }
+        List<EnchantConfig> applicableEnchants = getApplicableEnchants(itemToEnchant);
 
         int slotsPerPage = availableSlots.size();
         int totalEnchants = applicableEnchants.size();
@@ -261,17 +192,17 @@ public class EnchantingGUI implements BaseGUI {
         int playerLevel = 0;
         boolean locked = false;
 
-        // Level checks are now done in updateEnchantments, but we keep the variables
-        // for potential lore use
         if (plugin.isAuraSkillsEnabled() && requiredLevel > 0) {
             playerLevel = plugin.getAuraSkillsHook().getEnchantingLevel(player);
+            if (playerLevel < requiredLevel)
+                locked = true;
         }
 
         String conflictWith = plugin.getEnchantManager().getConflict(itemToEnchant, enchant);
         boolean conflicted = conflictWith != null;
 
         ItemStack icon;
-        if (conflicted) {
+        if (conflicted || locked) {
             String matStr = plugin.getConfigManager().getMessageRaw("enchanting.locked-enchant.material");
             Material mat = Material.getMaterial(matStr);
             icon = new ItemStack(mat != null ? mat : Material.BARRIER);
@@ -281,24 +212,29 @@ public class EnchantingGUI implements BaseGUI {
 
         ItemMeta meta = icon.getItemMeta();
 
-        if (conflicted) {
+        if (conflicted || locked) {
             String name = plugin.getConfigManager().getMessage("enchanting.locked-enchant.name")
                     .replace("{name}", ChatColor.stripColor(ColorUtils.colorize(enchant.getDisplayName())));
             meta.setDisplayName(name);
 
             List<String> lore = new ArrayList<>();
-            // Fix conflict coloring by colorizing AFTER replacement
-            String conflictMsg = plugin.getConfigManager().getMessage("enchanting.conflict-lore", "{enchant}",
-                    conflictWith);
-            lore.add(conflictMsg);
+
+            if (conflicted) {
+                String conflictMsg = plugin.getConfigManager().getMessage("enchanting.conflict-lore", "{enchant}",
+                        conflictWith);
+                lore.add(conflictMsg);
+            } else {
+                String lockMsg = plugin.getConfigManager().getMessage("enchanting.need-enchanting-unlock", "{level}",
+                        String.valueOf(requiredLevel));
+                lore.add(lockMsg);
+            }
 
             for (String line : plugin.getConfigManager().getMessages()
                     .getStringList("enchanting.locked-enchant.lore")) {
                 lore.add(ColorUtils.colorize(line
                         .replace("{name}", enchant.getDisplayName())
                         .replace("{description}", enchant.getDescription())
-                        .replace("{current}", String.valueOf(playerLevel)) // Will be 0 but doesn't matter since not
-                                                                           // shown for level locks
+                        .replace("{current}", String.valueOf(playerLevel))
                         .replace("{required}", String.valueOf(requiredLevel))
                         .replace("{max}", String.valueOf(enchant.getMaxLevel()))));
             }
@@ -317,11 +253,19 @@ public class EnchantingGUI implements BaseGUI {
             }
             lore.add("");
 
+            if (enchant.getRequiredEnchantingLevel() > 0) {
+                lore.add(plugin.getConfigManager().getMessage("enchanting.required-level", "{level}",
+                        String.valueOf(enchant.getRequiredEnchantingLevel())));
+            }
             lore.add(plugin.getConfigManager().getMessage("enchanting.max-level", "{max}",
                     String.valueOf(enchant.getMaxLevel())));
             lore.add("");
 
-            lore.add(plugin.getConfigManager().getMessage("enchanting.click-to-select-level"));
+            if (enchant.getMaxLevel() > 1) {
+                lore.add(plugin.getConfigManager().getMessage("enchanting.click-to-select-level"));
+            } else {
+                lore.add(plugin.getConfigManager().getMessage("enchanting.level-select.click-to-enchant"));
+            }
             meta.setLore(lore);
         }
 
@@ -335,11 +279,14 @@ public class EnchantingGUI implements BaseGUI {
             return;
         event.setCancelled(true);
 
+        if (isProcessing)
+            return;
+
         // Handle clicking in player inventory (to place item)
         if (event.getClickedInventory() == event.getView().getBottomInventory()) {
             ItemStack clicked = event.getCurrentItem();
             if (clicked != null && clicked.getType() != Material.AIR) {
-                if (plugin.getConfigManager().isBlacklisted(clicked.getType().name())) {
+                if (plugin.getConfigManager().isBlacklisted(clicked)) {
                     player.sendMessage(plugin.getConfigManager().getMessage("errors.blacklisted-item"));
                     return;
                 }
@@ -358,6 +305,26 @@ public class EnchantingGUI implements BaseGUI {
                     player.sendMessage(plugin.getConfigManager().getMessage("errors.remove-current-first"));
                     return;
                 }
+                // Check if any enchants are available for this player
+                List<EnchantConfig> allApplicable = getApplicableEnchants(clicked);
+                boolean hasAnyUnlocked = false;
+                int playerSkillLevel = plugin.isAuraSkillsEnabled()
+                        ? plugin.getAuraSkillsHook().getEnchantingLevel(player)
+                        : 100;
+
+                for (EnchantConfig enchant : allApplicable) {
+                    if (playerSkillLevel >= enchant.getRequiredEnchantingLevel()) {
+                        hasAnyUnlocked = true;
+                        break;
+                    }
+                }
+
+                if (!hasAnyUnlocked) {
+                    player.sendMessage(plugin.getConfigManager().getMessage("errors.no-enchants-unlocked"));
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
+                    return;
+                }
+
                 itemToEnchant = clicked.clone();
                 event.setCurrentItem(null);
                 inventory.setItem(ITEM_SLOT, itemToEnchant);
@@ -487,10 +454,14 @@ public class EnchantingGUI implements BaseGUI {
                     }
                 }
 
-                // Open level selection GUI
-                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-                this.returningFromLevelSelect = true;
-                new LevelSelectionGUI(plugin, player, itemToEnchant, enchant, this).open();
+                // Open level selection GUI or apply immediately
+                if (enchant.getMaxLevel() <= 1) {
+                    applyEnchantmentImmediately(enchant);
+                } else {
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    this.returningFromLevelSelect = true;
+                    new LevelSelectionGUI(plugin, player, itemToEnchant, enchant, this).open();
+                }
                 return;
             }
         }
@@ -529,10 +500,14 @@ public class EnchantingGUI implements BaseGUI {
                     }
                 }
 
-                // Open level selection GUI
-                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-                this.returningFromLevelSelect = true;
-                new LevelSelectionGUI(plugin, player, itemToEnchant, config, this).open();
+                // Open level selection GUI or apply immediately
+                if (config.getMaxLevel() <= 1) {
+                    applyEnchantmentImmediately(config);
+                } else {
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+                    this.returningFromLevelSelect = true;
+                    new LevelSelectionGUI(plugin, player, itemToEnchant, config, this).open();
+                }
                 return;
             }
         }
@@ -569,6 +544,25 @@ public class EnchantingGUI implements BaseGUI {
         Set<String> categories = new HashSet<>();
         if (item == null)
             return categories;
+
+        // MMOItems Support
+        io.lumine.mythic.lib.api.item.NBTItem nbtItem = io.lumine.mythic.lib.api.item.NBTItem.get(item);
+        if (nbtItem.hasTag("MMOITEMS_ITEM_TYPE")) {
+            String mmoType = nbtItem.getString("MMOITEMS_ITEM_TYPE").toUpperCase();
+            categories.add(mmoType);
+
+            // Map common MMO types to generic categories
+            if (mmoType.contains("SWORD") || mmoType.equals("KATANA") || mmoType.equals("RAPIER")
+                    || mmoType.equals("DAGGER")) {
+                categories.add("SWORD");
+            } else if (mmoType.equals("HELMET") || mmoType.equals("CHESTPLATE") || mmoType.equals("LEGGINGS")
+                    || mmoType.equals("BOOTS")) {
+                categories.add("ARMOR");
+            } else if (mmoType.equals("PICKAXE") || mmoType.equals("AXE") || mmoType.equals("SHOVEL")
+                    || mmoType.equals("HOE")) {
+                categories.add("TOOL");
+            }
+        }
 
         String type = item.getType().name();
 
@@ -620,8 +614,161 @@ public class EnchantingGUI implements BaseGUI {
         return categories;
     }
 
+    private List<EnchantConfig> getApplicableEnchants(ItemStack item) {
+        List<EnchantConfig> applicableEnchants = new ArrayList<>();
+        if (item == null || item.getType() == Material.AIR)
+            return applicableEnchants;
+
+        Set<String> itemCategories = getItemCategories(item);
+
+        int playerSkillLevel = plugin.isAuraSkillsEnabled()
+                ? plugin.getAuraSkillsHook().getEnchantingLevel(player)
+                : 100;
+
+        // 1. Add Vanilla Enchants
+        for (EnchantConfig enchant : plugin.getEnchantManager().getEnchants().values()) {
+            if (!enchant.isEnabled())
+                continue;
+
+            // Hide locked enchants
+            if (enchant.getRequiredEnchantingLevel() > playerSkillLevel)
+                continue;
+
+            boolean matches = false;
+            for (String target : enchant.getTargets()) {
+                if (target.equalsIgnoreCase("GLOBAL") || itemCategories.contains(target.toUpperCase())) {
+                    matches = true;
+                    break;
+                }
+            }
+            if (matches) {
+                applicableEnchants.add(enchant);
+            }
+        }
+
+        // 2. Add Custom Enchants
+        for (CustomEnchant customEnchant : plugin.getCustomEnchantManager().getAllEnchants()) {
+            if (!customEnchant.isEnabled())
+                continue;
+
+            EnchantConfig config = customEnchant.toEnchantConfig();
+
+            // Hide locked enchants
+            if (config.getRequiredEnchantingLevel() > playerSkillLevel)
+                continue;
+
+            boolean matches = false;
+            for (String target : config.getTargets()) {
+                if (target.equalsIgnoreCase("GLOBAL") || itemCategories.contains(target.toUpperCase())) {
+                    matches = true;
+                    break;
+                }
+            }
+            if (matches) {
+                applicableEnchants.add(config);
+            }
+        }
+
+        // 3. Apply Sorting
+        switch (sortOrder) {
+            case ALPHABETICAL_AZ:
+                applicableEnchants.sort((e1, e2) -> ChatColor.stripColor(ColorUtils.colorize(e1.getDisplayName()))
+                        .compareTo(ChatColor.stripColor(ColorUtils.colorize(e2.getDisplayName()))));
+                break;
+            case ALPHABETICAL_ZA:
+                applicableEnchants.sort((e1, e2) -> ChatColor.stripColor(ColorUtils.colorize(e2.getDisplayName()))
+                        .compareTo(ChatColor.stripColor(ColorUtils.colorize(e1.getDisplayName()))));
+                break;
+            case LEVEL_HIGH_TO_LOW:
+                applicableEnchants.sort((e1, e2) -> Integer.compare(e2.getRequiredEnchantingLevel(),
+                        e1.getRequiredEnchantingLevel()));
+                break;
+            case LEVEL_LOW_TO_HIGH:
+                applicableEnchants.sort((e1, e2) -> Integer.compare(e1.getRequiredEnchantingLevel(),
+                        e2.getRequiredEnchantingLevel()));
+                break;
+        }
+
+        return applicableEnchants;
+    }
+
     public void setItemToEnchant(ItemStack item) {
         this.itemToEnchant = item;
+    }
+
+    private void applyEnchantmentImmediately(EnchantConfig enchant) {
+        if (itemToEnchant == null)
+            return;
+
+        // Check if item already has this enchantment at this level (or higher)
+        int currentLevel = 0;
+        if (itemToEnchant.hasItemMeta() && itemToEnchant.getItemMeta().hasLore()) {
+            Map<String, Integer> currentEnchants = plugin.getEnchantManager()
+                    .parseLore(itemToEnchant.getItemMeta().getLore());
+            currentLevel = currentEnchants.getOrDefault(enchant.getId().toLowerCase(), 0);
+        }
+
+        if (currentLevel >= 1) {
+            player.sendMessage(plugin.getConfigManager().getMessage("enchanting.upgrade-fail"));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
+            return;
+        }
+
+        LevelConfig levelConfig = enchant.getLevel(1);
+        if (levelConfig == null)
+            return;
+
+        // Check XP levels
+        int pwp = plugin.getEnchantManager().getPriorWorkPenalty(itemToEnchant);
+        int totalCost = levelConfig.getXpCost() + pwp;
+
+        // Check if too expensive
+        int maxCost = plugin.getConfig().getInt("enchanting.max-cost", 50);
+        boolean limitEnabled = plugin.getConfig().getBoolean("enchanting.limit-enabled", true);
+        boolean bypassOp = plugin.getConfig().getBoolean("enchanting.bypass-limits-on-op", true);
+
+        if (limitEnabled && totalCost > maxCost && !(player.isOp() && bypassOp)) {
+            player.sendMessage(plugin.getConfigManager().getMessage("enchanting.too-expensive", "{max}",
+                    String.valueOf(maxCost)));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
+            return;
+        }
+
+        if (player.getLevel() < totalCost) {
+            player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessageRaw("errors.not-enough-xp")
+                    .replace("{cost}", String.valueOf(totalCost))));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
+            return;
+        }
+
+        isProcessing = true;
+        try {
+            // Apply enchantment
+            plugin.getEnchantManager().applyEnchantment(itemToEnchant, enchant.getId(), 1);
+            player.setLevel(player.getLevel() - totalCost);
+
+            // Update PWP
+            plugin.getEnchantManager().incrementPriorWorkPenalty(itemToEnchant);
+            player.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1, 1);
+
+            // AuraSkills XP Integration
+            if (plugin.isAuraSkillsEnabled()) {
+                double xpAmount = 5.0 + (1 * 2.0) + (enchant.getRequiredEnchantingLevel() / 10.0);
+                plugin.getAuraSkillsHook().addXP(player, "enchanting", xpAmount);
+            }
+
+            String successMsg = plugin.getConfigManager().getMessageRaw("enchanting.success")
+                    .replace("{enchant}", enchant.getDisplayName())
+                    .replace("{level}", "")
+                    .replace("{cost}", String.valueOf(totalCost));
+            player.sendMessage(ColorUtils.colorize(successMsg));
+
+            // Refresh the item in the inventory slot!
+            inventory.setItem(ITEM_SLOT, itemToEnchant);
+            updateEnchantments();
+        } finally {
+            isProcessing = false;
+        }
     }
 
     @Override

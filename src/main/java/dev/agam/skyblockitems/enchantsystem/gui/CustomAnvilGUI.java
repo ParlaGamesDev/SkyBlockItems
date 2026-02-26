@@ -143,7 +143,7 @@ public class CustomAnvilGUI implements BaseGUI {
                 return;
 
             // Blacklist check for Anvil
-            if (plugin.getConfigManager().isBlacklisted(clicked.getType().name())) {
+            if (plugin.getConfigManager().isBlacklisted(clicked)) {
                 player.sendMessage(plugin.getConfigManager().getMessage("errors.blacklisted-item"));
                 event.setCancelled(true);
                 return;
@@ -530,6 +530,13 @@ public class CustomAnvilGUI implements BaseGUI {
         // Success feedback
         player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 1, 1);
         player.sendMessage(plugin.getConfigManager().getMessage("anvil.combine-success"));
+
+        // AuraSkills XP Integration
+        if (plugin.isAuraSkillsEnabled()) {
+            // Balanced XP: Base(5) + (XP_Cost / 2)
+            double xpAmount = 5.0 + (cost / 2.0);
+            plugin.getAuraSkillsHook().addXP(player, "enchanting", xpAmount);
+        }
 
         // Ensure Rarity and Spacing are applied
         plugin.getRarityManager().processItem(result);

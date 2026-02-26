@@ -254,6 +254,11 @@ public class SkyBlockItems extends JavaPlugin {
             reforgeManager.reload();
         }
 
+        // 5. Custom Enchants
+        if (customEnchantManager != null) {
+            customEnchantManager.reload();
+        }
+
         getLogger().info("All configurations reloaded successfully!");
     }
 

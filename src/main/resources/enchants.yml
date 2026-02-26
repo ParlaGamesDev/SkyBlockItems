@@ -21,17 +21,15 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   fire_aspect:
     enabled: true
     display-name: "&6Fire Aspect"
     description: "&7שורף את המותקף לאורך זמן"
     material: BLAZE_POWDER
-    targets: [SWORD, MACE]
+    targets: [SWORD, AXE]
     vanilla-enchant: FIRE_ASPECT
-    required-enchanting-level: 0
+    required-enchanting-level: 3
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 10 }
@@ -39,11 +37,6 @@ enchants:
       3: { value: "3", xp-cost: 30 }
       4: { value: "4", xp-cost: 40 }
       5: { value: "5", xp-cost: 50 }
-      6: { value: "6", xp-cost: 60 }
-      7: { value: "7", xp-cost: 70 }
-      8: { value: "8", xp-cost: 80 }
-      9: { value: "9", xp-cost: 90 }
-      10: { value: "10", xp-cost: 100 }
 
   knockback:
     enabled: true
@@ -52,18 +45,13 @@ enchants:
     material: SLIME_BALL
     targets: [SWORD]
     vanilla-enchant: KNOCKBACK
-    required-enchanting-level: 0
+    required-enchanting-level: 3
     levels:
       1: { value: "1", xp-cost: 8 }
       2: { value: "2", xp-cost: 16 }
       3: { value: "3", xp-cost: 24 }
       4: { value: "4", xp-cost: 32 }
       5: { value: "5", xp-cost: 40 }
-      6: { value: "6", xp-cost: 48 }
-      7: { value: "7", xp-cost: 56 }
-      8: { value: "8", xp-cost: 64 }
-      9: { value: "9", xp-cost: 72 }
-      10: { value: "10", xp-cost: 80 }
 
   looting:
     enabled: true
@@ -72,18 +60,13 @@ enchants:
     material: GOLD_INGOT
     targets: [SWORD]
     vanilla-enchant: LOOTING
-    required-enchanting-level: 0
+    required-enchanting-level: 10
     levels:
       1: { value: "1", xp-cost: 10 }
       2: { value: "2", xp-cost: 20 }
       3: { value: "3", xp-cost: 30 }
       4: { value: "4", xp-cost: 40 }
       5: { value: "5", xp-cost: 50 }
-      6: { value: "6", xp-cost: 60 }
-      7: { value: "7", xp-cost: 70 }
-      8: { value: "8", xp-cost: 80 }
-      9: { value: "9", xp-cost: 90 }
-      10: { value: "10", xp-cost: 100 }
 
   sweeping_edge:
     enabled: true
@@ -92,7 +75,7 @@ enchants:
     material: FEATHER
     targets: [SWORD]
     vanilla-enchant: SWEEPING_EDGE
-    required-enchanting-level: 0
+    required-enchanting-level: 7
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 8 }
@@ -100,11 +83,6 @@ enchants:
       3: { value: "3", xp-cost: 24 }
       4: { value: "4", xp-cost: 32 }
       5: { value: "5", xp-cost: 40 }
-      6: { value: "6", xp-cost: 48 }
-      7: { value: "7", xp-cost: 56 }
-      8: { value: "8", xp-cost: 64 }
-      9: { value: "9", xp-cost: 72 }
-      10: { value: "10", xp-cost: 80 }
 
   smite:
     display-name: "&eSmite"
@@ -113,7 +91,7 @@ enchants:
     targets: [SWORD, MACE]
     vanilla-enchant: SMITE
     conflicts: [sharpness, bane_of_arthropods]
-    required-enchanting-level: 0
+    required-enchanting-level: 6
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 5 }
@@ -124,8 +102,6 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   bane_of_arthropods:
     display-name: "&2Bane of Arthropods"
@@ -134,7 +110,7 @@ enchants:
     targets: [SWORD, MACE]
     vanilla-enchant: BANE_OF_ARTHROPODS
     conflicts: [sharpness, smite]
-    required-enchanting-level: 0
+    required-enchanting-level: 4
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 5 }
@@ -145,8 +121,6 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   density:
     display-name: "&5Density"
@@ -154,7 +128,7 @@ enchants:
     material: HEAVY_CORE
     targets: [MACE]
     vanilla-enchant: DENSITY
-    required-enchanting-level: 0
+    required-enchanting-level: 15
     anvil-multiplier: 1
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -164,9 +138,7 @@ enchants:
       5: { value: "5", xp-cost: 55 }
       6: { value: "6", xp-cost: 65 }
       7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
+      8: { value: "8", xp-cost: 80 }
 
   wind_burst:
     enabled: true
@@ -175,7 +147,7 @@ enchants:
     material: WIND_CHARGE
     targets: [MACE]
     vanilla-enchant: WIND_BURST
-    required-enchanting-level: 0
+    required-enchanting-level: 18
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -183,11 +155,6 @@ enchants:
       3: { value: "3", xp-cost: 50 }
       4: { value: "4", xp-cost: 65 }
       5: { value: "5", xp-cost: 80 }
-      6: { value: "6", xp-cost: 95 }
-      7: { value: "7", xp-cost: 110 }
-      8: { value: "8", xp-cost: 125 }
-      9: { value: "9", xp-cost: 140 }
-      10: { value: "10", xp-cost: 155 }
 
   breach:
     enabled: true
@@ -195,7 +162,7 @@ enchants:
     description: "&7מתעלם מחלק משריון האויב, מה שמאפשר להוריד להם יותר חיים"
     material: NETHERITE_INGOT
     targets: [MACE]
-    required-enchanting-level: 0
+    required-enchanting-level: 20
     anvil-multiplier: 4
     vanilla-enchant: BREACH
     levels:
@@ -204,11 +171,9 @@ enchants:
       3: { value: "3", xp-cost: 50 }
       4: { value: "4", xp-cost: 65 }
       5: { value: "5", xp-cost: 80 }
-      6: { value: "6", xp-cost: 95 }
-      7: { value: "7", xp-cost: 110 }
-      8: { value: "8", xp-cost: 125 }
-      9: { value: "9", xp-cost: 140 }
-      10: { value: "10", xp-cost: 155 }
+      6: { value: "6", xp-cost: 80 }
+      7: { value: "7", xp-cost: 80 }
+      8: { value: "8", xp-cost: 80 }
 
   loyalty:
     enabled: true
@@ -218,7 +183,7 @@ enchants:
     targets: [TRIDENT]
     vanilla-enchant: LOYALTY
     conflicts: [riptide]
-    required-enchanting-level: 0
+    required-enchanting-level: 13
     anvil-multiplier: 1
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -226,11 +191,6 @@ enchants:
       3: { value: "3", xp-cost: 35 }
       4: { value: "4", xp-cost: 45 }
       5: { value: "5", xp-cost: 55 }
-      6: { value: "6", xp-cost: 65 }
-      7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
 
   impaling:
     enabled: true
@@ -238,7 +198,7 @@ enchants:
     description: "&7מגדיל נזק נגד יצורי מים ושחקנים במים"
     material: PRISMARINE_SHARD
     targets: [TRIDENT]
-    required-enchanting-level: 0
+    required-enchanting-level: 12
     anvil-multiplier: 4
     vanilla-enchant: IMPALING
     levels:
@@ -250,8 +210,6 @@ enchants:
       6: { value: "6", xp-cost: 50 }
       7: { value: "7", xp-cost: 58 }
       8: { value: "8", xp-cost: 66 }
-      9: { value: "9", xp-cost: 74 }
-      10: { value: "10", xp-cost: 82 }
 
   channeling:
     enabled: true
@@ -261,7 +219,7 @@ enchants:
     targets: [TRIDENT]
     vanilla-enchant: CHANNELING
     conflicts: [riptide]
-    required-enchanting-level: 0
+    required-enchanting-level: 10
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 25 }
@@ -274,7 +232,7 @@ enchants:
     targets: [TRIDENT]
     vanilla-enchant: RIPTIDE
     conflicts: [loyalty, channeling]
-    required-enchanting-level: 0
+    required-enchanting-level: 20
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -282,11 +240,6 @@ enchants:
       3: { value: "3", xp-cost: 50 }
       4: { value: "4", xp-cost: 65 }
       5: { value: "5", xp-cost: 80 }
-      6: { value: "6", xp-cost: 95 }
-      7: { value: "7", xp-cost: 110 }
-      8: { value: "8", xp-cost: 125 }
-      9: { value: "9", xp-cost: 140 }
-      10: { value: "10", xp-cost: 155 }
 
   quick_charge:
     enabled: true
@@ -295,7 +248,7 @@ enchants:
     material: CROSSBOW
     targets: [CROSSBOW]
     vanilla-enchant: QUICK_CHARGE
-    required-enchanting-level: 0
+    required-enchanting-level: 22
     anvil-multiplier: 1
     levels:
       1: { value: "1", xp-cost: 10 }
@@ -303,11 +256,6 @@ enchants:
       3: { value: "3", xp-cost: 26 }
       4: { value: "4", xp-cost: 34 }
       5: { value: "5", xp-cost: 42 }
-      6: { value: "6", xp-cost: 50 }
-      7: { value: "7", xp-cost: 58 }
-      8: { value: "8", xp-cost: 66 }
-      9: { value: "9", xp-cost: 74 }
-      10: { value: "10", xp-cost: 82 }
 
   multishot:
     enabled: true
@@ -317,7 +265,7 @@ enchants:
     targets: [CROSSBOW]
     vanilla-enchant: MULTISHOT
     conflicts: [piercing]
-    required-enchanting-level: 0
+    required-enchanting-level: 10
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 30 }
@@ -330,7 +278,7 @@ enchants:
     targets: [CROSSBOW]
     vanilla-enchant: PIERCING
     conflicts: [multishot]
-    required-enchanting-level: 0
+    required-enchanting-level: 24
     anvil-multiplier: 1
     levels:
       1: { value: "1", xp-cost: 10 }
@@ -339,10 +287,6 @@ enchants:
       4: { value: "4", xp-cost: 34 }
       5: { value: "5", xp-cost: 42 }
       6: { value: "6", xp-cost: 50 }
-      7: { value: "7", xp-cost: 58 }
-      8: { value: "8", xp-cost: 66 }
-      9: { value: "9", xp-cost: 74 }
-      10: { value: "10", xp-cost: 82 }
 
   power:
     enabled: true
@@ -361,8 +305,6 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   punch:
     enabled: true
@@ -370,7 +312,7 @@ enchants:
     description: "&7הודף אויבים לאחור בעוצמה רבה כשהם נפגעים מהחצים שלך"
     material: ARROW
     targets: [BOW]
-    required-enchanting-level: 0
+    required-enchanting-level: 15
     anvil-multiplier: 2
     vanilla-enchant: PUNCH
     levels:
@@ -379,11 +321,6 @@ enchants:
       3: { value: "3", xp-cost: 24 }
       4: { value: "4", xp-cost: 32 }
       5: { value: "5", xp-cost: 40 }
-      6: { value: "6", xp-cost: 48 }
-      7: { value: "7", xp-cost: 56 }
-      8: { value: "8", xp-cost: 64 }
-      9: { value: "9", xp-cost: 72 }
-      10: { value: "10", xp-cost: 80 }
 
   flame:
     enabled: true
@@ -403,7 +340,7 @@ enchants:
     description: "&7מאפשר לירות ללא הגבלה כל עוד יש חץ אחד"
     material: SPECTRAL_ARROW
     targets: [BOW]
-    required-enchanting-level: 0
+    required-enchanting-level: 30
     anvil-multiplier: 8
     vanilla-enchant: INFINITY
     levels:
@@ -416,7 +353,7 @@ enchants:
     material: FISHING_ROD
     targets: [FISHING_ROD]
     vanilla-enchant: LURE
-    required-enchanting-level: 0
+    required-enchanting-level: 25
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 10 }
@@ -424,11 +361,6 @@ enchants:
       3: { value: "3", xp-cost: 26 }
       4: { value: "4", xp-cost: 34 }
       5: { value: "5", xp-cost: 42 }
-      6: { value: "6", xp-cost: 50 }
-      7: { value: "7", xp-cost: 58 }
-      8: { value: "8", xp-cost: 66 }
-      9: { value: "9", xp-cost: 74 }
-      10: { value: "10", xp-cost: 82 }
 
   luck_of_the_sea:
     enabled: true
@@ -437,7 +369,7 @@ enchants:
     material: NAUTILUS_SHELL
     targets: [FISHING_ROD]
     vanilla-enchant: LUCK_OF_THE_SEA
-    required-enchanting-level: 0
+    required-enchanting-level: 20
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -445,11 +377,6 @@ enchants:
       3: { value: "3", xp-cost: 35 }
       4: { value: "4", xp-cost: 45 }
       5: { value: "5", xp-cost: 55 }
-      6: { value: "6", xp-cost: 65 }
-      7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
 
   protection:
     enabled: true
@@ -469,8 +396,6 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   fire_protection:
     enabled: true
@@ -491,8 +416,6 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   blast_protection:
     enabled: true
@@ -513,8 +436,6 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   projectile_protection:
     enabled: true
@@ -535,8 +456,6 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   thorns:
     enabled: true
@@ -545,7 +464,7 @@ enchants:
     material: CACTUS
     targets: [ARMOR]
     vanilla-enchant: THORNS
-    required-enchanting-level: 0
+    required-enchanting-level: 20
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -553,11 +472,6 @@ enchants:
       3: { value: "3", xp-cost: 35 }
       4: { value: "4", xp-cost: 45 }
       5: { value: "5", xp-cost: 55 }
-      6: { value: "6", xp-cost: 60 }
-      7: { value: "7", xp-cost: 65 }
-      8: { value: "8", xp-cost: 70 }
-      9: { value: "9", xp-cost: 75 }
-      10: { value: "10", xp-cost: 80 }
 
   respiration:
     display-name: "&bRespiration"
@@ -565,7 +479,7 @@ enchants:
     material: TURTLE_HELMET
     targets: [HELMET]
     vanilla-enchant: RESPIRATION
-    required-enchanting-level: 0
+    required-enchanting-level: 15
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 10 }
@@ -573,11 +487,6 @@ enchants:
       3: { value: "3", xp-cost: 30 }
       4: { value: "4", xp-cost: 40 }
       5: { value: "5", xp-cost: 50 }
-      6: { value: "6", xp-cost: 60 }
-      7: { value: "7", xp-cost: 70 }
-      8: { value: "8", xp-cost: 80 }
-      9: { value: "9", xp-cost: 90 }
-      10: { value: "10", xp-cost: 100 }
 
   aqua_affinity:
     enabled: true
@@ -586,7 +495,7 @@ enchants:
     material: PRISMARINE_CRYSTALS
     targets: [HELMET]
     vanilla-enchant: AQUA_AFFINITY
-    required-enchanting-level: 0
+    required-enchanting-level: 20
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -608,8 +517,6 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   depth_strider:
     enabled: true
@@ -619,7 +526,7 @@ enchants:
     targets: [BOOTS]
     vanilla-enchant: DEPTH_STRIDER
     conflicts: [frost_walker]
-    required-enchanting-level: 0
+    required-enchanting-level: 25
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -627,11 +534,6 @@ enchants:
       3: { value: "3", xp-cost: 35 }
       4: { value: "4", xp-cost: 45 }
       5: { value: "5", xp-cost: 55 }
-      6: { value: "6", xp-cost: 65 }
-      7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
 
   frost_walker:
     enabled: true
@@ -641,7 +543,7 @@ enchants:
     targets: [BOOTS]
     vanilla-enchant: FROST_WALKER
     conflicts: [depth_strider]
-    required-enchanting-level: 0
+    required-enchanting-level: 35
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -657,7 +559,7 @@ enchants:
     material: SOUL_SAND
     targets: [BOOTS]
     vanilla-enchant: SOUL_SPEED
-    required-enchanting-level: 0
+    required-enchanting-level: 30
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 25 }
@@ -673,7 +575,7 @@ enchants:
     material: LEATHER_LEGGINGS
     targets: [LEGGINGS]
     vanilla-enchant: SWIFT_SNEAK
-    required-enchanting-level: 0
+    required-enchanting-level: 35
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -699,8 +601,6 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   fortune:
     enabled: true
@@ -710,7 +610,7 @@ enchants:
     targets: [TOOL]
     vanilla-enchant: FORTUNE
     conflicts: [silk_touch]
-    required-enchanting-level: 0
+    required-enchanting-level: 10
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -718,7 +618,6 @@ enchants:
       3: { value: "3", xp-cost: 35 }
       4: { value: "4", xp-cost: 45 }
       5: { value: "5", xp-cost: 55 }
-      6: { value: "6", xp-cost: 65 }
 
   silk_touch:
     enabled: true
@@ -728,7 +627,7 @@ enchants:
     targets: [TOOL]
     vanilla-enchant: SILK_TOUCH
     conflicts: [fortune]
-    required-enchanting-level: 0
+    required-enchanting-level: 20
     anvil-multiplier: 8
     levels:
       1: { value: "1", xp-cost: 40 }
@@ -740,7 +639,7 @@ enchants:
     material: BOOK
     targets: [HELMET]
     auraskills-stat: "wisdom"
-    required-enchanting-level: 0
+    required-enchanting-level: 35
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -750,9 +649,7 @@ enchants:
       5: { value: "5", xp-cost: 55 }
       6: { value: "6", xp-cost: 65 }
       7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
+      8: { value: "8", xp-cost: 80 }
 
   luck_boost:
     display-name: "&aLuck"
@@ -760,7 +657,7 @@ enchants:
     material: EMERALD
     targets: [TOOL]
     auraskills-stat: "luck"
-    required-enchanting-level: 0
+    required-enchanting-level: 30
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -770,9 +667,7 @@ enchants:
       5: { value: "5", xp-cost: 60 }
       6: { value: "6", xp-cost: 70 }
       7: { value: "7", xp-cost: 80 }
-      8: { value: "8", xp-cost: 90 }
-      9: { value: "9", xp-cost: 100 }
-      10: { value: "10", xp-cost: 110 }
+      8: { value: "8", xp-cost: 80 }
 
   crit_chance_boost:
     display-name: "&cCrit Chance"
@@ -780,7 +675,7 @@ enchants:
     material: TARGET
     targets: [SWORD, BOW, CROSSBOW]
     auraskills-stat: "crit_chance"
-    required-enchanting-level: 0
+    required-enchanting-level: 45
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -790,9 +685,7 @@ enchants:
       5: { value: "5", xp-cost: 60 }
       6: { value: "6", xp-cost: 70 }
       7: { value: "7", xp-cost: 80 }
-      8: { value: "8", xp-cost: 90 }
-      9: { value: "9", xp-cost: 100 }
-      10: { value: "10", xp-cost: 110 }
+      8: { value: "8", xp-cost: 80 }
 
   crit_damage_boost:
     display-name: "&4Crit Damage"
@@ -800,7 +693,7 @@ enchants:
     material: TNT_MINECART
     targets: [SWORD, BOW, CROSSBOW]
     auraskills-stat: "crit_damage"
-    required-enchanting-level: 0
+    required-enchanting-level: 40
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -810,9 +703,7 @@ enchants:
       5: { value: "5", xp-cost: 60 }
       6: { value: "6", xp-cost: 70 }
       7: { value: "7", xp-cost: 80 }
-      8: { value: "8", xp-cost: 90 }
-      9: { value: "9", xp-cost: 100 }
-      10: { value: "10", xp-cost: 110 }
+      8: { value: "8", xp-cost: 80 }
 
   regeneration_boost:
     display-name: "&cRegeneration"
@@ -820,7 +711,7 @@ enchants:
     material: GHAST_TEAR
     targets: [ARMOR]
     auraskills-stat: "regeneration"
-    required-enchanting-level: 0
+    required-enchanting-level: 45
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -830,8 +721,6 @@ enchants:
       5: { value: "5", xp-cost: 60 }
       6: { value: "6", xp-cost: 70 }
       7: { value: "7", xp-cost: 80 }
-      8: { value: "8", xp-cost: 90 }
-      9: { value: "9", xp-cost: 100 }
-      10: { value: "10", xp-cost: 110 }
+      8: { value: "8", xp-cost: 80 }
 
 

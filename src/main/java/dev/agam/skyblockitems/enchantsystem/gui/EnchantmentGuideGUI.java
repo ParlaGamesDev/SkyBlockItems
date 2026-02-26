@@ -202,20 +202,20 @@ public class EnchantmentGuideGUI implements BaseGUI {
         } else {
             lore.add(ColorUtils.colorize("&7" + desc));
         }
-        lore.add("");
-
         // Applied To
         lore.add(plugin.getConfigManager().getMessage("guide.lore.applied-to"));
         for (String target : enchant.getTargets()) {
             lore.add(plugin.getConfigManager().getMessage("guide.lore.list-format", "{value}",
                     formatTargetName(target)));
         }
-        lore.add("");
 
         // Requirements
-        lore.add(plugin.getConfigManager().getMessage("guide.lore.requirements"));
         int required = enchant.getRequiredEnchantingLevel();
-        lore.add(plugin.getConfigManager().getMessage("guide.lore.req-level", "{level}", String.valueOf(required)));
+        if (required > 0) {
+            lore.add("");
+            lore.add(plugin.getConfigManager().getMessage("guide.lore.requirements"));
+            lore.add(plugin.getConfigManager().getMessage("guide.lore.req-level", "{level}", String.valueOf(required)));
+        }
 
         // Conflicts
         List<String> conflicts = enchant.getConflicts();

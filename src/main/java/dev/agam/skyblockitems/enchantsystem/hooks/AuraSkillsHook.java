@@ -58,7 +58,8 @@ public class AuraSkillsHook {
             if (user == null)
                 return;
 
-            dev.aurelium.auraskills.api.stat.Stat stat = api.getGlobalRegistry().getStat(NamespacedId.fromString(statName.toLowerCase()));
+            dev.aurelium.auraskills.api.stat.Stat stat = api.getGlobalRegistry()
+                    .getStat(NamespacedId.fromString(statName.toLowerCase()));
             if (stat == null)
                 return;
 
@@ -80,6 +81,29 @@ public class AuraSkillsHook {
                 return;
 
             user.removeStatModifier(modifierName);
+        } catch (Exception ignored) {
+        }
+    }
+
+    /**
+     * Add XP to a player's skill.
+     *
+     * @param player    The player.
+     * @param skillName The name of the skill (e.g., "enchanting").
+     * @param amount    The amount of XP to add.
+     */
+    public void addXP(Player player, String skillName, double amount) {
+        try {
+            SkillsUser user = api.getUser(player.getUniqueId());
+            if (user == null)
+                return;
+
+            dev.aurelium.auraskills.api.skill.Skill skill = api.getGlobalRegistry()
+                    .getSkill(NamespacedId.fromDefault(skillName.toLowerCase()));
+            if (skill == null)
+                return;
+
+            user.addSkillXp(skill, amount);
         } catch (Exception ignored) {
         }
     }

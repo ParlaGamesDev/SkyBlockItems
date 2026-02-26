@@ -2,13 +2,12 @@ gui:
   size: 54
 
 enchants:
-
   sharpness:
     enabled: true
     display-name: "&cSharpness"
-    description: "&7מגדיל את הנזק הכללי של החרב\nנגד כל סוגי האויבים והשחקנים."
+    description: "&7מגדיל את הנזק הכללי"
     material: IRON_SWORD
-    targets: [SWORD]
+    targets: [SWORD, AXE]
     vanilla-enchant: SHARPNESS
     required-enchanting-level: 0
     anvil-multiplier: 1
@@ -22,17 +21,15 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   fire_aspect:
     enabled: true
     display-name: "&6Fire Aspect"
-    description: "&7מדליק את המטרה באש,\nמה שגורם לנזק מתמשך לאורך זמן."
+    description: "&7שורף את המותקף לאורך זמן"
     material: BLAZE_POWDER
-    targets: [SWORD, MACE]
+    targets: [SWORD, AXE]
     vanilla-enchant: FIRE_ASPECT
-    required-enchanting-level: 0
+    required-enchanting-level: 3
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 10 }
@@ -40,60 +37,45 @@ enchants:
       3: { value: "3", xp-cost: 30 }
       4: { value: "4", xp-cost: 40 }
       5: { value: "5", xp-cost: 50 }
-      6: { value: "6", xp-cost: 60 }
-      7: { value: "7", xp-cost: 70 }
-      8: { value: "8", xp-cost: 80 }
-      9: { value: "9", xp-cost: 90 }
-      10: { value: "10", xp-cost: 100 }
 
   knockback:
     enabled: true
     display-name: "&bKnockback"
-    description: "&7הופך את המכות לחזקות יותר\nוהודף את האויבים לאחור בחוזקה."
+    description: "&7מעיף את האויבים שלך מקרבתך"
     material: SLIME_BALL
     targets: [SWORD]
     vanilla-enchant: KNOCKBACK
-    required-enchanting-level: 0
+    required-enchanting-level: 3
     levels:
       1: { value: "1", xp-cost: 8 }
       2: { value: "2", xp-cost: 16 }
       3: { value: "3", xp-cost: 24 }
       4: { value: "4", xp-cost: 32 }
       5: { value: "5", xp-cost: 40 }
-      6: { value: "6", xp-cost: 48 }
-      7: { value: "7", xp-cost: 56 }
-      8: { value: "8", xp-cost: 64 }
-      9: { value: "9", xp-cost: 72 }
-      10: { value: "10", xp-cost: 80 }
 
   looting:
     enabled: true
     display-name: "&eLooting"
-    description: "&7מגדיל את הסיכוי לקבל שלל נדיר\nואת כמות החפצים הנופלים ממובים."
+    description: "&7מגדיל את כמות החפצים הנופלים ממובים"
     material: GOLD_INGOT
     targets: [SWORD]
     vanilla-enchant: LOOTING
-    required-enchanting-level: 0
+    required-enchanting-level: 10
     levels:
       1: { value: "1", xp-cost: 10 }
       2: { value: "2", xp-cost: 20 }
       3: { value: "3", xp-cost: 30 }
       4: { value: "4", xp-cost: 40 }
       5: { value: "5", xp-cost: 50 }
-      6: { value: "6", xp-cost: 60 }
-      7: { value: "7", xp-cost: 70 }
-      8: { value: "8", xp-cost: 80 }
-      9: { value: "9", xp-cost: 90 }
-      10: { value: "10", xp-cost: 100 }
 
   sweeping_edge:
     enabled: true
     display-name: "&dSweeping Edge"
-    description: "&7מגדיל נזק מכות רחבות"
+    description: "&7מגדיל את הנזק של התקפת הסיבוב על קבוצות אויבים"
     material: FEATHER
     targets: [SWORD]
     vanilla-enchant: SWEEPING_EDGE
-    required-enchanting-level: 0
+    required-enchanting-level: 7
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 8 }
@@ -101,20 +83,15 @@ enchants:
       3: { value: "3", xp-cost: 24 }
       4: { value: "4", xp-cost: 32 }
       5: { value: "5", xp-cost: 40 }
-      6: { value: "6", xp-cost: 48 }
-      7: { value: "7", xp-cost: 56 }
-      8: { value: "8", xp-cost: 64 }
-      9: { value: "9", xp-cost: 72 }
-      10: { value: "10", xp-cost: 80 }
 
   smite:
     display-name: "&eSmite"
-    description: "&7מגדיל משמעותית את הנזק הנגרם\nלאל-מתים כמו זומבים ושלדים."
+    description: "&7מגדיל את הנזק נגד אל-מתים"
     material: ROTTEN_FLESH
     targets: [SWORD, MACE]
     vanilla-enchant: SMITE
     conflicts: [sharpness, bane_of_arthropods]
-    required-enchanting-level: 0
+    required-enchanting-level: 6
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 5 }
@@ -125,17 +102,15 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   bane_of_arthropods:
     display-name: "&2Bane of Arthropods"
-    description: "&7מגדיל את הנזק הנגרם לפרוקי רגליים כמו עכבישים ודגי כסף."
+    description: "&7מגדיל את הנזק נגד עכבישים ודגים"
     material: SPIDER_EYE
     targets: [SWORD, MACE]
     vanilla-enchant: BANE_OF_ARTHROPODS
     conflicts: [sharpness, smite]
-    required-enchanting-level: 0
+    required-enchanting-level: 4
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 5 }
@@ -146,16 +121,14 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   density:
     display-name: "&5Density"
-    description: "&7מגדיל את הנזק הכללי שנגרם מנפילה\nעם המייס, ככל שנופלים מגובה רב יותר."
+    description: "&7מגדיל את הנזק שנגרם מנפילה עם המייס"
     material: HEAVY_CORE
     targets: [MACE]
     vanilla-enchant: DENSITY
-    required-enchanting-level: 0
+    required-enchanting-level: 15
     anvil-multiplier: 1
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -165,18 +138,16 @@ enchants:
       5: { value: "5", xp-cost: 55 }
       6: { value: "6", xp-cost: 65 }
       7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
+      8: { value: "8", xp-cost: 80 }
 
   wind_burst:
     enabled: true
     display-name: "&bWind Burst"
-    description: "&7יוצר פרץ רוח שמקפיץ אותך למעלה אחרי פגיעה מוצלחת באויב."
+    description: "&7יוצר פרץ רוח שמקפיץ אותך למעלה אחרי פגיעה"
     material: WIND_CHARGE
     targets: [MACE]
     vanilla-enchant: WIND_BURST
-    required-enchanting-level: 0
+    required-enchanting-level: 18
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -184,19 +155,14 @@ enchants:
       3: { value: "3", xp-cost: 50 }
       4: { value: "4", xp-cost: 65 }
       5: { value: "5", xp-cost: 80 }
-      6: { value: "6", xp-cost: 95 }
-      7: { value: "7", xp-cost: 110 }
-      8: { value: "8", xp-cost: 125 }
-      9: { value: "9", xp-cost: 140 }
-      10: { value: "10", xp-cost: 155 }
 
   breach:
     enabled: true
     display-name: "&4Breach"
-    description: "&7מתעלם מחלק משריון האויב, מה שמאפשר להוריד להם יותר חיים."
+    description: "&7מתעלם מחלק משריון האויב, מה שמאפשר להוריד להם יותר חיים"
     material: NETHERITE_INGOT
     targets: [MACE]
-    required-enchanting-level: 0
+    required-enchanting-level: 20
     anvil-multiplier: 4
     vanilla-enchant: BREACH
     levels:
@@ -205,21 +171,19 @@ enchants:
       3: { value: "3", xp-cost: 50 }
       4: { value: "4", xp-cost: 65 }
       5: { value: "5", xp-cost: 80 }
-      6: { value: "6", xp-cost: 95 }
-      7: { value: "7", xp-cost: 110 }
-      8: { value: "8", xp-cost: 125 }
-      9: { value: "9", xp-cost: 140 }
-      10: { value: "10", xp-cost: 155 }
+      6: { value: "6", xp-cost: 80 }
+      7: { value: "7", xp-cost: 80 }
+      8: { value: "8", xp-cost: 80 }
 
   loyalty:
     enabled: true
     display-name: "&3Loyalty"
-    description: "&7גורם לקלשון לחזור אליך אוטומטית ליד מיד לאחר שנזרק."
+    description: "&7הקלשון חוזר אליך אוטומטית לאחר הזריקה"
     material: TRIDENT
     targets: [TRIDENT]
     vanilla-enchant: LOYALTY
     conflicts: [riptide]
-    required-enchanting-level: 0
+    required-enchanting-level: 13
     anvil-multiplier: 1
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -227,19 +191,14 @@ enchants:
       3: { value: "3", xp-cost: 35 }
       4: { value: "4", xp-cost: 45 }
       5: { value: "5", xp-cost: 55 }
-      6: { value: "6", xp-cost: 65 }
-      7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
 
   impaling:
     enabled: true
     display-name: "&bImpaling"
-    description: "&7מגדיל את הנזק הנגרם ליצורי מים (כמו דגים או שומרים) עם הקלשון."
+    description: "&7מגדיל נזק נגד יצורי מים ושחקנים במים"
     material: PRISMARINE_SHARD
     targets: [TRIDENT]
-    required-enchanting-level: 0
+    required-enchanting-level: 12
     anvil-multiplier: 4
     vanilla-enchant: IMPALING
     levels:
@@ -251,18 +210,16 @@ enchants:
       6: { value: "6", xp-cost: 50 }
       7: { value: "7", xp-cost: 58 }
       8: { value: "8", xp-cost: 66 }
-      9: { value: "9", xp-cost: 74 }
-      10: { value: "10", xp-cost: 82 }
 
   channeling:
     enabled: true
     display-name: "&eChanneling"
-    description: "&7גורם לברק להכות במטרה בזמן סערה\nכשהקלשון פוגע בה."
+    description: "&7יוצר ברק כשפוגעים ביצור בזמן סופת רעמים"
     material: LIGHTNING_ROD
     targets: [TRIDENT]
     vanilla-enchant: CHANNELING
     conflicts: [riptide]
-    required-enchanting-level: 0
+    required-enchanting-level: 10
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 25 }
@@ -270,12 +227,12 @@ enchants:
   riptide:
     enabled: true
     display-name: "&3Riptide"
-    description: "&7משגר אותך קדימה בעוצמה כשאתה זורק את הקלשון בתוך מים או גשם."
+    description: "&7מעיף אותך קדימה כשזורקים את הקלשון במים או בגשם"
     material: HEART_OF_THE_SEA
     targets: [TRIDENT]
     vanilla-enchant: RIPTIDE
     conflicts: [loyalty, channeling]
-    required-enchanting-level: 0
+    required-enchanting-level: 20
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -283,20 +240,15 @@ enchants:
       3: { value: "3", xp-cost: 50 }
       4: { value: "4", xp-cost: 65 }
       5: { value: "5", xp-cost: 80 }
-      6: { value: "6", xp-cost: 95 }
-      7: { value: "7", xp-cost: 110 }
-      8: { value: "8", xp-cost: 125 }
-      9: { value: "9", xp-cost: 140 }
-      10: { value: "10", xp-cost: 155 }
 
   quick_charge:
     enabled: true
     display-name: "&eQuick Charge"
-    description: "&7מקטין את הזמן שנדרש כדי לטעון את רובה הקשת לפני הירייה."
+    description: "&7מקצר את זמן הטעינה של הקשת המוצלבת"
     material: CROSSBOW
     targets: [CROSSBOW]
     vanilla-enchant: QUICK_CHARGE
-    required-enchanting-level: 0
+    required-enchanting-level: 22
     anvil-multiplier: 1
     levels:
       1: { value: "1", xp-cost: 10 }
@@ -304,21 +256,16 @@ enchants:
       3: { value: "3", xp-cost: 26 }
       4: { value: "4", xp-cost: 34 }
       5: { value: "5", xp-cost: 42 }
-      6: { value: "6", xp-cost: 50 }
-      7: { value: "7", xp-cost: 58 }
-      8: { value: "8", xp-cost: 66 }
-      9: { value: "9", xp-cost: 74 }
-      10: { value: "10", xp-cost: 82 }
 
   multishot:
     enabled: true
     display-name: "&dMultishot"
-    description: "&7מאפשר לירות שלושה חצים בבת אחת במחיר של חץ אחד בלבד."
+    description: "&7יורה 3 חצים במחיר של אחד"
     material: ARROW
     targets: [CROSSBOW]
     vanilla-enchant: MULTISHOT
     conflicts: [piercing]
-    required-enchanting-level: 0
+    required-enchanting-level: 10
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 30 }
@@ -326,12 +273,12 @@ enchants:
   piercing:
     enabled: true
     display-name: "&cPiercing"
-    description: "&7גורם לחצים לעבור דרך האויב ולפגוע\nגם באלו שנמצאים מאחוריו."
+    description: "&7גורם לחצים לעבור דרך האויב ולפגוע גם באלו שנמצאים מאחוריו"
     material: TIPPED_ARROW
     targets: [CROSSBOW]
     vanilla-enchant: PIERCING
     conflicts: [multishot]
-    required-enchanting-level: 0
+    required-enchanting-level: 24
     anvil-multiplier: 1
     levels:
       1: { value: "1", xp-cost: 10 }
@@ -340,15 +287,11 @@ enchants:
       4: { value: "4", xp-cost: 34 }
       5: { value: "5", xp-cost: 42 }
       6: { value: "6", xp-cost: 50 }
-      7: { value: "7", xp-cost: 58 }
-      8: { value: "8", xp-cost: 66 }
-      9: { value: "9", xp-cost: 74 }
-      10: { value: "10", xp-cost: 82 }
 
   power:
     enabled: true
     display-name: "&cPower"
-    description: "&7מגדיל בצורה משמעותית את הנזק שעושים החצים שנורים מהקשת."
+    description: "&7מגדיל את נזק החצים"
     material: BOW
     targets: [BOW]
     vanilla-enchant: POWER
@@ -362,16 +305,14 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   punch:
     enabled: true
     display-name: "&bPunch"
-    description: "&7הודף אויבים לאחור בעוצמה רבה כשהם נפגעים מהחצים שלך."
+    description: "&7הודף אויבים לאחור בעוצמה רבה כשהם נפגעים מהחצים שלך"
     material: ARROW
     targets: [BOW]
-    required-enchanting-level: 0
+    required-enchanting-level: 15
     anvil-multiplier: 2
     vanilla-enchant: PUNCH
     levels:
@@ -380,16 +321,11 @@ enchants:
       3: { value: "3", xp-cost: 24 }
       4: { value: "4", xp-cost: 32 }
       5: { value: "5", xp-cost: 40 }
-      6: { value: "6", xp-cost: 48 }
-      7: { value: "7", xp-cost: 56 }
-      8: { value: "8", xp-cost: 64 }
-      9: { value: "9", xp-cost: 72 }
-      10: { value: "10", xp-cost: 80 }
 
   flame:
     enabled: true
     display-name: "&6Flame"
-    description: "&7הופך את החצים לבוערים, מה שמדליק את המטרה ומבשל בשר חיות."
+    description: "&7יורה חצים בוערים"
     material: FIRE_CHARGE
     targets: [BOW]
     required-enchanting-level: 0
@@ -401,10 +337,10 @@ enchants:
   infinity:
     enabled: true
     display-name: "&dInfinity"
-    description: "&7מאפשר לירות חצים ללא הפסקה כל עוד יש לך חץ אחד לפחות בתיק."
+    description: "&7מאפשר לירות ללא הגבלה כל עוד יש חץ אחד"
     material: SPECTRAL_ARROW
     targets: [BOW]
-    required-enchanting-level: 0
+    required-enchanting-level: 30
     anvil-multiplier: 8
     vanilla-enchant: INFINITY
     levels:
@@ -413,11 +349,11 @@ enchants:
   lure:
     enabled: true
     display-name: "&bLure"
-    description: "&7מקצר את זמן ההמתנה עד שדג\nנתפס בחכה שלך."
+    description: "&7מקצר את זמן ההמתנה עד שמשהו נתפס בחכה שלך"
     material: FISHING_ROD
     targets: [FISHING_ROD]
     vanilla-enchant: LURE
-    required-enchanting-level: 0
+    required-enchanting-level: 25
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 10 }
@@ -425,20 +361,15 @@ enchants:
       3: { value: "3", xp-cost: 26 }
       4: { value: "4", xp-cost: 34 }
       5: { value: "5", xp-cost: 42 }
-      6: { value: "6", xp-cost: 50 }
-      7: { value: "7", xp-cost: 58 }
-      8: { value: "8", xp-cost: 66 }
-      9: { value: "9", xp-cost: 74 }
-      10: { value: "10", xp-cost: 82 }
 
   luck_of_the_sea:
     enabled: true
     display-name: "&aLuck of the Sea"
-    description: "&7מגדיל את הסיכוי למצוא אוצרות\nוחפצים נדירים בזמן דיג."
+    description: "&7מגדיל את הסיכוי למצוא אוצרות וחפצים נדירים בזמן דיג"
     material: NAUTILUS_SHELL
     targets: [FISHING_ROD]
     vanilla-enchant: LUCK_OF_THE_SEA
-    required-enchanting-level: 0
+    required-enchanting-level: 20
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -446,16 +377,11 @@ enchants:
       3: { value: "3", xp-cost: 35 }
       4: { value: "4", xp-cost: 45 }
       5: { value: "5", xp-cost: 55 }
-      6: { value: "6", xp-cost: 65 }
-      7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
 
   protection:
     enabled: true
     display-name: "&9Protection"
-    description: "&7מפחית את רוב סוגי הנזק\nשהשחקן מקבל מכל מקור שהו."
+    description: "&7מביא הגנה נוספת ומפחית את רוב סוגי הנזק הנגרמים לך"
     material: IRON_CHESTPLATE
     targets: [ARMOR]
     vanilla-enchant: PROTECTION
@@ -470,13 +396,11 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   fire_protection:
     enabled: true
     display-name: "&6Fire Protection"
-    description: "&7מפחית את הנזק מאש ומקטין\nאת זמן הבעירה כשאתה נדלק."
+    description: "&7מפחית נזקים שנגרמים מאש ולבה"
     material: MAGMA_CREAM
     targets: [ARMOR]
     vanilla-enchant: FIRE_PROTECTION
@@ -492,13 +416,11 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   blast_protection:
     enabled: true
     display-name: "&cBlast Protection"
-    description: "&7מפחית את הנזק וההדף\nמפיצוצים."
+    description: "&7מפחית את הנזק וההדף מפיצוצים"
     material: TNT
     targets: [ARMOR]
     vanilla-enchant: BLAST_PROTECTION
@@ -514,13 +436,11 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   projectile_protection:
     enabled: true
     display-name: "&bProjectile Protection"
-    description: "&7מפחית את הנזק מחצים\nופגיעות מרחוק."
+    description: "&7מפחית את הנזק מחצים ופגיעות מרחוק"
     material: ARROW
     targets: [ARMOR]
     vanilla-enchant: PROJECTILE_PROTECTION
@@ -536,17 +456,15 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   thorns:
     enabled: true
     display-name: "&cThorns"
-    description: "&7גורם נזק לתוקפים כאשר\nהם פוגעים בך."
+    description: "&7גורם נזק לתוקפים כאשר הם פוגעים בך"
     material: CACTUS
     targets: [ARMOR]
     vanilla-enchant: THORNS
-    required-enchanting-level: 0
+    required-enchanting-level: 20
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -554,19 +472,14 @@ enchants:
       3: { value: "3", xp-cost: 35 }
       4: { value: "4", xp-cost: 45 }
       5: { value: "5", xp-cost: 55 }
-      6: { value: "6", xp-cost: 60 }
-      7: { value: "7", xp-cost: 65 }
-      8: { value: "8", xp-cost: 70 }
-      9: { value: "9", xp-cost: 75 }
-      10: { value: "10", xp-cost: 80 }
 
   respiration:
     display-name: "&bRespiration"
-    description: "&7מאפשר לנשום מתחת למים לזמן ארוך\nיותר ומשפר את הראות במים."
+    description: "&7מאפשר לנשום מתחת למים לזמן ארוך יותר ומשפר את הראייה במים"
     material: TURTLE_HELMET
     targets: [HELMET]
     vanilla-enchant: RESPIRATION
-    required-enchanting-level: 0
+    required-enchanting-level: 15
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 10 }
@@ -574,27 +487,22 @@ enchants:
       3: { value: "3", xp-cost: 30 }
       4: { value: "4", xp-cost: 40 }
       5: { value: "5", xp-cost: 50 }
-      6: { value: "6", xp-cost: 60 }
-      7: { value: "7", xp-cost: 70 }
-      8: { value: "8", xp-cost: 80 }
-      9: { value: "9", xp-cost: 90 }
-      10: { value: "10", xp-cost: 100 }
 
   aqua_affinity:
     enabled: true
     display-name: "&bAqua Affinity"
-    description: "&7מגדיל את מהירות הכרייה\nמתחת למים."
+    description: "&7מאפשר לחצוב מהר יותר מתחת למים"
     material: PRISMARINE_CRYSTALS
     targets: [HELMET]
     vanilla-enchant: AQUA_AFFINITY
-    required-enchanting-level: 0
+    required-enchanting-level: 20
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 20 }
 
   feather_falling:
     display-name: "&fFeather Falling"
-    description: "&7מפחית משמעותית את הנזק\nהנגרם מנפילה מגובה רב."
+    description: "&7מפחית משמעותית את הנזק הנגרם מנפילה מגובה רב"
     material: FEATHER
     targets: [BOOTS]
     vanilla-enchant: FEATHER_FALLING
@@ -609,18 +517,16 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   depth_strider:
     enabled: true
     display-name: "&3Depth Strider"
-    description: "&7מגדיל את מהירות התנועה\nמתחת למים."
+    description: "&7מגדיל את מהירות התנועה מתחת למים"
     material: PRISMARINE_SHARD
     targets: [BOOTS]
     vanilla-enchant: DEPTH_STRIDER
     conflicts: [frost_walker]
-    required-enchanting-level: 0
+    required-enchanting-level: 25
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -628,21 +534,16 @@ enchants:
       3: { value: "3", xp-cost: 35 }
       4: { value: "4", xp-cost: 45 }
       5: { value: "5", xp-cost: 55 }
-      6: { value: "6", xp-cost: 65 }
-      7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
 
   frost_walker:
     enabled: true
     display-name: "&bFrost Walker"
-    description: "&7הופך מים לקרח כשאתה\nהולך עליהם."
+    description: "&7הופך מים לקרח כשאתה הולך עליהם"
     material: ICE
     targets: [BOOTS]
     vanilla-enchant: FROST_WALKER
     conflicts: [depth_strider]
-    required-enchanting-level: 0
+    required-enchanting-level: 35
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -654,11 +555,11 @@ enchants:
   soul_speed:
     enabled: true
     display-name: "&4Soul Speed"
-    description: "&7מגדיל את מהירות התנועה\nעל Soul Sand ומשטחי נשמות."
+    description: "&7מגביר את מהירות ההליכה על חול נשמות"
     material: SOUL_SAND
     targets: [BOOTS]
     vanilla-enchant: SOUL_SPEED
-    required-enchanting-level: 0
+    required-enchanting-level: 30
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 25 }
@@ -670,11 +571,11 @@ enchants:
   swift_sneak:
     enabled: true
     display-name: "&5Swift Sneak"
-    description: "&7מגדיל את מהירות ההתגנבות."
+    description: "&7מגדיל את מהירות ההתגנבות"
     material: LEATHER_LEGGINGS
     targets: [LEGGINGS]
     vanilla-enchant: SWIFT_SNEAK
-    required-enchanting-level: 0
+    required-enchanting-level: 35
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -686,7 +587,7 @@ enchants:
   efficiency:
     enabled: true
     display-name: "&eEfficiency"
-    description: "&7מגדיל את מהירות הכרייה של הכלי, מה שמאפשר לשבור בלוקים מהר יותר."
+    description: "&7מגביר את מהירות החציבה"
     material: GOLDEN_PICKAXE
     targets: [TOOL]
     vanilla-enchant: EFFICIENCY
@@ -700,18 +601,16 @@ enchants:
       6: { value: "6", xp-cost: 30 }
       7: { value: "7", xp-cost: 35 }
       8: { value: "8", xp-cost: 40 }
-      9: { value: "9", xp-cost: 45 }
-      10: { value: "10", xp-cost: 50 }
 
   fortune:
     enabled: true
     display-name: "&aFortune"
-    description: "&7מגדיל את כמות המשאבים הנופלים מבלוקים (כמו יהלומים או פחם)."
+    description: "&7מגדיל את כמות המשאבים הנופלים מבלוקים"
     material: DIAMOND
     targets: [TOOL]
     vanilla-enchant: FORTUNE
     conflicts: [silk_touch]
-    required-enchanting-level: 0
+    required-enchanting-level: 10
     anvil-multiplier: 4
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -719,33 +618,28 @@ enchants:
       3: { value: "3", xp-cost: 35 }
       4: { value: "4", xp-cost: 45 }
       5: { value: "5", xp-cost: 55 }
-      6: { value: "6", xp-cost: 65 }
-      7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
 
   silk_touch:
     enabled: true
     display-name: "&dSilk Touch"
-    description: "&7מאפשר לכרות בלוקים במצבם המקורי (כמו זכוכית, דשא או גושי פחם)."
+    description: "&7מאפשר להשיג בלוקים בצורתם המקורית"
     material: COBWEB
     targets: [TOOL]
     vanilla-enchant: SILK_TOUCH
     conflicts: [fortune]
-    required-enchanting-level: 0
+    required-enchanting-level: 20
     anvil-multiplier: 8
     levels:
       1: { value: "1", xp-cost: 40 }
 
 
   wisdom_boost:
-    display-name: "&bWisdom Boost"
-    description: "&7משפר את החוכמה שלך, מה שמגדיל את כמות\nנקודות הניסיון שאתה מקבל ומשפר את המאנה."
+    display-name: "&bWisdom"
+    description: "&7משפר את החוכמה שלך, מה שמגדיל את כמות האקספי והמאנה שאתה מקבל"
     material: BOOK
     targets: [HELMET]
     auraskills-stat: "wisdom"
-    required-enchanting-level: 0
+    required-enchanting-level: 35
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 15 }
@@ -755,17 +649,15 @@ enchants:
       5: { value: "5", xp-cost: 55 }
       6: { value: "6", xp-cost: 65 }
       7: { value: "7", xp-cost: 75 }
-      8: { value: "8", xp-cost: 85 }
-      9: { value: "9", xp-cost: 95 }
-      10: { value: "10", xp-cost: 105 }
+      8: { value: "8", xp-cost: 80 }
 
   luck_boost:
-    display-name: "&aLuck Boost"
-    description: "&7משפר את המזל שלך, מה שמגדיל את הסיכוי\nלקבלת שלל נדיר ממובים ובפעילויות שונות."
+    display-name: "&aLuck"
+    description: "&7משפר את המזל שלך, מה שמגדיל את הסיכוי לקבלת שלל נדיר ממובים שונות"
     material: EMERALD
-    targets: [GLOBAL]
+    targets: [TOOL]
     auraskills-stat: "luck"
-    required-enchanting-level: 0
+    required-enchanting-level: 30
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -775,19 +667,15 @@ enchants:
       5: { value: "5", xp-cost: 60 }
       6: { value: "6", xp-cost: 70 }
       7: { value: "7", xp-cost: 80 }
-      8: { value: "8", xp-cost: 90 }
-      9: { value: "9", xp-cost: 100 }
-      10: { value: "10", xp-cost: 110 }
-
-
+      8: { value: "8", xp-cost: 80 }
 
   crit_chance_boost:
-    display-name: "&cCrit Chance Boost"
-    description: "&7מגדיל את הסיכוי שלך להנחית מכה קריטית\nשעושה הרבה יותר נזק מהרגיל."
+    display-name: "&cCrit Chance"
+    description: "&7מגדיל את הסיכוי שלך להנחית מכה קריטית שעושה הרבה יותר נזק מהרגיל"
     material: TARGET
     targets: [SWORD, BOW, CROSSBOW]
     auraskills-stat: "crit_chance"
-    required-enchanting-level: 0
+    required-enchanting-level: 45
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -797,17 +685,15 @@ enchants:
       5: { value: "5", xp-cost: 60 }
       6: { value: "6", xp-cost: 70 }
       7: { value: "7", xp-cost: 80 }
-      8: { value: "8", xp-cost: 90 }
-      9: { value: "9", xp-cost: 100 }
-      10: { value: "10", xp-cost: 110 }
+      8: { value: "8", xp-cost: 80 }
 
   crit_damage_boost:
-    display-name: "&4Crit Damage Boost"
-    description: "&7מגדיל את כמות הנזק הנוספת שנגרמת\nכאשר אתה מנחית מכה קריטית על אויב."
+    display-name: "&4Crit Damage"
+    description: "&7מגדיל את כמות הנזק הנוספת שנגרמת כאשר אתה מנחית מכה קריטית על אויב"
     material: TNT_MINECART
     targets: [SWORD, BOW, CROSSBOW]
     auraskills-stat: "crit_damage"
-    required-enchanting-level: 0
+    required-enchanting-level: 40
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -817,17 +703,15 @@ enchants:
       5: { value: "5", xp-cost: 60 }
       6: { value: "6", xp-cost: 70 }
       7: { value: "7", xp-cost: 80 }
-      8: { value: "8", xp-cost: 90 }
-      9: { value: "9", xp-cost: 100 }
-      10: { value: "10", xp-cost: 110 }
+      8: { value: "8", xp-cost: 80 }
 
   regeneration_boost:
-    display-name: "&cRegeneration Boost"
-    description: "&7מאיץ את קצב התחדשות החיים שלך,\nמה שמאפשר לך להחלים ולחזור לקרב מהר."
+    display-name: "&cRegeneration"
+    description: "&7מאיץ את קצב התחדשות החיים שלך, מה שמאפשר לך להחלים ולחזור לקרב מהר"
     material: GHAST_TEAR
     targets: [ARMOR]
     auraskills-stat: "regeneration"
-    required-enchanting-level: 0
+    required-enchanting-level: 45
     anvil-multiplier: 2
     levels:
       1: { value: "1", xp-cost: 20 }
@@ -837,8 +721,6 @@ enchants:
       5: { value: "5", xp-cost: 60 }
       6: { value: "6", xp-cost: 70 }
       7: { value: "7", xp-cost: 80 }
-      8: { value: "8", xp-cost: 90 }
-      9: { value: "9", xp-cost: 100 }
-      10: { value: "10", xp-cost: 110 }
+      8: { value: "8", xp-cost: 80 }
 
 
