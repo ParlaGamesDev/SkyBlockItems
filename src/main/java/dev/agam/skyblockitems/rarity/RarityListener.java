@@ -6,6 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -13,7 +14,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import net.Indyuce.mmoitems.api.event.ItemBuildEvent;
-import net.Indyuce.mmoitems.api.item.mmoitem.MMOItem;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -98,37 +98,31 @@ public class RarityListener implements Listener {
 
         // Check if the inventory being clicked is allowed
         org.bukkit.inventory.Inventory clickedInv = event.getClickedInventory();
-        boolean isAllowed = (clickedInv != null) && rarityManager.isAllowedInventory(event.getView());
+        if (clickedInv == null) return;
+        
+        boolean isAllowed = rarityManager.isAllowedInventory(event.getView());
+        
+        // If it's not the player's own inventory AND the top inventory is not allowed, ignore processing immediately
+        if (!isAllowed && clickedInv.getType() != InventoryType.PLAYER) {
+            return;
+        }
 
-        // Use a 1-tick delay to allow the item to physically move before processing
-        org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (!player.isOnline())
-                return;
-
-            // 1. Process the clicked slot if it's allowed or part of the player's inventory
-            if (clickedInv != null && (isAllowed || clickedInv.getType() == InventoryType.PLAYER)) {
-                ItemStack item = event.getClickedInventory().getItem(event.getSlot());
-                if (item != null && !item.getType().isAir()) {
-                    ItemStack processed = rarityManager.processItem(item);
-                    if (processed != item) {
-                        event.getClickedInventory().setItem(event.getSlot(), processed);
-                    }
-                }
+        // Process items IMMEDIATELY sync
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked != null && !clicked.getType().isAir()) {
+            ItemStack processed = rarityManager.processItem(clicked);
+            if (processed != clicked) {
+                event.setCurrentItem(processed);
             }
+        }
 
-            // 2. Double click / Shift click handling removed for performance
-            // The item will be processed when interacted with next time or on inventory
-            // close/open.
-
-            // 3. Always process cursor item (for regular clicks taking items into hand)
-            ItemStack cursor = player.getItemOnCursor();
-            if (cursor != null && !cursor.getType().isAir()) {
-                ItemStack processed = rarityManager.processItem(cursor);
-                if (processed != cursor) {
-                    player.setItemOnCursor(processed);
-                }
+        ItemStack cursor = event.getCursor();
+        if (cursor != null && !cursor.getType().isAir()) {
+            ItemStack processed = rarityManager.processItem(cursor);
+            if (processed != cursor) {
+                event.setCursor(processed);
             }
-        }, 1L);
+        }
     }
 
     /**
@@ -144,6 +138,18 @@ public class RarityListener implements Listener {
         ItemStack processed = rarityManager.processItem(item);
         if (processed != item) {
             event.getItem().setItemStack(processed);
+        }
+    }
+
+    /**
+     * Process items as soon as they spawn in the world (drops, block breaks, /give when full)
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onItemSpawn(ItemSpawnEvent event) {
+        ItemStack item = event.getEntity().getItemStack();
+        ItemStack processed = rarityManager.processItem(item);
+        if (processed != item) {
+            event.getEntity().setItemStack(processed);
         }
     }
 
@@ -191,17 +197,27 @@ public class RarityListener implements Listener {
      * This ensures the item is "born" with the correct rarity if a record exists in
      * rarity.yml.
      */
+    /**
+     * Force-injects custom rarity during MMOItems build process.
+     * This ensures the item is "born" with the correct rarity if a record exists in
+     * rarity.yml.
+     */
+    @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMMOItemBuild(ItemBuildEvent event) {
         if (!plugin.isMMOItemsEnabled())
             return;
 
         ItemStack item = event.getItemStack();
-        Rarity customRarity = rarityManager.getRarityForItem(item);
+        Rarity targetRarity = rarityManager.getRarityForItem(item);
 
-        // If we found a record in rarity.yml (Sharp Logic)
-        if (customRarity != null) {
-            ItemStack processed = rarityManager.applyRarity(item, customRarity, true);
+        // If we found a mapping (but it's NOT a manual stack-specific mapping)
+        if (targetRarity != null) {
+            // Check if it's truly custom (manual)
+            boolean isTrulyCustom = rarityManager.hasCustomRarity(item);
+            
+            // Pass false for isCustom unless it's a stack-specific mapping already
+            ItemStack processed = rarityManager.applyRarity(item, targetRarity, isTrulyCustom);
             event.setItemStack(processed);
         }
     }

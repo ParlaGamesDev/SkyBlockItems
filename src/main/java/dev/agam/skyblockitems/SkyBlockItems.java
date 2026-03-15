@@ -229,7 +229,7 @@ public class SkyBlockItems extends JavaPlugin {
             this.rarityManager = new dev.agam.skyblockitems.rarity.RarityManager(this);
             getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.rarity.RarityListener(this), this);
             int interval = rarityManager.getCheckerTime();
-            if (interval < 1)
+            if (interval <= 0)
                 interval = 200;
             new dev.agam.skyblockitems.rarity.RarityTask(this).runTaskTimer(this, 100L, interval);
         } catch (Throwable e) {

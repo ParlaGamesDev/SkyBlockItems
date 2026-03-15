@@ -54,6 +54,7 @@ enchanting:
   max-level: "<#636e72>רמה מקסימלית: <#a29bfe>{max}"
   click-to-select-level: "<#ffeaa7>לחץ כדי לבחור רמה!"
   need-enchanting-unlock: "<#e74c3c> אתה צריך <#ffeaa7>{level} <#e74c3c>רמות כישוף כדי להשתמש בזה!"
+  required-level: "<#e74c3c>רמת כישוף דרושה: {level}"
 
 guide:
   gui-title: "&8מדריך כישופים"
@@ -298,6 +299,8 @@ reforge:
     combine-button-click: "&eלחץ כדי לשדרג!"
     not-enough-money: "<#e74c3c>אין לך מספיק מטבעות!"
     success: "&aהשדרוג בוצע בהצלחה! הפריט שלך קיבל את השדרוג &e{reforge}&a!"
+  error: "<#e74c3c> שגיאה בשדרוג! נסה שוב."
+  not-reforgeable: "<#e74c3c> לא ניתן לשדרג את הפריט הזה!"
 
   stat-names:
     attack_damage: "<#ffe5d9>נזק התקפה"

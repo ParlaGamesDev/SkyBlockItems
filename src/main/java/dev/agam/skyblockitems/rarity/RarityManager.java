@@ -10,6 +10,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -79,8 +80,8 @@ public class RarityManager {
         }
         rarityConfig = YamlConfiguration.loadConfiguration(rarityFile);
 
-        // Refresh version on every reload
-        currentConfigVersion = (double) System.currentTimeMillis();
+        // Refresh version on every reload (Default fallback is 1.0)
+        currentConfigVersion = 1.0;
 
         // Load config settings
         ConfigurationSection configSection = rarityConfig.getConfigurationSection("Config");
@@ -89,6 +90,8 @@ public class RarityManager {
             debugMode = configSection.getBoolean("debug-mode", false);
             loreFormat = configSection.getStringList("lore-format");
             allowedInventoryTypes = configSection.getStringList("allowed-inventories");
+            // Stable version from config, defaults to 1.0 (prevents mismatch on restarts)
+            currentConfigVersion = configSection.getDouble("version", 1.0);
         }
 
         // Load rarities
@@ -760,7 +763,7 @@ public class RarityManager {
         for (Rarity r : rarities.values()) {
             String id = r.getIdentifier().toLowerCase().trim();
             String name = stripFullColor(r.getDisplayName()).toLowerCase().trim();
-            if (strippedText.equals(id) || strippedText.equals(name) || strippedText.contains(name))
+            if (strippedText.equals(id) || strippedText.equals(name))
                 return true;
         }
         return false;
@@ -844,7 +847,7 @@ public class RarityManager {
         if (player == null || !player.isOnline())
             return;
 
-        org.bukkit.inventory.Inventory inv = player.getInventory();
+        org.bukkit.inventory.PlayerInventory inv = player.getInventory();
         ItemStack[] contents = inv.getContents();
         boolean changed = false;
 

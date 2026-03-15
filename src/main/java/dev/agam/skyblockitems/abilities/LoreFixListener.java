@@ -22,6 +22,7 @@ import java.util.List;
 
 public class LoreFixListener implements Listener {
 
+    @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.HIGH)
     public void onItemBuild(ItemBuildEvent event) {
         try {

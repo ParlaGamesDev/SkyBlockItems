@@ -20,6 +20,7 @@ public class AbilityLoreListener implements Listener {
     // Regex to identify placeholders like {damage}, {mana}, etc.
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{([a-zA-Z0-9_-]+)\\}");
 
+    @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.HIGH)
     public void onItemBuild(ItemBuildEvent event) {
         try {
