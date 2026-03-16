@@ -365,18 +365,18 @@ public class RarityManager {
             nbtItem.addTag(new ItemTag(NBT_UUID_KEY, UUID.randomUUID().toString()));
         }
 
-        item = nbtItem.toItem();
+        ItemStack result = nbtItem.toItem();
 
         // Update name and lore (using original item lore)
-        item = updateRarityLore(item, rarity);
+        result = updateRarityLore(result, rarity);
 
         // CRITICAL FIX: Save to rarity.yml if this is a custom rarity assignment
         if (isCustom) {
-            saveMapping(item, rarity.getIdentifier(), nbtItem);
+            saveMapping(result, rarity.getIdentifier(), nbtItem);
         }
 
         debug("Applied rarity " + rarity.getIdentifier() + " to " + item.getType() + " (custom: " + isCustom + ")");
-        return item;
+        return result;
     }
 
     /**
@@ -495,12 +495,17 @@ public class RarityManager {
 
             // If and ONLY if the versions match exactly AND we didn't just sync, we skip.
             if (itemVersion == currentConfigVersion && !synced) {
+                // IMPORTANT: Return original item instance to avoid triggering setItem
                 return item;
             }
         }
 
         // Apply the rarity
-        return applyRarity(item, targetRarity, false);
+        ItemStack result = applyRarity(item, targetRarity, false);
+        
+        // Final sanity check: if the item barely changed (e.g. meta equals), we might still want to return original
+        // but applyRarity already creates a new item via nbtItem.toItem(), so we return the result.
+        return result;
     }
 
     /**
@@ -847,6 +852,9 @@ public class RarityManager {
         if (player == null || !player.isOnline())
             return;
 
+        // Note: Removed early return for cursor items to ensure deduplication 
+        // works immediately after Creative Pick Block / Drag actions.
+
         org.bukkit.inventory.PlayerInventory inv = player.getInventory();
         ItemStack[] contents = inv.getContents();
         boolean changed = false;
@@ -855,7 +863,7 @@ public class RarityManager {
             ItemStack item = contents[i];
             if (item != null && !item.getType().isAir()) {
                 ItemStack processed = processItem(item);
-                if (processed != item) {
+                if (processed != item) { // Direct reference comparison works due to processItem logic
                     inv.setItem(i, processed);
                     changed = true;
                 }
@@ -876,22 +884,42 @@ public class RarityManager {
      * SHARP: Prioritizes UUID for persistence.
      */
     public String getItemKey(ItemStack item) {
+        return getItemKey(item, false);
+    }
+
+    public String getItemKey(ItemStack item, boolean ignoreUUID) {
         if (item == null || item.getType() == Material.AIR)
             return null;
-        return getItemKey(item, NBTItem.get(item));
+        return getItemKey(item, nbtItemGet(item), ignoreUUID);
+    }
+
+    public String getBaseKey(ItemStack item) {
+        return getItemKey(item, true);
+    }
+
+    private NBTItem nbtItemGet(ItemStack item) {
+        try {
+            return NBTItem.get(item);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public String getItemKey(ItemStack item, NBTItem nbtItem) {
+        return getItemKey(item, nbtItem, false);
+    }
+
+    public String getItemKey(ItemStack item, NBTItem nbtItem, boolean ignoreUUID) {
         if (item == null || item.getType() == Material.AIR || nbtItem == null)
             return null;
 
         // 0. SHARP: Plugin-specific UUID (Manual assignments for Vanilla items)
-        if (nbtItem.hasTag(NBT_UUID_KEY)) {
+        if (!ignoreUUID && nbtItem.hasTag(NBT_UUID_KEY)) {
             return "UUID_" + nbtItem.getString(NBT_UUID_KEY);
         }
 
         // 1. MMOItems UUID (Most stable for tracking)
-        if (nbtItem.hasTag("mmoitems_uuid")) {
+        if (!ignoreUUID && nbtItem.hasTag("mmoitems_uuid")) {
             return "UUID_" + nbtItem.getString("mmoitems_uuid");
         }
 
