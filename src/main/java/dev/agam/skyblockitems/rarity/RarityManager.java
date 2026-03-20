@@ -430,6 +430,42 @@ public class RarityManager {
             return item;
         }
 
+        // Firing API event for external plugins to skip rarity
+        dev.agam.skyblockitems.api.events.SkyBlockRarityUpdateEvent event = 
+            new dev.agam.skyblockitems.api.events.SkyBlockRarityUpdateEvent(item);
+        org.bukkit.Bukkit.getPluginManager().callEvent(event);
+        
+        boolean forceCancel = false;
+        // Hardcoded safety exclusion for CrazyMinions items (NBT tags via MythicLib)
+        io.lumine.mythic.lib.api.item.NBTItem nbtCheck = io.lumine.mythic.lib.api.item.NBTItem.get(item);
+        if (nbtCheck.hasTag("qskyblock_minion_type") || nbtCheck.hasTag("MMOITEMS_MINION_ROLE") || 
+            nbtCheck.hasTag("qskyblock_minion_uuid") || nbtCheck.hasTag("MMOITEMS_MINION_SKIN_ID") ||
+            nbtCheck.hasTag("MMOITEMS_MINION_UPGRADE_SPEED") || nbtCheck.hasTag("MMOITEMS_MINION_FUEL_SPEED") ||
+            nbtCheck.hasTag("MMOITEMS_MINION_SHIPPING_SELL_PERCENT")) {
+            forceCancel = true;
+        }
+        // Also check PersistentDataContainer keys (used by CrazyMinions upgrades/fuel/storage)
+        if (!forceCancel) {
+            ItemMeta pdcMeta = item.getItemMeta();
+            if (pdcMeta != null) {
+                org.bukkit.persistence.PersistentDataContainer pdc = pdcMeta.getPersistentDataContainer();
+                for (org.bukkit.NamespacedKey k : pdc.getKeys()) {
+                    if ("crazyminions".equalsIgnoreCase(k.getNamespace())) {
+                        forceCancel = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (event.isCancelled() || forceCancel) {
+            // If already has rarity lore/NBT from before, clean it up but don't re-apply
+            if (hasRarityLore(item) || getCurrentRarity(item) != null) {
+                return removeRarity(item, false);
+            }
+            return item;
+        }
+
         // EXCLUSION: Reforge Gems should NEVER have rarity applied
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {

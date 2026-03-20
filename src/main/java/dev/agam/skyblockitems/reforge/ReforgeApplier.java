@@ -119,12 +119,21 @@ public class ReforgeApplier {
         return null; // Item is reforgeable
     }
 
-    /**
-     * Applies a reforge to an item using the MMOItems data-driven API.
-     */
     public boolean applyReforge(ItemStack item, Reforge reforge, String itemType) {
         if (item == null || reforge == null || !item.hasItemMeta()) {
             return false;
+        }
+
+        // 1. Fire API event (Player can be null if not initiated by a player GUI)
+        dev.agam.skyblockitems.api.events.SkyBlockReforgeEvent apiEvent = 
+            new dev.agam.skyblockitems.api.events.SkyBlockReforgeEvent(null, item, reforge.getId());
+        org.bukkit.Bukkit.getPluginManager().callEvent(apiEvent);
+        if (apiEvent.isCancelled()) return false;
+        
+        // Use potentially modified reforgeId from event
+        if (!apiEvent.getReforgeId().equals(reforge.getId())) {
+            reforge = plugin.getReforgeManager().getReforge(apiEvent.getReforgeId());
+            if (reforge == null) return false;
         }
 
         boolean isMMO = dev.agam.skyblockitems.integration.MMOItemsStatIntegration.isMMOItem(item);

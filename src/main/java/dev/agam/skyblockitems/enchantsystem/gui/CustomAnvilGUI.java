@@ -273,15 +273,47 @@ public class CustomAnvilGUI implements BaseGUI {
         }
 
         ItemStack result = calculateResult(target, sacrifice);
+        int cost = result != null ? calculateTotalCost(item1, item2, result) : 0;
+
+        // Firing API event for external plugins (like CrazyMinions)
+        dev.agam.skyblockitems.api.events.SkyBlockAnvilUpdateEvent apiEvent = 
+            new dev.agam.skyblockitems.api.events.SkyBlockAnvilUpdateEvent(player, target, sacrifice, result, cost);
+        int listeners = dev.agam.skyblockitems.api.events.SkyBlockAnvilUpdateEvent.getHandlerList().getRegisteredListeners().length;
+        Bukkit.getPluginManager().callEvent(apiEvent);
+
+        if (apiEvent.isCancelled()) {
+            resetResultWithReason("incompatible");
+            return;
+        }
+
+        result = apiEvent.getResult();
+        cost = apiEvent.getCost();
+        
+        // 2. Classloader-safe Registry Fallback (If event had no listeners or failed)
+        if (listeners == 0 || result == null) {
+            Object[] data = new Object[]{ target, sacrifice, null, null }; // [Left, Right, Result, Cost]
+            for (java.util.function.Consumer<Object[]> handler : dev.agam.skyblockitems.api.AnvilRegistry.getHandlers()) {
+                try {
+                    handler.accept(data);
+                    if (data[2] instanceof ItemStack res) {
+                        result = res;
+                        if (data[3] instanceof Integer c) cost = c;
+                        break;
+                    }
+                } catch (Throwable ignored) {}
+            }
+        }
+
+        if (result != null && apiEvent.getResult() != result) {
+             org.bukkit.Bukkit.broadcastMessage("§b[Anvil-Debug] Result was modified by a plugin!");
+        }
+
         if (result == null) {
-            // Determine why it's null
             String reason = "incompatible";
             if (areConflictingInResult(target, sacrifice))
                 reason = "conflicts";
-
             resetResultWithReason(reason);
         } else {
-            int cost = calculateTotalCost(item1, item2, result);
             int maxCost = plugin.getConfig().getInt("anvil.max-repair-cost", 40);
             boolean limitEnabled = plugin.getConfig().getBoolean("anvil.limit-enabled", true);
             boolean bypassOp = plugin.getConfig().getBoolean("anvil.bypass-limits-on-op", true);
@@ -293,19 +325,6 @@ public class CustomAnvilGUI implements BaseGUI {
                 updateCombineButton(false, cost, "too-expensive");
                 updateIndicators(false);
             } else {
-                // Firing API event for external plugins (like CrazyMinions)
-                dev.agam.skyblockitems.api.events.SkyBlockAnvilUpdateEvent apiEvent = 
-                    new dev.agam.skyblockitems.api.events.SkyBlockAnvilUpdateEvent(player, item1, item2, result, cost);
-                Bukkit.getPluginManager().callEvent(apiEvent);
-
-                if (apiEvent.isCancelled()) {
-                    resetResultWithReason("incompatible");
-                    return;
-                }
-
-                result = apiEvent.getResult();
-                cost = apiEvent.getCost();
-
                 inventory.setItem(RESULT_SLOT, result);
                 updateCombineButton(true, cost, "ready");
                 updateIndicators(true);

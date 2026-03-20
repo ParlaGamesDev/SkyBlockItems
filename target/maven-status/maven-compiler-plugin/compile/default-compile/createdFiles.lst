@@ -5,6 +5,7 @@ dev\agam\skyblockitems\abilities\utility\SpeedAbility.class
 dev\agam\skyblockitems\enchantsystem\config\ConfigManager.class
 dev\agam\skyblockitems\reforge\gui\ReforgeVIPGUI.class
 dev\agam\skyblockitems\abilities\utility\DoubleJumpAbility.class
+dev\agam\skyblockitems\api\events\SkyBlockRarityUpdateEvent.class
 dev\agam\skyblockitems\enchantsystem\hooks\MMOItemsHook.class
 dev\agam\skyblockitems\integration\ReforgeableStat.class
 dev\agam\skyblockitems\abilities\GenericAbility.class
@@ -20,6 +21,7 @@ dev\agam\skyblockitems\integration\MMOItemsAbilityListener.class
 dev\agam\skyblockitems\abilities\combat\HealBeamAbility.class
 dev\agam\skyblockitems\abilities\utility\OxygenPurityAbility.class
 dev\agam\skyblockitems\integration\VaultHook.class
+dev\agam\skyblockitems\api\AnvilRegistry.class
 dev\agam\skyblockitems\abilities\utility\CropOverdriveAbility.class
 dev\agam\skyblockitems\abilities\combat\SolarRepairAbility.class
 dev\agam\skyblockitems\enchantsystem\gui\EnchantEditorGUI.class
@@ -126,6 +128,7 @@ dev\agam\skyblockitems\rarity\RarityCommand.class
 dev\agam\skyblockitems\enchantsystem\CustomEnchant.class
 dev\agam\skyblockitems\enchantsystem\CustomEnchant$EnchantStat.class
 dev\agam\skyblockitems\abilities\utility\GrapplingHookAbility$2.class
+dev\agam\skyblockitems\api\events\SkyBlockReforgeEvent.class
 dev\agam\skyblockitems\abilities\combat\ExplosiveArrowAbility.class
 dev\agam\skyblockitems\enchantsystem\managers\EnchantManager$LevelConfig.class
 dev\agam\skyblockitems\abilities\combat\OverloadAbility.class
