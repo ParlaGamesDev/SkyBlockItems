@@ -12,14 +12,14 @@
       <option name="url" value="https://maven.enginehub.org/repo/" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="aurelium-repo" />
-      <option name="name" value="aurelium-repo" />
-      <option name="url" value="https://repo.aurelium.dev/maven-public/" />
-    </remote-repository>
-    <remote-repository>
       <option name="id" value="central" />
       <option name="name" value="Central Repository" />
       <option name="url" value="https://repo.maven.apache.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="aurelium-repo" />
+      <option name="name" value="aurelium-repo" />
+      <option name="url" value="https://repo.aurelium.dev/maven-public/" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="codemc-repo" />

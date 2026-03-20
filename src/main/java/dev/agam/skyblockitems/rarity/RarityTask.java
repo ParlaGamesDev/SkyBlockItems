@@ -21,9 +21,8 @@ public class RarityTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        for (Player player : plugin.getServer().getOnlinePlayers()) {
-            rarityManager.processInventory(player);
-        }
+        /* Disabled: processInventory while player is online causes inventory freeze/flicker.
+         * Rarity is applied on: join (delayed), pickup, item spawn. */
     }
 
     /**
