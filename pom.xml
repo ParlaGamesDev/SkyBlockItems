@@ -54,16 +54,7 @@
             <id>papermc-repo</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
-        <repository>
-            <id>aurelium-repo</id>
-            <url>https://repo.aurelium.dev/maven-public/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
+        <!-- aurelium-repo removed: repo.aurelium.dev unreachable. auraskills-api-bukkit is on Maven Central -->
         <repository>
             <id>spigotmc-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
@@ -121,6 +112,8 @@
             <version>1.21.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+        <!-- paper-api not a compile dependency - PaperPickBlockHandler uses reflection.
+             On Paper servers, PlayerPickBlockEvent is provided by the server at runtime. -->
         <dependency>
             <groupId>io.lumine</groupId>
             <artifactId>MythicLib-dist</artifactId>

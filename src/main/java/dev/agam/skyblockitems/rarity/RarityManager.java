@@ -12,6 +12,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -906,10 +907,48 @@ public class RarityManager {
             }
         }
 
+        // After lore/NBT is consistent, merge stacks vanilla would merge (fixes split stacks from async rarity)
+        int mergeSafety = 0;
+        while (mergePlayerStorageStacks(inv) && mergeSafety++ < 64) {
+            changed = true;
+        }
+
         if (changed) {
             player.updateInventory(); // V4.2 CRITICAL SYNC
             debug("Updated inventory for " + player.getName() + " (forced sync)");
         }
+    }
+
+    /**
+     * Merges stackable items in hotbar + main storage (slots 0–35) when they are
+     * {@link ItemStack#isSimilar(ItemStack)} — same after rarity application.
+     */
+    private boolean mergePlayerStorageStacks(PlayerInventory inv) {
+        boolean anyChange = false;
+        for (int i = 0; i < 36; i++) {
+            ItemStack base = inv.getItem(i);
+            if (base == null || base.getType().isAir() || base.getAmount() <= 0) continue;
+            if (base.getAmount() >= base.getMaxStackSize()) continue;
+            for (int j = i + 1; j < 36; j++) {
+                ItemStack other = inv.getItem(j);
+                if (other == null || other.getType().isAir() || other.getAmount() <= 0) continue;
+                if (!base.isSimilar(other)) continue;
+                int space = base.getMaxStackSize() - base.getAmount();
+                int move = Math.min(space, other.getAmount());
+                if (move <= 0) continue;
+                base.setAmount(base.getAmount() + move);
+                other.setAmount(other.getAmount() - move);
+                inv.setItem(i, base);
+                if (other.getAmount() <= 0) {
+                    inv.setItem(j, null);
+                } else {
+                    inv.setItem(j, other);
+                }
+                anyChange = true;
+                if (base.getAmount() >= base.getMaxStackSize()) break;
+            }
+        }
+        return anyChange;
     }
 
     public void removeMapping(ItemStack item) {
