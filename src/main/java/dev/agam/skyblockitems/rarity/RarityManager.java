@@ -871,7 +871,8 @@ public class RarityManager {
         }
 
         if (changed) {
-            debug("Updated inventory for " + player.getName() + " (minimized packets)");
+            player.updateInventory(); // V4.2 CRITICAL SYNC
+            debug("Updated inventory for " + player.getName() + " (forced sync)");
         }
     }
 

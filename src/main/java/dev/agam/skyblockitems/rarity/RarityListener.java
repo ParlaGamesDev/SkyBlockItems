@@ -15,7 +15,6 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import net.Indyuce.mmoitems.api.event.ItemBuildEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
@@ -84,6 +83,7 @@ public class RarityListener implements Listener {
 
     /**
      * Process items when player clicks in their inventory.
+     * V4.2 FIX: Don't modify items during SHIFT-CLICK to avoid breaking vanilla movement.
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onInventoryClick(InventoryClickEvent event) {
@@ -98,16 +98,31 @@ public class RarityListener implements Listener {
         boolean isAllowed = rarityManager.isAllowedInventory(event.getView());
         if (!isAllowed && clickedInv.getType() != InventoryType.PLAYER) return;
 
+        // Special handling for SHIFT-CLICK
+        if (event.getClick().isShiftClick()) {
+            int delay = (player.getGameMode() == org.bukkit.GameMode.CREATIVE) ? 4 : 1; 
+            // Schedule inventory processing for the next tick to avoid movement interference
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                if (player.isOnline()) rarityManager.processInventory(player);
+            }, delay);
+            return;
+        }
+
+        // Regular click processing
         ItemStack clicked = event.getCurrentItem();
         if (clicked != null && !clicked.getType().isAir()) {
-            ItemStack processed = rarityManager.processItem(clicked);
-            if (processed != clicked) event.setCurrentItem(processed);
+            // FIX: Don't re-process if it already has our rarity NBT
+            if (!rarityManager.hasCustomRarity(clicked)) {
+                rarityManager.processItem(clicked);
+            }
         }
 
         ItemStack cursor = event.getCursor();
         if (cursor != null && !cursor.getType().isAir()) {
-            ItemStack processed = rarityManager.processItem(cursor);
-            if (processed != cursor) event.setCursor(processed);
+            // FIX: Don't re-process if it already has our rarity NBT
+            if (!rarityManager.hasCustomRarity(cursor)) {
+                rarityManager.processItem(cursor);
+            }
         }
     }
 
@@ -178,69 +193,58 @@ public class RarityListener implements Listener {
         }
         lastCreativeAction.put(player.getUniqueId(), now);
 
-        String baseKey = rarityManager.getBaseKey(pickedItem);
-        if (baseKey == null) return;
+        // V5.0 FIX: Only intercept if the item is RAW (no rarity NBT).
+        // If it already has NBT, it's an inventory move, and we MUST NOT touch it!
+        if (rarityManager.hasCustomRarity(pickedItem)) return;
+
+        // 1. Identify what rarity this picked item *should* have
+        Rarity targetRarity = rarityManager.getRarityForItem(pickedItem);
+        if (targetRarity == null) return;
+        String targetRarityId = targetRarity.getIdentifier();
 
         int handSlot = player.getInventory().getHeldItemSlot();
-        int eventSlot = event.getSlot();
 
-        // 1. Check if the player is already holding a matching item in their hand
-        ItemStack heldItem = player.getInventory().getItem(handSlot);
-        if (baseKey.equalsIgnoreCase(rarityManager.getBaseKey(heldItem))) {
-            event.setCancelled(true);
-            player.updateInventory(); // Force sync to stop client cursor creation
-            return;
-        }
-
-        // Scan inventory for existing match (hotbar first, then main inventory)
+        // 2. Scan for existing item to avoid duplication
         int hotbarSlot = -1;
         int inventorySlot = -1;
+        
         for (int i = 0; i < player.getInventory().getSize(); i++) {
-            if (i == handSlot) continue;
             ItemStack invItem = player.getInventory().getItem(i);
-            if (invItem == null || invItem.getType().isAir()) continue;
-            if (baseKey.equalsIgnoreCase(rarityManager.getBaseKey(invItem))) {
+            if (invItem == null || invItem.getType() != pickedItem.getType()) continue;
+            
+            Rarity currentRarity = rarityManager.getCurrentRarity(invItem);
+            String currentRarityId = currentRarity != null ? currentRarity.getIdentifier() : "NONE";
+            
+            if (targetRarityId.equalsIgnoreCase(currentRarityId)) {
+                if (i == handSlot) return; // Already there
                 if (i < 9 && hotbarSlot == -1) hotbarSlot = i;
                 else if (i >= 9 && inventorySlot == -1) inventorySlot = i;
             }
         }
 
-        if (hotbarSlot != -1) {
-            // 2. Found in another hotbar slot -> switch to it
-            event.setCancelled(true);
-            player.getInventory().setHeldItemSlot(hotbarSlot);
-            player.updateInventory();
-            return;
-        }
-
-        if (inventorySlot != -1) {
-            // 3. Found in main inventory -> swap it with the hotbar slot
-            event.setCancelled(true);
-            final int fromSlot = inventorySlot;
-            final ItemStack existing = player.getInventory().getItem(fromSlot).clone();
+        if (hotbarSlot != -1 || inventorySlot != -1) {
+            // Case A/B: Redirect to existing item
+            final int fromSlot = (hotbarSlot != -1) ? hotbarSlot : inventorySlot;
+            final int slotToSwitch = (hotbarSlot != -1) ? hotbarSlot : -1;
             
-            // Perform swap in next tick to avoid inventory state conflicts
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                if (!player.isOnline()) return;
-                player.getInventory().setItem(fromSlot, player.getInventory().getItem(handSlot));
-                player.getInventory().setItem(handSlot, existing);
-                player.updateInventory();
-            }, 1L);
+            if (slotToSwitch != -1) {
+                player.getInventory().setHeldItemSlot(slotToSwitch);
+                event.setCursor(null);
+                event.setCancelled(true);
+            } else {
+                ItemStack existing = player.getInventory().getItem(fromSlot);
+                if (existing != null) {
+                    ItemStack toMove = existing.clone();
+                    player.getInventory().setItem(fromSlot, null);
+                    event.setCursor(toMove);
+                }
+            }
+            Bukkit.getScheduler().runTaskLater(plugin, player::updateInventory, 1L);
             return;
         }
 
-        // 4. Not in inventory -> Provide a new item with rarity applied
-        // Instead of canceling and giving manually, we modify the cursor item 
-        // so Minecraft places the rarity-version directly.
-        ItemStack newItemWithRarity = rarityManager.processItem(pickedItem.clone());
-        if (newItemWithRarity != null && !newItemWithRarity.equals(pickedItem)) {
-            event.setCursor(newItemWithRarity);
-            // After 1 tick, check for any duplicates Minecraft might have slipped in 
-            // due to creative mode's weird sync
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                if (player.isOnline()) consolidateSameBaseItems(player, baseKey);
-            }, 5L);
-        }
+        // Case 4: Not found -> Add rarity to the new cursor item
+        rarityManager.processItem(pickedItem);
     }
 
     /**
@@ -298,24 +302,6 @@ public class RarityListener implements Listener {
                     inventory.setItem(i, processed);
                 }
             }
-        }
-    }
-
-    /**
-     * Force-injects custom rarity during MMOItems build process.
-     */
-    @SuppressWarnings("deprecation")
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onMMOItemBuild(ItemBuildEvent event) {
-        if (!plugin.isMMOItemsEnabled()) return;
-
-        ItemStack item = event.getItemStack();
-        Rarity targetRarity = rarityManager.getRarityForItem(item);
-
-        if (targetRarity != null) {
-            boolean isTrulyCustom = rarityManager.hasCustomRarity(item);
-            ItemStack processed = rarityManager.applyRarity(item, targetRarity, isTrulyCustom);
-            event.setItemStack(processed);
         }
     }
 }

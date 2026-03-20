@@ -293,6 +293,19 @@ public class CustomAnvilGUI implements BaseGUI {
                 updateCombineButton(false, cost, "too-expensive");
                 updateIndicators(false);
             } else {
+                // Firing API event for external plugins (like CrazyMinions)
+                dev.agam.skyblockitems.api.events.SkyBlockAnvilUpdateEvent apiEvent = 
+                    new dev.agam.skyblockitems.api.events.SkyBlockAnvilUpdateEvent(player, item1, item2, result, cost);
+                Bukkit.getPluginManager().callEvent(apiEvent);
+
+                if (apiEvent.isCancelled()) {
+                    resetResultWithReason("incompatible");
+                    return;
+                }
+
+                result = apiEvent.getResult();
+                cost = apiEvent.getCost();
+
                 inventory.setItem(RESULT_SLOT, result);
                 updateCombineButton(true, cost, "ready");
                 updateIndicators(true);

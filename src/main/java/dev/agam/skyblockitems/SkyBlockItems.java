@@ -17,10 +17,6 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class SkyBlockItems extends JavaPlugin {
 
-    static {
-        System.out.println("[SkyBlockItems] [JVM] Class loaded successfully.");
-    }
-
     private static SkyBlockItems instance;
     private AbilityManager abilityManager;
     private dev.agam.skyblockitems.rarity.RarityManager rarityManager;
