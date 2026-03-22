@@ -4,6 +4,8 @@ import dev.agam.skyblockitems.SkyBlockItems;
 import dev.agam.skyblockitems.enchantsystem.utils.ColorUtils;
 import io.lumine.mythic.lib.api.item.ItemTag;
 import io.lumine.mythic.lib.api.item.NBTItem;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -11,17 +13,23 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.util.*;
-import java.util.logging.Level;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages the ItemRarity system - loading, applying, and removing rarities from
@@ -42,10 +50,16 @@ public class RarityManager {
 
     private final Map<String, Rarity> rarities = new HashMap<>();
     private final Map<String, ItemMappingData> itemMappings = new HashMap<>();
+    /** Coalesce pick-block / creative / give / pickup into one pass after slots settle (1 tick). */
+    private final Map<UUID, BukkitTask> deferredInventoryTasks = new ConcurrentHashMap<>();
+    /** Invalidates in-flight defer timers when a new defer is scheduled (avoids stale merge passes). */
+    private final Map<UUID, Integer> deferApplyGeneration = new ConcurrentHashMap<>();
+    /** Survival: pause {@link RarityTask} briefly after clicks/drags so periodic scans do not fight client sync. */
+    private final Map<UUID, Long> lastSurvivalInventoryEditMs = new ConcurrentHashMap<>();
+    private static final long SURVIVAL_PERIODIC_DEFER_MS = 500L;
     private Rarity defaultRarity = null;
 
     private int checkerTime = 200;
-    private boolean debugMode = false;
     private List<String> loreFormat = new ArrayList<>();
     private List<String> allowedInventoryTypes = new ArrayList<>();
     private double currentConfigVersion = 0;
@@ -64,6 +78,19 @@ public class RarityManager {
     public RarityManager(SkyBlockItems plugin) {
         this.plugin = plugin;
         loadConfig();
+    }
+
+    /** Called from inventory click/drag (survival) so {@link RarityTask} does not run in the same window. */
+    public void markSurvivalInventoryEdited(UUID playerId) {
+        lastSurvivalInventoryEditMs.put(playerId, System.currentTimeMillis());
+    }
+
+    public boolean shouldDeferPeriodicInventoryScan(Player player) {
+        Long t = lastSurvivalInventoryEditMs.get(player.getUniqueId());
+        if (t == null) {
+            return false;
+        }
+        return System.currentTimeMillis() - t < SURVIVAL_PERIODIC_DEFER_MS;
     }
 
     /**
@@ -88,7 +115,6 @@ public class RarityManager {
         ConfigurationSection configSection = rarityConfig.getConfigurationSection("Config");
         if (configSection != null) {
             checkerTime = configSection.getInt("checkerTime", 200);
-            debugMode = configSection.getBoolean("debug-mode", false);
             loreFormat = configSection.getStringList("lore-format");
             allowedInventoryTypes = configSection.getStringList("allowed-inventories");
             // Stable version from config, defaults to 1.0 (prevents mismatch on restarts)
@@ -118,8 +144,6 @@ public class RarityManager {
                     if (isDefault) {
                         defaultRarity = rarity;
                     }
-
-                    debug("Loaded rarity: " + identifier + " (weight: " + weight + ", default: " + isDefault + ")");
                 }
             }
         }
@@ -138,11 +162,6 @@ public class RarityManager {
                     itemMappings.put(normalizedKey, new ItemMappingData(rarityId.toLowerCase()));
                 }
             }
-        }
-
-        if (debugMode) {
-            plugin.getLogger()
-                    .info("Loaded " + rarities.size() + " rarities and " + itemMappings.size() + " item mappings.");
         }
     }
 
@@ -376,7 +395,6 @@ public class RarityManager {
             saveMapping(result, rarity.getIdentifier(), nbtItem);
         }
 
-        debug("Applied rarity " + rarity.getIdentifier() + " to " + item.getType() + " (custom: " + isCustom + ")");
         return result;
     }
 
@@ -416,7 +434,6 @@ public class RarityManager {
         // Remove rarity lore
         item = removeRarityLore(item);
 
-        debug("Permanently removed rarity from " + item.getType() + " (isCustom: " + isCustom + ")");
         return item;
     }
 
@@ -427,7 +444,7 @@ public class RarityManager {
      * @return The processed item (may be unchanged)
      */
     public ItemStack processItem(ItemStack item) {
-        if (item == null || item.getType().isAir()) {
+        if (item == null || item.getType().isAir() || item.getAmount() <= 0) {
             return item;
         }
 
@@ -513,6 +530,11 @@ public class RarityManager {
             // Still check version - if version mismatch OR if we just synced from NBT
             // re-apply the custom rarity to refresh lore
             if (nbt.hasTag(NBT_VERSION_KEY) && nbt.getDouble(NBT_VERSION_KEY) == currentConfigVersion && !synced) {
+                // NBT ok but lore stripped (merge/creative/client) — restore display
+                if (currentRarity != null && !currentRarity.getIdentifier().equalsIgnoreCase("NONE")
+                        && !hasRarityLore(item)) {
+                    return applyRarity(item, currentRarity, true);
+                }
                 return item;
             }
             // Re-apply to refresh lore/NBT format if version changed or synced
@@ -532,6 +554,9 @@ public class RarityManager {
 
             // If and ONLY if the versions match exactly AND we didn't just sync, we skip.
             if (itemVersion == currentConfigVersion && !synced) {
+                if (!targetRarity.getIdentifier().equalsIgnoreCase("NONE") && !hasRarityLore(item)) {
+                    return applyRarity(item, targetRarity, false);
+                }
                 // IMPORTANT: Return original item instance to avoid triggering setItem
                 return item;
             }
@@ -875,67 +900,262 @@ public class RarityManager {
                     refreshPlayer(player);
                 }
             }
-            if (debugMode)
-                plugin.getLogger().info("Updated rarity mapping: " + key + " -> " + value);
         } catch (java.io.IOException e) {
             plugin.getLogger().severe("Could not save rarity.yml: " + e.getMessage());
         }
     }
 
     /**
-     * Efficiently processes a player's inventory, minimizing packet updates.
+     * Schedules {@link #processInventory(org.bukkit.entity.Player, boolean, boolean)} coalesced per player.
+     * Two passes (ticks +1 and +2); merge only on survival/adventure.
      */
-    public void processInventory(org.bukkit.entity.Player player) {
-        if (player == null || !player.isOnline())
+    public void deferInventoryRarityApply(org.bukkit.entity.Player player) {
+        if (player == null) {
             return;
+        }
+        UUID id = player.getUniqueId();
+        int generation = deferApplyGeneration.compute(id, (k, v) -> v == null ? 1 : v + 1);
+        BukkitTask prev = deferredInventoryTasks.remove(id);
+        if (prev != null) {
+            prev.cancel();
+        }
+        BukkitRunnable runnable = new BukkitRunnable() {
+            private int passes;
 
-        // Note: Removed early return for cursor items to ensure deduplication 
-        // works immediately after Creative Pick Block / Drag actions.
-
-        org.bukkit.inventory.PlayerInventory inv = player.getInventory();
-        ItemStack[] contents = inv.getContents();
-        boolean changed = false;
-
-        for (int i = 0; i < contents.length; i++) {
-            ItemStack item = contents[i];
-            if (item != null && !item.getType().isAir()) {
-                ItemStack processed = processItem(item);
-                if (processed != item) { // Direct reference comparison works due to processItem logic
-                    inv.setItem(i, processed);
-                    changed = true;
+            @Override
+            public void run() {
+                if (!player.isOnline() || !Objects.equals(deferApplyGeneration.get(id), generation)) {
+                    cancel();
+                    return;
+                }
+                GameMode gm = player.getGameMode();
+                boolean merge = gm == GameMode.SURVIVAL || gm == GameMode.ADVENTURE;
+                processInventory(player, false, merge);
+                passes++;
+                if (passes >= 2) {
+                    if (Objects.equals(deferApplyGeneration.get(id), generation)) {
+                        deferredInventoryTasks.remove(id);
+                    }
+                    cancel();
                 }
             }
-        }
-
-        // After lore/NBT is consistent, merge stacks vanilla would merge (fixes split stacks from async rarity)
-        int mergeSafety = 0;
-        while (mergePlayerStorageStacks(inv) && mergeSafety++ < 64) {
-            changed = true;
-        }
-
-        if (changed) {
-            player.updateInventory(); // V4.2 CRITICAL SYNC
-            debug("Updated inventory for " + player.getName() + " (forced sync)");
-        }
+        };
+        BukkitTask task = runnable.runTaskTimer(plugin, 1L, 1L);
+        deferredInventoryTasks.put(id, task);
     }
 
     /**
-     * Merges stackable items in hotbar + main storage (slots 0–35) when they are
-     * {@link ItemStack#isSimilar(ItemStack)} — same after rarity application.
+     * Full pass with client refresh; does not merge stacks.
+     */
+    public void processInventory(org.bukkit.entity.Player player) {
+        processInventory(player, true, false);
+    }
+
+    /** Same as {@link #processInventory(org.bukkit.entity.Player, boolean, boolean)} with {@code mergeStacks=false}. */
+    public void processInventory(org.bukkit.entity.Player player, boolean notifyClient) {
+        processInventory(player, notifyClient, false);
+    }
+
+    /**
+     * @param notifyClient when {@code true}, calls {@link org.bukkit.entity.Player#updateInventory()} if any slot changed
+     * @param mergeStacks  when {@code true}, merges {@link ItemStack#isSimilar(ItemStack)} stacks in hotbar+main (0–35).
+     *                     Use only from {@link #deferInventoryRarityApply}; keep {@code false} for join, UI, pickup, periodic.
+     */
+    public void processInventory(org.bukkit.entity.Player player, boolean notifyClient, boolean mergeStacks) {
+        if (player == null || !player.isOnline())
+            return;
+
+        org.bukkit.inventory.PlayerInventory inv = player.getInventory();
+
+        boolean changed = false;
+
+        // Hotbar + main (36): stable indices for creative / client sync (avoids wrong-slot & "stone" glitches).
+        ItemStack[] storage = inv.getStorageContents();
+        boolean storageDirty = false;
+        for (int i = 0; i < storage.length; i++) {
+            ItemStack item = storage[i];
+            if (item == null || item.getType().isAir() || item.getAmount() <= 0) {
+                continue;
+            }
+            ItemStack processed = processItem(item);
+            if (processed != item && processed != null && processed.getType() == item.getType()) {
+                storage[i] = processed;
+                storageDirty = true;
+                changed = true;
+            }
+        }
+        if (storageDirty) {
+            inv.setStorageContents(storage);
+        }
+
+        final int[] armorSlots = { 36, 37, 38, 39 };
+        for (int slot : armorSlots) {
+            ItemStack item = inv.getItem(slot);
+            if (item == null || item.getType().isAir() || item.getAmount() <= 0) {
+                continue;
+            }
+            ItemStack processed = processItem(item);
+            if (processed != item && processed != null && processed.getType() == item.getType()) {
+                inv.setItem(slot, processed);
+                changed = true;
+            }
+        }
+        ItemStack off = inv.getItemInOffHand();
+        if (off != null && !off.getType().isAir() && off.getAmount() > 0) {
+            ItemStack processed = processItem(off);
+            if (processed != off && processed != null && processed.getType() == off.getType()) {
+                inv.setItemInOffHand(processed);
+                changed = true;
+            }
+        }
+
+        // Defer (/give, etc.): merge so new plain stacks match processed NBT/lore after processItem above.
+        // Not gated on `changed` — two already-processed partial stacks still need combining.
+        if (mergeStacks) {
+            boolean mergedAny = false;
+            int mergeSafety = 0;
+            while (mergeSafety++ < 64 && mergePlayerStorageStacks(inv)) {
+                mergedAny = true;
+            }
+            if (mergedAny) {
+                player.updateInventory();
+            }
+        }
+
+        if (changed) {
+            if (notifyClient) {
+                player.updateInventory(); // V4.2 CRITICAL SYNC
+            }
+        }
+    }
+
+    private static boolean isRelaxedMergeSensitiveStack(ItemStack stack) {
+        if (stack == null || stack.getType().isAir()) {
+            return true;
+        }
+        Material t = stack.getType();
+        if (t == Material.WRITTEN_BOOK || t == Material.WRITABLE_BOOK) {
+            return true;
+        }
+        if (t == Material.PLAYER_HEAD || t == Material.PLAYER_WALL_HEAD) {
+            return true;
+        }
+        ItemMeta m = stack.getItemMeta();
+        if (m == null) {
+            return false;
+        }
+        return m instanceof PotionMeta
+                || m instanceof EnchantmentStorageMeta
+                || m instanceof FireworkMeta
+                || m instanceof SkullMeta
+                || m instanceof org.bukkit.inventory.meta.BundleMeta;
+    }
+
+    /**
+     * Paper 1.21+ often makes {@link ItemStack#isSimilar(ItemStack)} false for stacks that only differ in
+     * data-component noise; for /give we still need to stack identical rarity material items.
+     */
+    private boolean canMergePlayerStorageStacks(ItemStack base, ItemStack other) {
+        if (base.isSimilar(other)) {
+            return true;
+        }
+        if (base.getMaxStackSize() <= 1 || other.getMaxStackSize() <= 1) {
+            return false;
+        }
+        if (isRelaxedMergeSensitiveStack(base) || isRelaxedMergeSensitiveStack(other)) {
+            return false;
+        }
+        return rarityStorageStacksMatchForRelaxedMerge(base, other);
+    }
+
+    private boolean rarityStorageStacksMatchForRelaxedMerge(ItemStack a, ItemStack b) {
+        if (a.getType() != b.getType()) {
+            return false;
+        }
+        NBTItem na = NBTItem.get(a);
+        NBTItem nb = NBTItem.get(b);
+        if (na.hasTag("MMOITEMS_ITEM_ID") || nb.hasTag("MMOITEMS_ITEM_ID")) {
+            return false;
+        }
+        String ra = na.hasTag(NBT_RARITY_KEY) ? na.getString(NBT_RARITY_KEY) : "";
+        String rb = nb.hasTag(NBT_RARITY_KEY) ? nb.getString(NBT_RARITY_KEY) : "";
+        if (!ra.equalsIgnoreCase(rb)) {
+            boolean aMiss = !na.hasTag(NBT_RARITY_KEY);
+            boolean bMiss = !nb.hasTag(NBT_RARITY_KEY);
+            if (!(aMiss ^ bMiss)) {
+                return false;
+            }
+        }
+        double va = na.hasTag(NBT_VERSION_KEY) ? na.getDouble(NBT_VERSION_KEY) : -1d;
+        double vb = nb.hasTag(NBT_VERSION_KEY) ? nb.getDouble(NBT_VERSION_KEY) : -1d;
+        // Mismatch only when both stacks are version-stamped differently (-1 = no tag yet, ok with stamped sibling).
+        if (va >= 0 && vb >= 0 && Double.compare(va, vb) != 0) {
+            return false;
+        }
+        boolean ca = na.hasTag(NBT_CUSTOM_KEY) && na.getBoolean(NBT_CUSTOM_KEY);
+        boolean cb = nb.hasTag(NBT_CUSTOM_KEY) && nb.getBoolean(NBT_CUSTOM_KEY);
+        if (ca != cb) {
+            return false;
+        }
+        if (na.hasTag(NBT_UUID_KEY) || nb.hasTag(NBT_UUID_KEY)) {
+            if (!na.hasTag(NBT_UUID_KEY) || !nb.hasTag(NBT_UUID_KEY)) {
+                return false;
+            }
+            if (!Objects.equals(na.getString(NBT_UUID_KEY), nb.getString(NBT_UUID_KEY))) {
+                return false;
+            }
+        }
+        if (!a.getEnchantments().equals(b.getEnchantments())) {
+            return false;
+        }
+        ItemMeta ma = a.getItemMeta();
+        ItemMeta mb = b.getItemMeta();
+        boolean cmdA = ma != null && ma.hasCustomModelData();
+        boolean cmdB = mb != null && mb.hasCustomModelData();
+        if (cmdA != cmdB) {
+            return false;
+        }
+        if (cmdA && ma.getCustomModelData() != mb.getCustomModelData()) {
+            return false;
+        }
+        Damageable da = ma instanceof Damageable d1 ? d1 : null;
+        Damageable db = mb instanceof Damageable d2 ? d2 : null;
+        if (da != null && db != null) {
+            if (da.getDamage() != db.getDamage()) {
+                return false;
+            }
+        } else if (da != null || db != null) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Merges stackable items in hotbar + main (0–35); uses rarity-aware match when {@link ItemStack#isSimilar} fails.
      */
     private boolean mergePlayerStorageStacks(PlayerInventory inv) {
         boolean anyChange = false;
         for (int i = 0; i < 36; i++) {
             ItemStack base = inv.getItem(i);
-            if (base == null || base.getType().isAir() || base.getAmount() <= 0) continue;
-            if (base.getAmount() >= base.getMaxStackSize()) continue;
+            if (base == null || base.getType().isAir() || base.getAmount() <= 0) {
+                continue;
+            }
+            if (base.getAmount() >= base.getMaxStackSize()) {
+                continue;
+            }
             for (int j = i + 1; j < 36; j++) {
                 ItemStack other = inv.getItem(j);
-                if (other == null || other.getType().isAir() || other.getAmount() <= 0) continue;
-                if (!base.isSimilar(other)) continue;
+                if (other == null || other.getType().isAir() || other.getAmount() <= 0) {
+                    continue;
+                }
+                if (!canMergePlayerStorageStacks(base, other)) {
+                    continue;
+                }
                 int space = base.getMaxStackSize() - base.getAmount();
                 int move = Math.min(space, other.getAmount());
-                if (move <= 0) continue;
+                if (move <= 0) {
+                    continue;
+                }
                 base.setAmount(base.getAmount() + move);
                 other.setAmount(other.getAmount() - move);
                 inv.setItem(i, base);
@@ -945,10 +1165,32 @@ public class RarityManager {
                     inv.setItem(j, other);
                 }
                 anyChange = true;
-                if (base.getAmount() >= base.getMaxStackSize()) break;
+                if (base.getAmount() >= base.getMaxStackSize()) {
+                    break;
+                }
             }
         }
         return anyChange;
+    }
+
+    /**
+     * Applies rarity rules to every slot in a block inventory (chest, shulker, etc.).
+     */
+    public void processContainerInventory(Inventory inventory) {
+        if (inventory == null) {
+            return;
+        }
+        ItemStack[] contents = inventory.getContents();
+        for (int i = 0; i < contents.length; i++) {
+            ItemStack item = contents[i];
+            if (item == null || item.getType().isAir() || item.getAmount() <= 0) {
+                continue;
+            }
+            ItemStack processed = processItem(item);
+            if (processed != item && processed != null && processed.getType() == item.getType()) {
+                inventory.setItem(i, processed);
+            }
+        }
     }
 
     public void removeMapping(ItemStack item) {
@@ -1036,13 +1278,14 @@ public class RarityManager {
      * Forces a re-processing of all items in a player's inventory.
      */
     private void refreshPlayer(org.bukkit.entity.Player player) {
-        ItemStack[] contents = player.getInventory().getContents();
+        org.bukkit.inventory.PlayerInventory inv = player.getInventory();
         boolean changed = false;
-        for (int i = 0; i < contents.length; i++) {
-            ItemStack item = contents[i];
-            if (item != null && !item.getType().isAir()) {
-                // SHARP REFRESH: Strip all previous rarity markers to force a clean evaluate
-                // against the new config truth.
+
+        ItemStack[] storage = inv.getStorageContents();
+        boolean storageDirty = false;
+        for (int i = 0; i < storage.length; i++) {
+            ItemStack item = storage[i];
+            if (item != null && !item.getType().isAir() && item.getAmount() > 0) {
                 NBTItem nbtItem = NBTItem.get(item);
                 nbtItem.removeTag(NBT_RARITY_KEY);
                 nbtItem.removeTag(NBT_CUSTOM_KEY);
@@ -1050,12 +1293,47 @@ public class RarityManager {
                 item = nbtItem.toItem();
 
                 ItemStack processed = processItem(item);
-                if (processed != item) {
-                    player.getInventory().setItem(i, processed);
+                if (processed != item && processed != null && processed.getType() == item.getType()) {
+                    storage[i] = processed;
+                    storageDirty = true;
                     changed = true;
                 }
             }
         }
+        if (storageDirty) {
+            inv.setStorageContents(storage);
+        }
+
+        final int[] armorSlots = { 36, 37, 38, 39 };
+        for (int slot : armorSlots) {
+            ItemStack item = inv.getItem(slot);
+            if (item != null && !item.getType().isAir() && item.getAmount() > 0) {
+                NBTItem nbtItem = NBTItem.get(item);
+                nbtItem.removeTag(NBT_RARITY_KEY);
+                nbtItem.removeTag(NBT_CUSTOM_KEY);
+                nbtItem.removeTag(NBT_VERSION_KEY);
+                item = nbtItem.toItem();
+                ItemStack processed = processItem(item);
+                if (processed != item && processed != null && processed.getType() == item.getType()) {
+                    inv.setItem(slot, processed);
+                    changed = true;
+                }
+            }
+        }
+        ItemStack off = inv.getItemInOffHand();
+        if (off != null && !off.getType().isAir() && off.getAmount() > 0) {
+            NBTItem nbtItem = NBTItem.get(off);
+            nbtItem.removeTag(NBT_RARITY_KEY);
+            nbtItem.removeTag(NBT_CUSTOM_KEY);
+            nbtItem.removeTag(NBT_VERSION_KEY);
+            off = nbtItem.toItem();
+            ItemStack processed = processItem(off);
+            if (processed != off && processed != null && processed.getType() == off.getType()) {
+                inv.setItemInOffHand(processed);
+                changed = true;
+            }
+        }
+
         if (changed) {
             player.updateInventory();
         }
@@ -1094,22 +1372,11 @@ public class RarityManager {
 
             // If it's one of these types but has no block holder, it's likely a virtual GUI
             if (!(top.getHolder() instanceof org.bukkit.inventory.BlockInventoryHolder)) {
-                debug("Inventory type " + typeName
-                        + " is whitelisted but has no physical block holder. Ignoring (GUI).");
                 return false;
             }
         }
 
         return true;
-    }
-
-    /**
-     * Logs a debug message if debug mode is enabled.
-     */
-    public void debug(String message) {
-        if (debugMode) {
-            plugin.getLogger().log(Level.INFO, "[Rarity Debug] " + message);
-        }
     }
 
     public static String getNbtRarityKey() {

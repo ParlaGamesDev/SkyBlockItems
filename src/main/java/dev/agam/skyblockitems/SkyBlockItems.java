@@ -226,7 +226,7 @@ public class SkyBlockItems extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.rarity.RarityListener(this), this);
             try {
                 Class<? extends org.bukkit.event.Event> eventClass = Class.forName("io.papermc.paper.event.player.PlayerPickBlockEvent").asSubclass(org.bukkit.event.Event.class);
-                dev.agam.skyblockitems.rarity.PaperPickBlockListener pickHandler = new dev.agam.skyblockitems.rarity.PaperPickBlockListener(this, rarityManager);
+                dev.agam.skyblockitems.rarity.PaperPickBlockListener pickHandler = new dev.agam.skyblockitems.rarity.PaperPickBlockListener(rarityManager);
                 org.bukkit.plugin.EventExecutor executor = (l, e) -> pickHandler.handle(e);
                 getServer().getPluginManager().registerEvent(eventClass, new org.bukkit.event.Listener() {}, org.bukkit.event.EventPriority.LOWEST, executor, this, true);
             } catch (ClassNotFoundException ignored) {}

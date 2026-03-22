@@ -87,6 +87,7 @@ dev\agam\skyblockitems\reforge\gui\ReforgeEnchantSelectorGUI.class
 dev\agam\skyblockitems\rarity\RarityTask.class
 dev\agam\skyblockitems\abilities\combat\SkySmashAbility.class
 dev\agam\skyblockitems\abilities\CooldownManager.class
+dev\agam\skyblockitems\rarity\RarityManager$1.class
 dev\agam\skyblockitems\enchantsystem\gui\StatEditorGUI.class
 dev\agam\skyblockitems\commands\EnchantCommand.class
 dev\agam\skyblockitems\enchantsystem\listeners\BlockPlaceListener.class

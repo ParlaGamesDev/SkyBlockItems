@@ -1,8 +1,8 @@
 package dev.agam.skyblockitems.rarity;
 
 import dev.agam.skyblockitems.SkyBlockItems;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
@@ -21,24 +21,16 @@ public class RarityTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        /* Disabled: processInventory while player is online causes inventory freeze/flicker.
-         * Rarity is applied on: join (delayed), pickup, item spawn. */
-    }
-
-    /**
-     * Processes all items in a player's inventory.
-     */
-    private void processPlayerInventory(Player player) {
-        ItemStack[] contents = player.getInventory().getContents();
-
-        for (int i = 0; i < contents.length; i++) {
-            ItemStack item = contents[i];
-            if (item != null && !item.getType().isAir()) {
-                ItemStack processed = rarityManager.processItem(item);
-                if (processed != item) {
-                    player.getInventory().setItem(i, processed);
-                }
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            GameMode gm = player.getGameMode();
+            // Creative client owns inventory sync; scanning every tick causes flicker, dupes, vanishing items.
+            if (gm != GameMode.SURVIVAL && gm != GameMode.ADVENTURE) {
+                continue;
             }
+            if (rarityManager.shouldDeferPeriodicInventoryScan(player)) {
+                continue;
+            }
+            rarityManager.processInventory(player, false);
         }
     }
 }

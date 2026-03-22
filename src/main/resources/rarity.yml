@@ -21,11 +21,8 @@
 # =============================================================================
 
 Config:
-  # Backup scanner interval (ticks). Primary detection is event-based.
-  checkerTime: 1
-
-  # Enable debug logging
-  debug-mode: false
+  # Backup scanner interval (ticks). 1 = every tick (can stutter survival moves). 10 = smoother; events still refresh rarity.
+  checkerTime: 10
 
   # Lore format when rarity is applied
   lore-format:
