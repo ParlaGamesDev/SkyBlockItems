@@ -3,176 +3,108 @@ package dev.agam.skyblockitems.abilities.utility;
 import dev.agam.skyblockitems.SkyBlockItems;
 import dev.agam.skyblockitems.abilities.SkyBlockAbility;
 import dev.agam.skyblockitems.abilities.TriggerType;
+import dev.agam.skyblockitems.abilities.CooldownManager;
+import dev.agam.skyblockitems.utils.MessageUtils;
 import io.lumine.mythic.lib.api.item.NBTItem;
-import org.bukkit.*;
-import org.bukkit.entity.Arrow;
+import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityShootBowEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Grappling Hook ability - Bow/Crossbow flight edition.
- * Features: Absolute camera and movement lock during flight via event override.
+ * Grappling Hook ability - Fishing Rod edition.
+ * Launches the player towards the hook when reeling in.
  */
 public class GrapplingHookAbility extends SkyBlockAbility implements Listener {
 
-    private static final double COOLDOWN = 5.0;
-
-    // Track active flight sessions
-    private final Map<UUID, Arrow> activeArrows = new HashMap<>();
-    private final Map<UUID, float[]> lockedRotations = new HashMap<>();
+    private static final double DEFAULT_COOLDOWN = 2.0;
 
     public GrapplingHookAbility() {
-        super("GRAPPLING_HOOK", "וו תפיסה", TriggerType.ON_ARROW_HIT, COOLDOWN, 0.0, 0.0, 0.0);
-        Bukkit.getPluginManager().registerEvents(this, SkyBlockItems.getInstance());
+        super("GRAPPLING_HOOK", "Grappling Hook", TriggerType.RIGHT_CLICK, DEFAULT_COOLDOWN, 0.0, 0.0, 0.0);
+        SkyBlockItems.getInstance().getServer().getPluginManager().registerEvents(this, SkyBlockItems.getInstance());
     }
 
     @Override
     public boolean activate(Player player, Event event, double cooldown, double manaCost, double damage, double range) {
+        // Handled via PlayerFishEvent listener for better fishing rod state detection
         return true;
     }
 
-    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onShoot(EntityShootBowEvent event) {
-        if (!(event.getEntity() instanceof Player))
-            return;
-        Player player = (Player) event.getEntity();
-        if (!(event.getProjectile() instanceof Arrow))
-            return;
-
-        ItemStack bow = event.getBow();
-        if (bow == null || (bow.getType() != Material.BOW && bow.getType() != Material.CROSSBOW))
-            return;
-
-        NBTItem nbtItem = NBTItem.get(bow);
-        if (nbtItem == null || !nbtItem.hasTag("SKYBLOCK_GRAPPLING_HOOK"))
-            return;
-
-        // Check cooldown
-        if (dev.agam.skyblockitems.abilities.CooldownManager.isOnCooldown(player.getUniqueId(), "GRAPPLING_HOOK")) {
-            double remaining = dev.agam.skyblockitems.abilities.CooldownManager
-                    .getRemainingCooldown(player.getUniqueId(), "GRAPPLING_HOOK");
-            String msg = SkyBlockItems.getInstance().getConfigManager().getMessage("players.cooldown",
-                    "{ability}", getDisplayName(),
-                    "{remaining}", String.format("%.1f", remaining));
-            dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
-            event.setCancelled(true);
-            return;
-        }
-
-        Arrow arrow = (Arrow) event.getProjectile();
-        activeArrows.put(player.getUniqueId(), arrow);
-
-        // --- STRICT MOVEMENT & CAMERA LOCK ---
-        final float originalWalkSpeed = player.getWalkSpeed();
-        player.setWalkSpeed(0);
-
-        // Capture initial rotation to lock it
-        lockedRotations.put(player.getUniqueId(), new float[] {
-                player.getLocation().getYaw(),
-                player.getLocation().getPitch()
-        });
-
-        // Set cooldown immediately
-        dev.agam.skyblockitems.abilities.CooldownManager.setCooldown(player.getUniqueId(), "GRAPPLING_HOOK", COOLDOWN);
-
-        // Flight Task
-        new BukkitRunnable() {
-            int ticks = 0;
-            final int maxTicks = 160;
-
-            @Override
-            public void run() {
-                ticks++;
-
-                if (!player.isOnline() || arrow.isDead() || arrow.isOnGround() || !arrow.isValid() || ticks > maxTicks
-                        || !activeArrows.containsKey(player.getUniqueId())) {
-                    endFlight(player, originalWalkSpeed);
-                    cancel();
-                    return;
-                }
-
-                // Smoothly pull player towards arrow position
-                Location target = arrow.getLocation().clone();
-                float[] rot = lockedRotations.get(player.getUniqueId());
-                if (rot != null) {
-                    target.setYaw(rot[0]);
-                    target.setPitch(rot[1]);
-                }
-
-                // Aggressive teleport to follow arrow exactly but keep locked rotation
-                player.teleport(target);
-                player.setVelocity(arrow.getVelocity());
-                player.setFallDistance(0);
-
-                // Particles
-                player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation(), 1, 0.05, 0.05, 0.05, 0.01);
-            }
-        }.runTaskTimer(SkyBlockItems.getInstance(), 1L, 1L);
-
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ARROW_SHOOT, 0.8f, 0.9f);
-    }
-
-    @EventHandler(priority = org.bukkit.event.EventPriority.LOWEST)
-    public void onCameraMove(PlayerMoveEvent event) {
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onFish(PlayerFishEvent event) {
         Player player = event.getPlayer();
-        if (!lockedRotations.containsKey(player.getUniqueId()))
-            return;
+        ItemStack item = player.getInventory().getItemInMainHand();
 
-        float[] rot = lockedRotations.get(player.getUniqueId());
-        if (rot == null)
-            return;
+        if (item == null || item.getType() != Material.FISHING_ROD) return;
 
-        Location to = event.getTo();
-        if (to == null)
-            return;
+        NBTItem nbtItem = NBTItem.get(item);
+        if (!nbtItem.hasTag("SKYBLOCK_GRAPPLING_HOOK")) return;
 
-        // If client turned the mouse, reset rotation in the 'to' location
-        if (to.getYaw() != rot[0] || to.getPitch() != rot[1]) {
-            to.setYaw(rot[0]);
-            to.setPitch(rot[1]);
-            event.setTo(to);
-        }
-    }
+        if (event.getState() == PlayerFishEvent.State.REEL_IN || 
+            event.getState() == PlayerFishEvent.State.IN_GROUND) {
+            
+            FishHook hook = event.getHook();
+            
+            // Check if hook is actually "somewhere" useful (either in ground or just reeling)
+            // If we want it to be "only in ground", we'd check hook.getLocation().getBlock().getType().isSolid()
+            // But usually, any reel-in should launch for responsiveness.
+            
+            // Check Cooldown
+            if (CooldownManager.isOnCooldown(player.getUniqueId(), "GRAPPLING_HOOK")) {
+                double remaining = CooldownManager.getRemainingCooldown(player.getUniqueId(), "GRAPPLING_HOOK");
+                String msg = SkyBlockItems.getInstance().getConfigManager().getMessage("players.cooldown",
+                        "{ability}", getDisplayName(),
+                        "{remaining}", String.format("%.1f", remaining));
+                MessageUtils.sendMessage(player, msg);
+                return;
+            }
 
-    @EventHandler(priority = org.bukkit.event.EventPriority.MONITOR)
-    public void onArrowHit(ProjectileHitEvent event) {
-        if (!(event.getEntity() instanceof Arrow))
-            return;
-        Arrow arrow = (Arrow) event.getEntity();
-        if (!(arrow.getShooter() instanceof Player))
-            return;
+            // Parse cooldown from NBT if available
+            double cooldownVal = DEFAULT_COOLDOWN;
+            String nbtVal = nbtItem.getString("SKYBLOCK_GRAPPLING_HOOK");
+            if (nbtVal != null && !nbtVal.isEmpty()) {
+                try {
+                    cooldownVal = Double.parseDouble(nbtVal.split("\\s+")[0]);
+                } catch (Exception ignored) {}
+            }
 
-        Player player = (Player) arrow.getShooter();
-        if (activeArrows.containsKey(player.getUniqueId()) && activeArrows.get(player.getUniqueId()).equals(arrow)) {
-            activeArrows.remove(player.getUniqueId());
-        }
-    }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
-        UUID uuid = event.getPlayer().getUniqueId();
-        activeArrows.remove(uuid);
-        lockedRotations.remove(uuid);
-    }
-
-    private void endFlight(Player player, float originalSpeed) {
-        if (player.isOnline()) {
-            lockedRotations.remove(player.getUniqueId());
-            player.setWalkSpeed(originalSpeed <= 0 ? 0.2f : originalSpeed);
-            player.setFallDistance(0);
-
+            // Launch Player
+            Vector playerLoc = player.getLocation().toVector();
+            Vector hookLoc = hook.getLocation().toVector();
+            
+            Vector direction = hookLoc.subtract(playerLoc);
+            
+            // Limit distance to prevent infinite pull if hook glitched
+            double distance = direction.length();
+            if (distance > 64) distance = 64; 
+            
+            // Calculate velocity
+            // Increased power for snappier feel like Hypixel
+            Vector velocity = direction.clone().normalize().multiply(Math.min(distance * 0.25, 2.5));
+            velocity.setY(velocity.getY() * 0.6 + 0.7); // Stronger upward boost
+            
+            player.setVelocity(velocity);
+            
+            // Sounds & Feedback
+            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_FISHING_BOBBER_RETRIEVE, 1.0f, 1.2f);
+            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 0.5f, 1.5f);
+            
+            // Set Cooldown
+            CooldownManager.setCooldown(player.getUniqueId(), "GRAPPLING_HOOK", cooldownVal);
+            
+            // Negate Fall Damage
             player.setMetadata("NEGATE_FALL_DAMAGE", new FixedMetadataValue(SkyBlockItems.getInstance(), true));
             new BukkitRunnable() {
                 @Override
@@ -181,12 +113,16 @@ public class GrapplingHookAbility extends SkyBlockAbility implements Listener {
                         player.removeMetadata("NEGATE_FALL_DAMAGE", SkyBlockItems.getInstance());
                     }
                 }
-            }.runTaskLater(SkyBlockItems.getInstance(), 80L);
+            }.runTaskLater(SkyBlockItems.getInstance(), 100L); // 5 sec protection
         }
     }
 
     @Override
     public List<String> getLore(double cooldown, double manaCost, double damage, double range, TriggerType trigger) {
-        return new ArrayList<>();
+        List<String> lore = new ArrayList<>();
+        lore.add(COLOR_GRAY + "משגר אותך לעבר הקרס של החכה!");
+        lore.add("");
+        lore.add(formatManaAndCooldown(manaCost, cooldown));
+        return lore;
     }
 }

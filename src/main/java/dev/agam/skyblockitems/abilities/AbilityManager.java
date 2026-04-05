@@ -56,11 +56,11 @@ public class AbilityManager {
         registerAbility(new dev.agam.skyblockitems.abilities.utility.FarmersAuraAbility("FARMER_AURA_CARROT",
                 "הילת גזר", Material.CARROTS));
         registerAbility(new dev.agam.skyblockitems.abilities.utility.FarmersAuraAbility("FARMER_AURA_POTATO",
-                "הילת תפוח אדמה", Material.POTATOES));
+                "הילה שמגדלת תפוחי אדמה מסביב לשחקן.", Material.POTATOES));
         registerAbility(new dev.agam.skyblockitems.abilities.utility.CleanseAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.MetabolismAbility());
-        registerAbility(new dev.agam.skyblockitems.abilities.utility.MetabolismAbility());
         registerAbility(new dev.agam.skyblockitems.abilities.utility.SpeedAbility());
+        registerAbility(new dev.agam.skyblockitems.abilities.utility.GrapplingHookAbility());
 
         // Load Generic Abilities from config
         loadGenericAbilities();

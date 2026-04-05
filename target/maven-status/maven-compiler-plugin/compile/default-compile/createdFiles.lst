@@ -131,7 +131,6 @@ dev\agam\skyblockitems\rarity\Rarity.class
 dev\agam\skyblockitems\rarity\RarityCommand.class
 dev\agam\skyblockitems\enchantsystem\CustomEnchant.class
 dev\agam\skyblockitems\enchantsystem\CustomEnchant$EnchantStat.class
-dev\agam\skyblockitems\abilities\utility\GrapplingHookAbility$2.class
 dev\agam\skyblockitems\api\events\SkyBlockReforgeEvent.class
 dev\agam\skyblockitems\abilities\combat\ExplosiveArrowAbility.class
 dev\agam\skyblockitems\enchantsystem\managers\EnchantManager$LevelConfig.class

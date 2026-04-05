@@ -35,7 +35,7 @@ custom-enchants:
     enabled: true
     display-name: '&2EXP Grinder'
     description: '&7מעניק סיכוי לקבל אקספי שנפגעים'
-    required-enchanting-level: 15
+    required-enchanting-level: 17
     material: EXPERIENCE_BOTTLE
     targets:
       - CHESTPLATE
@@ -51,7 +51,7 @@ custom-enchants:
     display-name: '&4Pure Might'
     description: '&7מסיר את כל הכישופים אך מגדיל את הנזק ב-50%'
     material: STONE_SWORD
-    required-enchanting-level: 20
+    required-enchanting-level: 24
     targets:
       - SWORD
       - AXE
@@ -64,7 +64,7 @@ custom-enchants:
     display-name: '&8Monster Soul'
     description: '&7מקבל פי 10 מהנזק של המפלצת שהרגת למכה הקריטית הבאה'
     material: DIAMOND_SWORD
-    required-enchanting-level: 30
+    required-enchanting-level: 32
     targets:
       - SWORD
       - AXE
@@ -78,7 +78,7 @@ custom-enchants:
     display-name: '&aReplenish'
     description: '&7שותל מחדש יבולים מיד לאחר הקצירה'
     material: WHEAT_SEEDS
-    required-enchanting-level: 10
+    required-enchanting-level: 12
     targets:
       - HOE
     max-level: 1
@@ -91,7 +91,7 @@ custom-enchants:
     display-name: '&eHarvesting'
     description: '&7מגדיל את כמות הבלוקים שמתקבלים מעצים'
     material: PUMPKIN_SEEDS
-    required-enchanting-level: 20
+    required-enchanting-level: 24
     targets:
       - AXE
     max-level: 5
@@ -111,7 +111,7 @@ custom-enchants:
     display-name: '&7Delicate'
     description: '&7מונע הריסת יבולים שלא גדלו עד הסוף'
     material: MELON_SEEDS
-    required-enchanting-level: 25
+    required-enchanting-level: 28
     targets:
       - HOE
     max-level: 1
@@ -123,7 +123,7 @@ custom-enchants:
     display-name: '&6Trample Guard'
     description: '&7מונע הרס של יבולים כשדורכים עליהם'
     material: BEETROOT_SEEDS
-    required-enchanting-level: 20
+    required-enchanting-level: 25
     targets:
       - BOOTS
     max-level: 1

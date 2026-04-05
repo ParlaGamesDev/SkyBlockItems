@@ -227,6 +227,14 @@ custom-abilities:
       - "&7בזמן חציבת עלים של עצים, עולה <#5B9BD5>{mana} &7מאנה"
       - "&7זמן ההמתנה לאחר השימוש הוא <#FF6B6B>{cooldown} &7שניות"
 
+  GRAPPLING_HOOK:
+    name: "וו תפיסה"
+    trigger: RIGHT_CLICK
+    description:
+      - "&7משגר אותך לעבר הקרס של החכה!"
+      - "&7מאפשר התניידות מהירה ברחבי העולם,"
+      - "&7זמן המתנה: <#FF6B6B>{cooldown} &7שניות."
+
   # FLIGHT_SKILL removed by user request
 
   CROP_OVERDRIVE:

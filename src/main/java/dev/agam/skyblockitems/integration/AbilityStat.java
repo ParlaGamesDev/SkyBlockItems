@@ -20,12 +20,16 @@ public class AbilityStat extends StringStat {
     private final String displayName;
 
     public AbilityStat(String abilityId, String displayName) {
+        this(abilityId, displayName, new String[] { "weapon", "tool", "armor", "accessory", "all" });
+    }
+
+    public AbilityStat(String abilityId, String displayName, String... compatibleTypes) {
         super("SKYBLOCK_" + abilityId,
                 getMaterialForAbility(abilityId),
                 dev.agam.skyblockitems.SkyBlockItems.getInstance().getAbilitiesConfig()
                         .getString("custom-abilities." + abilityId + ".name", displayName),
                 generateEditorLore(abilityId, displayName),
-                new String[] { "weapon", "tool", "armor", "accessory", "all" });
+                compatibleTypes.length == 0 ? new String[] { "weapon", "tool", "armor", "accessory", "all" } : compatibleTypes);
         this.abilityId = abilityId;
         this.displayName = displayName;
     }
@@ -378,9 +382,8 @@ public class AbilityStat extends StringStat {
                 String processed = line;
 
                 // Replace placeholders with actual values from params
-                // Skip any line that mentions cooldown - cooldown is shown in chat only
-                if (processed.contains("{cooldown}")) {
-                    continue;
+                if (params.length >= 1) {
+                    processed = processed.replace("{cooldown}", params[0]);
                 }
                 if (params.length >= 2) {
                     if (mana <= 1.0 && processed.contains("{mana}")) {

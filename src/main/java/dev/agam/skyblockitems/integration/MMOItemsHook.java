@@ -28,7 +28,11 @@ public class MMOItemsHook {
                     || normalizedId.equals("INFINITE_RESERVOIR") || normalizedId.equals("NIGHT_VISION_CHARM"))
                 continue;
 
-            MMOItems.plugin.getStats().register(new AbilityStat(normalizedId, ability.getDisplayName()));
+            if (normalizedId.equals("GRAPPLING_HOOK")) {
+                MMOItems.plugin.getStats().register(new AbilityStat(normalizedId, ability.getDisplayName(), "fishing_rod", "tool"));
+            } else {
+                MMOItems.plugin.getStats().register(new AbilityStat(normalizedId, ability.getDisplayName()));
+            }
             count++;
         }
 
