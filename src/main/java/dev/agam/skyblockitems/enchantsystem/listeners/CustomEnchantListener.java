@@ -288,31 +288,56 @@ public class CustomEnchantListener implements Listener {
         }
     }
 
-    @EventHandler
-    public void onEntityKill(org.bukkit.event.entity.EntityDeathEvent event) {
+    /**
+     * Helper to handle Telekinesis collection.
+     * Processes rarity and adds to inventory or drops at feet if full.
+     */
+    private void collectItem(Player player, ItemStack item) {
+        if (item == null || item.getType().isAir()) return;
+        
+        // Process rarity/NBT for stacking compatibility
+        ItemStack processed = plugin.getRarityManager().processItem(item);
+        
+        // Add to inventory
+        Map<Integer, ItemStack> leftover = player.getInventory().addItem(processed);
+        
+        // Drop leftover at player's feet
+        leftover.values().forEach(i -> player.getWorld().dropItemNaturally(player.getLocation(), i));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityDeath(EntityDeathEvent event) {
         LivingEntity victim = event.getEntity();
         Player killer = victim.getKiller();
-        if (killer == null)
-            return;
+        if (killer == null) return;
 
         ItemStack weapon = killer.getInventory().getItemInMainHand();
-        if (weapon == null || !weapon.hasItemMeta() || !weapon.getItemMeta().hasLore())
-            return;
+        if (weapon == null || !weapon.hasItemMeta() || !weapon.getItemMeta().hasLore()) return;
 
-        Map<CustomEnchant, Integer> enchants = parseCustomEnchants(weapon.getItemMeta().getLore());
-        for (CustomEnchant e : enchants.keySet()) {
-            if (!e.isEnabled())
-                continue;
+        List<String> lore = weapon.getItemMeta().getLore();
+        Map<String, Integer> allEnchants = plugin.getEnchantManager().parseLore(lore);
+        Map<CustomEnchant, Integer> customEnchants = parseCustomEnchants(lore);
 
-            // 1. MONSTER_SOUL (Charge)
+        // 1. Monster Soul Logic (From CustomEnchants)
+        for (Map.Entry<CustomEnchant, Integer> entry : customEnchants.entrySet()) {
+            CustomEnchant e = entry.getKey();
+            if (!e.isEnabled()) continue;
+
             if (e.getId().equalsIgnoreCase("MONSTER_SOUL")) {
-                // User said: "פי 10 מנזק המפלצת שנהרגה"
-                // Assuming we use the victim's max health or last damage as "damage of monster"
                 double bonus = (victim.getAttribute(Attribute.ATTACK_DAMAGE) != null
                         ? victim.getAttribute(Attribute.ATTACK_DAMAGE).getValue()
                         : 10.0) * 10.0;
                 soulCharge.put(killer.getUniqueId(), bonus);
                 killer.sendMessage(ChatColor.GRAY + "Soul harvested! Next strike will be powered.");
+            }
+        }
+
+        // 2. Telekinesis Logic (Universal)
+        if (allEnchants.containsKey("telekinesis")) {
+            List<ItemStack> drops = new ArrayList<>(event.getDrops());
+            event.getDrops().clear();
+            for (ItemStack drop : drops) {
+                collectItem(killer, drop);
             }
         }
     }
@@ -374,14 +399,27 @@ public class CustomEnchantListener implements Listener {
         if (tool == null || !tool.hasItemMeta() || !tool.getItemMeta().hasLore())
             return;
 
-        Map<CustomEnchant, Integer> enchants = parseCustomEnchants(tool.getItemMeta().getLore());
-        if (enchants.isEmpty())
+        // Check for enchants
+        List<String> lore = tool.getItemMeta().getLore();
+        Map<String, Integer> allEnchants = plugin.getEnchantManager().parseLore(lore);
+        Map<CustomEnchant, Integer> enchants = parseCustomEnchants(lore);
+
+        boolean hasTelekinesis = allEnchants.containsKey("telekinesis");
+        if (hasTelekinesis) {
+            event.setDropItems(false);
+            // Collect base drops
+            for (ItemStack drop : event.getBlock().getDrops(tool)) {
+                collectItem(player, drop);
+            }
+        }
+
+        if (enchants.isEmpty() && !hasTelekinesis)
             return;
 
         org.bukkit.block.Block block = event.getBlock();
         Material type = block.getType();
 
-        // 1. DELICATE (Moנע שבירת יבולים צעירים)
+        // 1. DELICATE
         if (isDelicateEnabled(enchants)) {
             if (isYoungCrop(block)) {
                 event.setCancelled(true);
@@ -389,7 +427,7 @@ public class CustomEnchantListener implements Listener {
             }
         }
 
-        // 2. REPLENISH (שתילה מחדש אוטומטית)
+        // 2. REPLENISH
         if (isReplenishEnabled(enchants) && isFullyGrownCrop(block)) {
             Material seedType = getSeedForCrop(type);
             if (seedType != null) {
@@ -403,25 +441,32 @@ public class CustomEnchantListener implements Listener {
             }
         }
 
-        // 3. FARMING_FORTUNE & HARVESTING (דאבל/טריפל דרופ)
+        // 3. FARMING_FORTUNE & HARVESTING
         int fortuneLevel = getFortuneLevel(enchants, type);
         if (fortuneLevel > 0) {
-            // Only work on fully grown crops for both
             if (isCrop(type) && !isFullyGrownCrop(block))
                 return;
 
-            // HARVESTING specific: Only natural logs
             boolean isHarvesting = enchants.keySet().stream().anyMatch(e -> e.getId().equalsIgnoreCase("HARVESTING"));
             if (isHarvesting && isLog(type) && block.hasMetadata("PLACED_BY_PLAYER"))
                 return;
 
-            double chance = fortuneLevel * 0.25; // 25% chance for extra drop per level
+            double chance = fortuneLevel * 0.25;
             if (random.nextDouble() < chance) {
                 Collection<ItemStack> drops = block.getDrops(tool);
                 for (ItemStack drop : drops) {
-                    block.getWorld().dropItemNaturally(block.getLocation(), drop);
-                    if (random.nextDouble() < (chance - 1.0)) { // Triple drop chance if level > 1
+                    if (hasTelekinesis) {
+                        collectItem(player, drop);
+                    } else {
                         block.getWorld().dropItemNaturally(block.getLocation(), drop);
+                    }
+                    
+                    if (random.nextDouble() < (chance - 1.0)) { 
+                        if (hasTelekinesis) {
+                            collectItem(player, drop);
+                        } else {
+                            block.getWorld().dropItemNaturally(block.getLocation(), drop);
+                        }
                     }
                 }
             }
@@ -447,13 +492,24 @@ public class CustomEnchantListener implements Listener {
             lastMineTime.put(uuid, now);
         }
 
-        // Existing Telekinesis logic
-        if (enchants.keySet().stream().anyMatch(e -> e.getId().equalsIgnoreCase("TELEKINESIS"))) {
-            event.setDropItems(false);
-            for (ItemStack drop : block.getDrops(tool)) {
-                player.getInventory().addItem(drop).values()
-                        .forEach(i -> player.getWorld().dropItemNaturally(player.getLocation(), i));
-            }
+    }
+
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerFish(org.bukkit.event.player.PlayerFishEvent event) {
+        if (event.getState() != org.bukkit.event.player.PlayerFishEvent.State.CAUGHT_FISH) return;
+        if (!(event.getCaught() instanceof org.bukkit.entity.Item)) return;
+        
+        Player player = event.getPlayer();
+        ItemStack rod = player.getInventory().getItemInMainHand();
+        if (rod == null || !rod.hasItemMeta() || !rod.getItemMeta().hasLore()) return;
+        
+        Map<String, Integer> allEnchants = plugin.getEnchantManager().parseLore(rod.getItemMeta().getLore());
+        if (allEnchants.containsKey("telekinesis")) {
+            org.bukkit.entity.Item caughtItem = (org.bukkit.entity.Item) event.getCaught();
+            ItemStack itemStack = caughtItem.getItemStack();
+            caughtItem.remove();
+            collectItem(player, itemStack);
         }
     }
 

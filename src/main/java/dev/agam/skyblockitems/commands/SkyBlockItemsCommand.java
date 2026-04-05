@@ -2,10 +2,7 @@ package dev.agam.skyblockitems.commands;
 
 import dev.agam.skyblockitems.SkyBlockItems;
 import dev.agam.skyblockitems.enchantsystem.CustomEnchant;
-import dev.agam.skyblockitems.enchantsystem.gui.EnchantEditorGUI;
 import dev.agam.skyblockitems.enchantsystem.gui.EnchantListGUI;
-import dev.agam.skyblockitems.enchantsystem.gui.EnchantingGUI;
-import dev.agam.skyblockitems.enchantsystem.gui.CustomAnvilGUI;
 import dev.agam.skyblockitems.enchantsystem.utils.ColorUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -33,37 +30,49 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(plugin.getConfigManager().getMessage("general.player-only"));
+        String sub = args.length > 0 ? args[0].toLowerCase() : "";
+        
+        // Subcommands that allow console
+        if (sub.equals("reload") || sub.equals("message") || sub.equals("givebook") || sub.equals("givereforgegem")) {
+            // Proceed with execution
+        } else if (!(sender instanceof Player)) {
+            sender.sendMessage(ColorUtils.colorize("&cThis command can only be executed by a player."));
             return true;
         }
 
         if (args.length == 0) {
-            player.sendMessage(plugin.getConfigManager().getMessage("commands.unknown"));
+            sender.sendMessage(plugin.getConfigManager().getMessage("commands.unknown"));
             return true;
         }
 
-        String sub = args[0].toLowerCase();
-
         switch (sub) {
             case "reload" -> {
-                if (!player.hasPermission("skyblockitems.admin.reload")) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
+                if (!sender.hasPermission("skyblockitems.admin.reload")) {
+                    sender.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
                     return true;
                 }
                 plugin.reloadAllConfigs();
-                player.sendMessage(plugin.getConfigManager().getMessage("commands.reload-success"));
+                sender.sendMessage(plugin.getConfigManager().getMessage("commands.reload-success"));
+            }
+
+            case "message" -> {
+                if (!sender.hasPermission("skyblockitems.admin.message")) {
+                    sender.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
+                    return true;
+                }
+                handleMessage(sender, args);
             }
 
             case "givebook" -> {
-                if (!player.hasPermission("skyblockitems.admin.give")) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
+                if (!sender.hasPermission("skyblockitems.admin.give")) {
+                    sender.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
                     return true;
                 }
-                handleGiveBook(player, args);
+                handleGiveBook(sender, args);
             }
 
             case "blacklist" -> {
+                Player player = (Player) sender;
                 if (!player.hasPermission("skyblockitems.admin.blacklist")) {
                     player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
                     return true;
@@ -72,6 +81,7 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
             }
 
             case "enchants" -> {
+                Player player = (Player) sender;
                 if (!player.hasPermission("skyblockitems.admin.enchants")) {
                     player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
                     return true;
@@ -80,6 +90,7 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
             }
 
             case "reforges" -> {
+                Player player = (Player) sender;
                 if (!player.hasPermission("skyblockitems.admin.reforges")) {
                     player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
                     return true;
@@ -88,11 +99,11 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
             }
 
             case "givereforgegem" -> {
-                if (!player.hasPermission("skyblockitems.admin.reforge")) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
+                if (!sender.hasPermission("skyblockitems.admin.reforge")) {
+                    sender.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
                     return true;
                 }
-                handleGiveReforgeGem(player, args);
+                handleGiveReforgeGem(sender, args);
             }
 
             case "rarity" -> {
@@ -103,25 +114,41 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
             }
 
             default -> {
-                player.sendMessage(plugin.getConfigManager().getMessage("commands.unknown"));
+                sender.sendMessage(plugin.getConfigManager().getMessage("commands.unknown"));
             }
         }
 
         return true;
     }
 
-    private void handleGiveBook(Player player, String[] args) {
-        if (!player.hasPermission("skyblockitems.give") && !player.isOp()) {
-            player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
+    private void handleMessage(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage(ColorUtils.colorize("&cUsage: /sbi message <player> <message...>"));
             return;
         }
+
+        Player target = Bukkit.getPlayer(args[1]);
+        if (target == null) {
+            sender.sendMessage(ColorUtils.colorize("&cPlayer '" + args[1] + "' not found."));
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 2; i < args.length; i++) {
+            sb.append(args[i]).append(" ");
+        }
+        
+        target.sendMessage(ColorUtils.colorize(sb.toString().trim()));
+    }
+
+    private void handleGiveBook(CommandSender sender, String[] args) {
         if (args.length < 4) {
-            player.sendMessage(plugin.getConfigManager().getMessage("commands.givebook.usage"));
+            sender.sendMessage(plugin.getConfigManager().getMessage("commands.givebook.usage"));
             return;
         }
         Player targetPlayer = Bukkit.getPlayer(args[1]);
         if (targetPlayer == null) {
-            player.sendMessage(plugin.getConfigManager().getMessage("commands.givebook.player-not-found",
+            sender.sendMessage(plugin.getConfigManager().getMessage("commands.givebook.player-not-found",
                     "{player}", args[1]));
             return;
         }
@@ -131,21 +158,19 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
         try {
             bookLevel = Integer.parseInt(args[3]);
         } catch (NumberFormatException e) {
-            player.sendMessage(plugin.getConfigManager().getMessage("commands.givebook.invalid-level"));
+            sender.sendMessage(plugin.getConfigManager().getMessage("commands.givebook.invalid-level"));
             return;
         }
 
         ItemStack bookToGive = null;
         String displayName = enchantId;
 
-        // Try config enchants first
         dev.agam.skyblockitems.enchantsystem.managers.EnchantManager.EnchantConfig conf = plugin
                 .getEnchantManager().getEnchant(enchantId);
         if (conf != null) {
             bookToGive = plugin.getEnchantManager().createEnchantedBook(conf, bookLevel);
             displayName = conf.getDisplayName();
         } else {
-            // Try custom enchants
             CustomEnchant custom = plugin.getCustomEnchantManager().getEnchant(enchantId);
             if (custom != null) {
                 bookToGive = plugin.getEnchantManager().createEnchantedBook(custom, bookLevel);
@@ -154,48 +179,48 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
         }
 
         if (bookToGive == null) {
-            player.sendMessage(plugin.getConfigManager().getMessage("commands.givebook.enchant-not-found",
+            sender.sendMessage(plugin.getConfigManager().getMessage("commands.givebook.enchant-not-found",
                     "{id}", enchantId));
             return;
         }
 
         targetPlayer.getInventory().addItem(bookToGive);
-        player.sendMessage(plugin.getConfigManager().getMessage("commands.givebook.success",
+        sender.sendMessage(plugin.getConfigManager().getMessage("commands.givebook.success",
                 "{enchant}", displayName,
                 "{level}", String.valueOf(bookLevel),
                 "{player}", targetPlayer.getName()));
     }
 
-    private void handleGiveReforgeGem(Player player, String[] args) {
+    private void handleGiveReforgeGem(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            player.sendMessage(ColorUtils.colorize("&cUsage: /sbi givereforgegem <gemId> [player]"));
+            sender.sendMessage(ColorUtils.colorize("&cUsage: /sbi givereforgegem <gemId> [player]"));
             return;
         }
 
         String gemId = args[1];
-        Player target = (args.length > 2) ? Bukkit.getPlayer(args[2]) : player;
+        Player target = null;
+        if (args.length > 2) {
+            target = Bukkit.getPlayer(args[2]);
+        } else if (sender instanceof Player p) {
+            target = p;
+        }
 
         if (target == null) {
-            player.sendMessage(ColorUtils.colorize("&cPlayer not found."));
+            sender.sendMessage(ColorUtils.colorize("&cPlayer not found."));
             return;
         }
 
         ItemStack gem = plugin.getReforgeManager().getGemItem(gemId);
         if (gem == null) {
-            player.sendMessage(ColorUtils.colorize("&cGem '" + gemId + "' not found in any reforge configuration."));
+            sender.sendMessage(ColorUtils.colorize("&cGem '" + gemId + "' not found in any reforge configuration."));
             return;
         }
 
         target.getInventory().addItem(gem);
-        player.sendMessage(ColorUtils.colorize("&aGave " + gemId + " to " + target.getName()));
+        sender.sendMessage(ColorUtils.colorize("&aGave " + gemId + " to " + target.getName()));
     }
 
     private void handleBlacklist(Player player, String[] args) {
-        if (!player.hasPermission("skyblockitems.blacklist")) {
-            player.sendMessage(plugin.getConfigManager().getMessage("general.no-permission"));
-            return;
-        }
-
         if (args.length < 2) {
             player.sendMessage(plugin.getConfigManager().getMessage("commands.blacklist.usage"));
             return;
@@ -252,13 +277,13 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
             List<String> subs = Arrays.asList("reload", "givebook", "blacklist", "enchants", "reforges", "rarity",
-                    "givereforgegem");
+                    "givereforgegem", "message");
             return filterCompletions(subs, args[0]);
         }
 
         if (args.length == 2) {
             switch (args[0].toLowerCase()) {
-                case "givebook" -> {
+                case "givebook", "message", "givereforgegem" -> {
                     return null; // Player names
                 }
                 case "blacklist" -> {
@@ -270,15 +295,6 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
                     return new dev.agam.skyblockitems.rarity.RarityCommand(plugin).onTabComplete(sender, command, alias,
                             rarityArgs);
                 }
-                case "givereforgegem" -> {
-                    List<String> gemIds = new ArrayList<>();
-                    for (var reforge : plugin.getReforgeManager().getAllReforges()) {
-                        if (reforge.getGem() != null) {
-                            gemIds.add(reforge.getGem().getId());
-                        }
-                    }
-                    return filterCompletions(gemIds, args[1]);
-                }
             }
         }
 
@@ -288,9 +304,6 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
                 System.arraycopy(args, 1, rarityArgs, 0, args.length - 1);
                 return new dev.agam.skyblockitems.rarity.RarityCommand(plugin).onTabComplete(sender, command, alias,
                         rarityArgs);
-            }
-            if (args[0].equalsIgnoreCase("givereforgegem")) {
-                return null; // Player names
             }
         }
 

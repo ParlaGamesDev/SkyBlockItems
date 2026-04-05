@@ -55,6 +55,7 @@ enchanting:
   click-to-select-level: "<#ffeaa7>לחץ כדי לבחור רמה!"
   need-enchanting-unlock: "<#e74c3c> אתה צריך <#ffeaa7>{level} <#e74c3c>רמות כישוף כדי להשתמש בזה!"
   required-level: "<#e74c3c>רמת כישוף דרושה: {level}"
+  already-maxed: "<#e74c3c>כבר יש לך את הרמה המקסימלית!"
 
 guide:
   gui-title: "&8מדריך כישופים"

@@ -124,7 +124,17 @@ public class EnchantManager {
     }
 
     public EnchantConfig getEnchant(String id) {
-        return enchants.get(id.toLowerCase());
+        EnchantConfig conf = enchants.get(id.toLowerCase());
+        if (conf != null)
+            return conf;
+
+        io.lumine.mythic.lib.api.item.NBTItem nbt = io.lumine.mythic.lib.api.item.NBTItem
+                .get(new org.bukkit.inventory.ItemStack(org.bukkit.Material.BOOK));
+        CustomEnchant ce = plugin.getCustomEnchantManager().getEnchant(id);
+        if (ce != null)
+            return ce.toEnchantConfig();
+
+        return null;
     }
 
     /**
@@ -349,6 +359,10 @@ public class EnchantManager {
         List<String> newLore = new ArrayList<>();
         List<String> entries = new ArrayList<>();
         List<String> sortedIds = new ArrayList<>(enchants.keySet());
+        for (String id : enchants.keySet()) {
+            if (!sortedIds.contains(id.toLowerCase()))
+                sortedIds.add(id.toLowerCase());
+        }
         Collections.sort(sortedIds);
 
         for (String id : sortedIds) {

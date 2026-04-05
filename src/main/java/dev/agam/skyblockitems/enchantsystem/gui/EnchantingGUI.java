@@ -201,74 +201,99 @@ public class EnchantingGUI implements BaseGUI {
         String conflictWith = plugin.getEnchantManager().getConflict(itemToEnchant, enchant);
         boolean conflicted = conflictWith != null;
 
-        ItemStack icon;
         if (conflicted || locked) {
-            String matStr = plugin.getConfigManager().getMessageRaw("enchanting.locked-enchant.material");
-            Material mat = Material.getMaterial(matStr);
-            icon = new ItemStack(mat != null ? mat : Material.BARRIER);
-        } else {
-            icon = new ItemStack(enchant.getMaterial());
+            return createLockedIcon(enchant, playerLevel, requiredLevel, conflictWith);
         }
 
+        ItemStack icon = new ItemStack(enchant.getMaterial());
         ItemMeta meta = icon.getItemMeta();
 
-        if (conflicted || locked) {
-            String name = plugin.getConfigManager().getMessage("enchanting.locked-enchant.name")
-                    .replace("{name}", ChatColor.stripColor(ColorUtils.colorize(enchant.getDisplayName())));
-            meta.setDisplayName(name);
+        meta.setDisplayName(ColorUtils.colorize("&a" + enchant.getDisplayName()));
 
-            List<String> lore = new ArrayList<>();
-
-            if (conflicted) {
-                String conflictMsg = plugin.getConfigManager().getMessage("enchanting.conflict-lore", "{enchant}",
-                        conflictWith);
-                lore.add(conflictMsg);
-            } else {
-                String lockMsg = plugin.getConfigManager().getMessage("enchanting.need-enchanting-unlock", "{level}",
-                        String.valueOf(requiredLevel));
-                lore.add(lockMsg);
+        List<String> lore = new ArrayList<>();
+        String desc = enchant.getDescription();
+        if (desc.contains("\n")) {
+            for (String line : desc.split("\n")) {
+                lore.add(ColorUtils.colorize("&7" + line.trim()));
             }
-
-            for (String line : plugin.getConfigManager().getMessages()
-                    .getStringList("enchanting.locked-enchant.lore")) {
-                lore.add(ColorUtils.colorize(line
-                        .replace("{name}", enchant.getDisplayName())
-                        .replace("{description}", enchant.getDescription())
-                        .replace("{current}", String.valueOf(playerLevel))
-                        .replace("{required}", String.valueOf(requiredLevel))
-                        .replace("{max}", String.valueOf(enchant.getMaxLevel()))));
-            }
-            meta.setLore(lore);
         } else {
-            meta.setDisplayName(ColorUtils.colorize("&a" + enchant.getDisplayName()));
+            lore.add(ColorUtils.colorize("&7" + desc));
+        }
+        lore.add("");
 
-            List<String> lore = new ArrayList<>();
-            String desc = enchant.getDescription();
-            if (desc.contains("\n")) {
-                for (String line : desc.split("\n")) {
-                    lore.add(ColorUtils.colorize("&7" + line.trim()));
-                }
-            } else {
-                lore.add(ColorUtils.colorize("&7" + desc));
-            }
-            lore.add("");
+        // Check if item already has this enchantment
+        int currentLevel = 0;
+        if (itemToEnchant != null && itemToEnchant.hasItemMeta() && itemToEnchant.getItemMeta().hasLore()) {
+            Map<String, Integer> current = plugin.getEnchantManager().parseLore(itemToEnchant.getItemMeta().getLore());
+            currentLevel = current.getOrDefault(enchant.getId().toLowerCase(), 0);
+        }
+        boolean hasEnchant = currentLevel > 0;
+        boolean isMaxed = currentLevel >= enchant.getMaxLevel();
 
-            if (enchant.getRequiredEnchantingLevel() > 0) {
-                lore.add(plugin.getConfigManager().getMessage("enchanting.required-level", "{level}",
-                        String.valueOf(enchant.getRequiredEnchantingLevel())));
-            }
-            lore.add(plugin.getConfigManager().getMessage("enchanting.max-level", "{max}",
-                    String.valueOf(enchant.getMaxLevel())));
-            lore.add("");
+        // Only show required level if player hasn't unlocked it yet OR doesn't have it on the item
+        // Actually user said: "after opening the charm to lower the 'required charm level' ... you don't need this at all after a person opens"
+        // This means if playerLevel >= requiredLevel, hide it.
+        int playerSkillLevel = plugin.isAuraSkillsEnabled()
+                ? plugin.getAuraSkillsHook().getEnchantingLevel(player)
+                : 100;
 
-            if (enchant.getMaxLevel() > 1) {
-                lore.add(plugin.getConfigManager().getMessage("enchanting.click-to-select-level"));
-            } else {
-                lore.add(plugin.getConfigManager().getMessage("enchanting.level-select.click-to-enchant"));
-            }
-            meta.setLore(lore);
+        if (enchant.getRequiredEnchantingLevel() > playerSkillLevel && !hasEnchant) {
+            lore.add(plugin.getConfigManager().getMessage("enchanting.required-level", "{level}",
+                    String.valueOf(enchant.getRequiredEnchantingLevel())));
+        }
+        lore.add(plugin.getConfigManager().getMessage("enchanting.max-level", "{max}",
+                String.valueOf(enchant.getMaxLevel())));
+        lore.add("");
+
+        if (isMaxed) {
+            lore.add(plugin.getConfigManager().getMessage("enchanting.already-maxed"));
         }
 
+        if (!isMaxed) {
+            if (enchant.getMaxLevel() > 1) {
+                lore.add(plugin.getConfigManager().getMessage("enchanting.click-to-select-level"));
+            } else if (!hasEnchant) {
+                lore.add(plugin.getConfigManager().getMessage("enchanting.level-select.click-to-enchant"));
+            }
+        }
+        meta.setLore(lore);
+
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        icon.setItemMeta(meta);
+        return icon;
+    }
+
+    private ItemStack createLockedIcon(EnchantConfig enchant, int playerLevel, int requiredLevel, String conflictWith) {
+        String matStr = plugin.getConfigManager().getMessageRaw("enchanting.locked-enchant.material");
+        Material mat = Material.getMaterial(matStr);
+        ItemStack icon = new ItemStack(mat != null ? mat : Material.BARRIER);
+        ItemMeta meta = icon.getItemMeta();
+
+        String name = ColorUtils.colorize("&c" + ChatColor.stripColor(ColorUtils.colorize(enchant.getDisplayName())));
+        meta.setDisplayName(name);
+
+        List<String> lore = new ArrayList<>();
+
+        if (conflictWith != null) {
+            String conflictMsg = plugin.getConfigManager().getMessage("enchanting.conflict-lore", "{enchant}",
+                    conflictWith);
+            lore.add(conflictMsg);
+        } else if (requiredLevel > playerLevel) {
+            String lockMsg = plugin.getConfigManager().getMessage("enchanting.need-enchanting-unlock", "{level}",
+                    String.valueOf(requiredLevel));
+            lore.add(lockMsg);
+        }
+
+        for (String line : plugin.getConfigManager().getMessages()
+                .getStringList("enchanting.locked-enchant.lore")) {
+            lore.add(ColorUtils.colorize(line
+                    .replace("{name}", enchant.getDisplayName())
+                    .replace("{description}", enchant.getDescription())
+                    .replace("{current}", String.valueOf(playerLevel))
+                    .replace("{required}", String.valueOf(requiredLevel))
+                    .replace("{max}", String.valueOf(enchant.getMaxLevel()))));
+        }
+        meta.setLore(lore);
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         icon.setItemMeta(meta);
         return icon;
@@ -621,17 +646,9 @@ public class EnchantingGUI implements BaseGUI {
 
         Set<String> itemCategories = getItemCategories(item);
 
-        int playerSkillLevel = plugin.isAuraSkillsEnabled()
-                ? plugin.getAuraSkillsHook().getEnchantingLevel(player)
-                : 100;
-
         // 1. Add Vanilla Enchants
         for (EnchantConfig enchant : plugin.getEnchantManager().getEnchants().values()) {
             if (!enchant.isEnabled())
-                continue;
-
-            // Hide locked enchants
-            if (enchant.getRequiredEnchantingLevel() > playerSkillLevel)
                 continue;
 
             boolean matches = false;
@@ -652,10 +669,6 @@ public class EnchantingGUI implements BaseGUI {
                 continue;
 
             EnchantConfig config = customEnchant.toEnchantConfig();
-
-            // Hide locked enchants
-            if (config.getRequiredEnchantingLevel() > playerSkillLevel)
-                continue;
 
             boolean matches = false;
             for (String target : config.getTargets()) {

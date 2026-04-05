@@ -113,6 +113,7 @@ dev\agam\skyblockitems\abilities\utility\CleanseAbility.class
 dev\agam\skyblockitems\SkyBlockItems$1.class
 dev\agam\skyblockitems\commands\BlacksmithCommand.class
 dev\agam\skyblockitems\abilities\tools\LaserAbility.class
+dev\agam\skyblockitems\listeners\DurabilityListener.class
 dev\agam\skyblockitems\abilities\booleans\InfiniteReservoirStat.class
 dev\agam\skyblockitems\enchantsystem\gui\TargetSelectorGUI.class
 dev\agam\skyblockitems\abilities\TriggerType.class

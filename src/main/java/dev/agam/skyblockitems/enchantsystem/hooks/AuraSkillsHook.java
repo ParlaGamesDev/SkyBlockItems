@@ -107,4 +107,14 @@ public class AuraSkillsHook {
         } catch (Exception ignored) {
         }
     }
+
+    /**
+     * Register enchantments as rewards in AuraSkills enchanting skill.
+     * Note: In AuraSkills 2.x, rewards are primarily YAML-based.
+     */
+    public void registerEnchantRewards(dev.agam.skyblockitems.SkyBlockItems plugin) {
+        // This is currently disabled because AuraSkills 2.x does not support 
+        // registering rewards to existing skills via the public Java API yet.
+        // Rewards should be added to plugins/AuraSkills/rewards/enchanting.yml
+    }
 }

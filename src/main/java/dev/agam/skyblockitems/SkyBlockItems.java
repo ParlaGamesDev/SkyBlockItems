@@ -146,6 +146,7 @@ public class SkyBlockItems extends JavaPlugin {
             try {
                 this.auraSkillsHook = new dev.agam.skyblockitems.enchantsystem.hooks.AuraSkillsHook();
                 this.auraSkillsEnabled = true;
+                ((dev.agam.skyblockitems.enchantsystem.hooks.AuraSkillsHook) this.auraSkillsHook).registerEnchantRewards(this);
             } catch (Throwable e) {
                 System.err.println("[SkyBlockItems] [ERROR] AuraSkills integration failed: " + e.getMessage());
             }
@@ -203,6 +204,10 @@ public class SkyBlockItems extends JavaPlugin {
         // Reforge Listener
         getServer().getPluginManager()
                 .registerEvents(new dev.agam.skyblockitems.reforge.ReforgeListener(this), this);
+
+        // Durability Listener
+        getServer().getPluginManager()
+                .registerEvents(new dev.agam.skyblockitems.listeners.DurabilityListener(this), this);
     }
 
     private void registerAllCommands() {
@@ -256,9 +261,12 @@ public class SkyBlockItems extends JavaPlugin {
             reforgeManager.reload();
         }
 
-        // 5. Custom Enchants
         if (customEnchantManager != null) {
             customEnchantManager.reload();
+        }
+
+        if (auraSkillsEnabled && auraSkillsHook != null) {
+            ((dev.agam.skyblockitems.enchantsystem.hooks.AuraSkillsHook) auraSkillsHook).registerEnchantRewards(this);
         }
 
         getLogger().info("All configurations reloaded successfully!");

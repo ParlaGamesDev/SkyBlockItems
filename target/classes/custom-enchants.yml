@@ -1,101 +1,132 @@
 custom-enchants:
   FARMING_FORTUNE:
     enabled: true
-    display-name: "&aFarming Fortune"
-    description: "&7נותן סיכוי לקצור יבולים כפולים ומשולשים"
+    display-name: '&aFarming Fortune'
+    description: '&7נותן סיכוי לקצור יבולים כפולים ומשולשים'
     material: WHEAT
     required-enchanting-level: 5
-    targets: [ "HOE" ]
+    targets:
+      - HOE
     max-level: 5
     levels:
-      1: { xp-cost: 20 }
-      2: { xp-cost: 30 }
-      3: { xp-cost: 40 }
-      4: { xp-cost: 50 }
-      5: { xp-cost: 60 }
+      '1':
+        xp-cost: 20
+      '2':
+        xp-cost: 30
+      '3':
+        xp-cost: 40
+      '4':
+        xp-cost: 50
+      '5':
+        xp-cost: 60
   TURBO_MINER:
     enabled: true
-    display-name: "&eTurbo Miner"
-    description: "&7מעניק מהירות כרייה נוספת כשכורים ברצף"
+    display-name: '&eTurbo Miner'
+    description: '&7מעניק מהירות כרייה נוספת כשכורים ברצף'
     material: NETHERITE_PICKAXE
     required-enchanting-level: 5
-    targets: [ "PICKAXE" ]
+    targets:
+      - PICKAXE
     max-level: 1
     levels:
-      1: { xp-cost: 50 }
+      '1':
+        xp-cost: 50
   EXP_GRINDER:
     enabled: true
-    display-name: "&2EXP Grinder"
-    description: "&7מעניק סיכוי לקבל אקספי שנפגעים"
+    display-name: '&2EXP Grinder'
+    description: '&7מעניק סיכוי לקבל אקספי שנפגעים'
     required-enchanting-level: 15
     material: EXPERIENCE_BOTTLE
-    targets: [ "CHESTPLATE", "LEGGINGS", "BOOTS", "HELMET" ]
+    targets:
+      - CHESTPLATE
+      - LEGGINGS
+      - BOOTS
+      - HELMET
     max-level: 1
     levels:
-      1: { xp-cost: 65 }
+      '1':
+        xp-cost: 65
   BERSERK:
     enabled: true
-    display-name: "&4Pure Might"
-    description: "&7מסיר את כל הכישופים אך מגדיל את הנזק ב-50%"
+    display-name: '&4Pure Might'
+    description: '&7מסיר את כל הכישופים אך מגדיל את הנזק ב-50%'
     material: STONE_SWORD
     required-enchanting-level: 20
-    targets: [ "SWORD", "AXE" ]
+    targets:
+      - SWORD
+      - AXE
     max-level: 1
     levels:
-      1: { xp-cost: 70 }
+      '1':
+        xp-cost: 70
   MONSTER_SOUL:
     enabled: true
-    display-name: "&8Monster Soul"
-    description: "&7מקבל פי 10 מהנזק של המפלצת שהרגת למכה הקריטית הבאה"
+    display-name: '&8Monster Soul'
+    description: '&7מקבל פי 10 מהנזק של המפלצת שהרגת למכה הקריטית הבאה'
     material: DIAMOND_SWORD
     required-enchanting-level: 30
-    targets: [ "SWORD", "AXE" ]
+    targets:
+      - SWORD
+      - AXE
     max-level: 1
     levels:
-      1: { xp-cost: 80 }
+      '1':
+        xp-cost: 80
 
   REPLENISH:
     enabled: true
-    display-name: "&aReplenish"
-    description: "&7שותל מחדש יבולים מיד לאחר הקצירה"
+    display-name: '&aReplenish'
+    description: '&7שותל מחדש יבולים מיד לאחר הקצירה'
     material: WHEAT_SEEDS
     required-enchanting-level: 10
-    targets: [ "HOE" ]
+    targets:
+      - HOE
     max-level: 1
     obtainable: false
     levels:
-      1: { xp-cost: 40 }
+      '1':
+        xp-cost: 40
   HARVESTING:
     enabled: true
-    display-name: "&eHarvesting"
-    description: "&7מגדיל את כמות הבלוקים שמתקבלים מעצים"
+    display-name: '&eHarvesting'
+    description: '&7מגדיל את כמות הבלוקים שמתקבלים מעצים'
     material: PUMPKIN_SEEDS
     required-enchanting-level: 20
-    targets: [ "AXE" ]
+    targets:
+      - AXE
     max-level: 5
     levels:
-      1: { xp-cost: 15 }
-      2: { xp-cost: 30 }
-      3: { xp-cost: 45 }
-      4: { xp-cost: 60 }
-      5: { xp-cost: 75 }
+      '1':
+        xp-cost: 15
+      '2':
+        xp-cost: 30
+      '3':
+        xp-cost: 45
+      '4':
+        xp-cost: 60
+      '5':
+        xp-cost: 75
   DELICATE:
     enabled: true
-    display-name: "&7Delicate"
-    description: "&7מונע הריסת יבולים שלא גדלו עד הסוף"
+    display-name: '&7Delicate'
+    description: '&7מונע הריסת יבולים שלא גדלו עד הסוף'
     material: MELON_SEEDS
     required-enchanting-level: 25
-    targets: [ "HOE" ]
+    targets:
+      - HOE
     max-level: 1
     levels:
-      1: { xp-cost: 35 }
+      '1':
+        xp-cost: 35
   TRAMPLE_GUARD:
     enabled: true
-    display-name: "&6Trample Guard"
-    description: "&7מונע הרס של יבולים כשדורכים עליהם"
+    display-name: '&6Trample Guard'
+    description: '&7מונע הרס של יבולים כשדורכים עליהם'
     material: BEETROOT_SEEDS
     required-enchanting-level: 20
-    targets: [ "BOOTS" ]
+    targets:
+      - BOOTS
     max-level: 1
     levels:
-      1: { xp-cost: 50 }
+      '1':
+        xp-cost: 50

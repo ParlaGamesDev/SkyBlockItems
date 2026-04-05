@@ -12,6 +12,7 @@ enchants:
     required-enchanting-level: 0
     anvil-multiplier: 1
     conflicts: [smite, bane_of_arthropods]
+    auraskills-reward-lore: "&7פותח את היכולת להגדיל את הנזק הכללי במערכת האינצ'נטינג"
     levels:
       1: { value: "1", xp-cost: 5 }
       2: { value: "2", xp-cost: 10 }
@@ -629,9 +630,21 @@ enchants:
     conflicts: [fortune]
     required-enchanting-level: 20
     anvil-multiplier: 8
+    auraskills-reward-lore: "&7מאפשר להשיג בלוקים בצורתם המקורית במערכת האינצ'נטינג"
     levels:
       1: { value: "1", xp-cost: 40 }
 
+  telekinesis:
+    enabled: true
+    display-name: "&6Telekinesis"
+    description: "&7אוסף את החפצים שאתה חוצב ישירות לאינבנטורי"
+    material: HOPPER
+    targets: [TOOL, SWORD, BOW, CROSSBOW, TRIDENT, MACE]
+    required-enchanting-level: 5
+    anvil-multiplier: 2
+    auraskills-reward-lore: "&eפותח את היכולת לאסוף חפצים אוטומטית!"
+    levels:
+      1: { value: "1", xp-cost: 15 }
 
   wisdom_boost:
     display-name: "&bWisdom"
