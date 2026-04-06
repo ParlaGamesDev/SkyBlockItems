@@ -283,7 +283,7 @@ public class AbilityListener implements Listener {
             String msg = plugin.getConfigManager().getMessage("players.cooldown",
                     "{ability}", ability.getDisplayName(),
                     "{remaining}", String.format("%.1f", remaining));
-            dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
+            dev.agam.skyblockitems.utils.MessageUtils.send(player, msg, dev.agam.skyblockitems.utils.MessageUtils.MessageType.CHAT);
             return;
         }
 
@@ -308,9 +308,10 @@ public class AbilityListener implements Listener {
                     dev.aurelium.auraskills.api.user.SkillsUser user = auraApi.getUser(player.getUniqueId());
                     if (user.getMana() < mana) {
                         String msg = plugin.getConfigManager().getMessage("players.not-enough-mana",
+                                "{ability}", ability.getDisplayName(),
                                 "{max}", String.valueOf((int) user.getMana()),
                                 "{need}", String.valueOf((int) mana));
-                        dev.agam.skyblockitems.utils.MessageUtils.sendMessage(player, msg);
+                        dev.agam.skyblockitems.utils.MessageUtils.send(player, msg, dev.agam.skyblockitems.utils.MessageUtils.MessageType.CHAT);
                         return;
                     }
                     user.setMana(user.getMana() - mana);

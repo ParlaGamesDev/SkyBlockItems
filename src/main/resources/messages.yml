@@ -18,6 +18,10 @@ errors:
   item-disabled-anvil: "<#e74c3c>לא ניתן להשתמש בשילוב הכישופים על הפריט הזה!"
   blacklisted-item: "&cחפץ זה נמצא ברשימה האסורה ולא ניתן להשתמש בו כאן"
   no-enchants-unlocked: "<#e74c3c>אין לך שום כישוף פתוח! עליך להעלות את רמת הכישוף שלך כדי לכשף."
+  
+players:
+  cooldown: "<#e74c3c>היכולת <#ffeaa7>{ability} <#e74c3c>בטעינה! <#636e72>({remaining} שניות)"
+  not-enough-mana: "<#3498db>אין לך מספיק מאנה כדי להפעיל את <#ffeaa7>{ability}<#3498db>!"
 
 enchanting:
   gui-title: "&8שולחן כישופים"

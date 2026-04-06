@@ -67,7 +67,7 @@ public class GrapplingHookAbility extends SkyBlockAbility implements Listener {
                 String msg = SkyBlockItems.getInstance().getConfigManager().getMessage("players.cooldown",
                         "{ability}", getDisplayName(),
                         "{remaining}", String.format("%.1f", remaining));
-                MessageUtils.sendMessage(player, msg);
+                MessageUtils.send(player, msg, MessageUtils.MessageType.CHAT);
                 return;
             }
 
@@ -91,8 +91,8 @@ public class GrapplingHookAbility extends SkyBlockAbility implements Listener {
             if (distance > 64) distance = 64; 
             
             // Calculate velocity
-            // Increased power for snappier feel like Hypixel
-            Vector velocity = direction.clone().normalize().multiply(Math.min(distance * 0.25, 2.5));
+            // Increased power for snappier feel like Hypixel (Boosted further as requested)
+            Vector velocity = direction.clone().normalize().multiply(Math.min(distance * 0.3, 3.5));
             velocity.setY(velocity.getY() * 0.6 + 0.7); // Stronger upward boost
             
             player.setVelocity(velocity);
