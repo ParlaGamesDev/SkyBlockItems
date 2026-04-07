@@ -29,7 +29,7 @@ public class OverloadAbility extends SkyBlockAbility {
         player.getWorld().spawnParticle(Particle.FLAME, player.getLocation(), 50, radius / 2, 1, radius / 2, 0.1);
 
         for (Entity e : player.getNearbyEntities(radius, radius, radius)) {
-            if (e instanceof LivingEntity && e != player) {
+            if (e instanceof LivingEntity && e != player && !dev.agam.skyblockitems.utils.TargetUtils.isNPC(e)) {
                 ((LivingEntity) e).damage(damage, player);
                 e.setVelocity(e.getLocation().toVector().subtract(player.getLocation().toVector()).normalize()
                         .multiply(1.5).setY(0.5));

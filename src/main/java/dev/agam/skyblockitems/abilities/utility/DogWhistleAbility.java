@@ -30,7 +30,7 @@ public class DogWhistleAbility extends SkyBlockAbility {
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WOLF_WHINE, 0.5f, 1.5f);
 
         for (Entity e : player.getNearbyEntities(radius, radius, radius)) {
-            if (e instanceof Tameable) {
+            if (e instanceof Tameable && !dev.agam.skyblockitems.utils.TargetUtils.isNPC(e)) {
                 Tameable pet = (Tameable) e;
                 if (pet.isTamed() && pet.getOwner() != null
                         && player.getUniqueId().equals(pet.getOwner().getUniqueId())) {

@@ -28,14 +28,14 @@ public class LightningArrowAbility extends SkyBlockAbility {
         Arrow arrow = (Arrow) e.getEntity();
 
         // Strike lightning at hit location
-        if (e.getHitEntity() != null && e.getHitEntity() instanceof LivingEntity) {
+        if (e.getHitEntity() != null && e.getHitEntity() instanceof LivingEntity && !dev.agam.skyblockitems.utils.TargetUtils.isNPC(e.getHitEntity())) {
             LivingEntity target = (LivingEntity) e.getHitEntity();
             target.getWorld().strikeLightningEffect(target.getLocation());
             target.damage(damage, player);
 
             // Chain to nearby entities
             for (org.bukkit.entity.Entity nearby : target.getNearbyEntities(range, range, range)) {
-                if (nearby instanceof LivingEntity && nearby != player) {
+                if (nearby instanceof LivingEntity && nearby != player && !dev.agam.skyblockitems.utils.TargetUtils.isNPC(nearby)) {
                     ((LivingEntity) nearby).damage(damage * 0.5, player);
                     nearby.getWorld().strikeLightningEffect(nearby.getLocation());
                 }

@@ -35,6 +35,9 @@ public class ArrowEffectsAbility extends SkyBlockAbility {
             return false;
 
         LivingEntity target = (LivingEntity) e.getEntity();
+        if (dev.agam.skyblockitems.utils.TargetUtils.isNPC(target))
+            return false;
+
         int ticks = (int) (duration * 20);
         if (ticks <= 0)
             ticks = 100;

@@ -50,14 +50,19 @@ public class TreeCapitatorAbility extends SkyBlockAbility {
         int broken = 0;
 
         ItemStack tool = player.getInventory().getItemInMainHand();
+        java.util.Map<org.bukkit.Location, org.bukkit.Material> brokenBlocks = new java.util.HashMap<>();
 
         while (!queue.isEmpty() && broken < maxBlocks) {
             Block current = queue.poll();
 
             // Break block (if not the start block, which is already broken by event)
             if (!current.equals(startBlock)) {
+                brokenBlocks.put(current.getLocation(), current.getType());
                 current.breakNaturally(tool);
                 broken++;
+            } else {
+                // Add start block too for the event
+                brokenBlocks.put(current.getLocation(), current.getType());
             }
 
             // Check neighbors
@@ -72,6 +77,13 @@ public class TreeCapitatorAbility extends SkyBlockAbility {
                     }
                 }
             }
+        }
+
+        // Fire Event
+        if (!brokenBlocks.isEmpty()) {
+            dev.agam.skyblockitems.api.events.TreeCapitatorEvent treeEvent = new dev.agam.skyblockitems.api.events.TreeCapitatorEvent(
+                    player, tool, brokenBlocks);
+            dev.agam.skyblockitems.SkyBlockItems.getInstance().getServer().getPluginManager().callEvent(treeEvent);
         }
 
         return true;

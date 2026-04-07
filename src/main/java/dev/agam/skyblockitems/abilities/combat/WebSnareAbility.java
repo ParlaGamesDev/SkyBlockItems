@@ -29,7 +29,7 @@ public class WebSnareAbility extends SkyBlockAbility {
         ProjectileHitEvent e = (ProjectileHitEvent) event;
 
         Block hitBlock = e.getHitBlock();
-        if (hitBlock == null && e.getHitEntity() != null) {
+        if (hitBlock == null && e.getHitEntity() != null && !dev.agam.skyblockitems.utils.TargetUtils.isNPC(e.getHitEntity())) {
             hitBlock = e.getHitEntity().getLocation().getBlock();
         }
 

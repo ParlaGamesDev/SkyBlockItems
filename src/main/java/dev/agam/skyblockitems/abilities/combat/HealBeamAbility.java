@@ -31,7 +31,7 @@ public class HealBeamAbility extends SkyBlockAbility {
         heal(player, healAmount);
 
         for (Entity entity : player.getNearbyEntities(aoeRange, aoeRange, aoeRange)) {
-            if (entity instanceof Player) {
+            if (entity instanceof Player && !dev.agam.skyblockitems.utils.TargetUtils.isNPC(entity)) {
                 heal((Player) entity, healAmount);
             }
         }

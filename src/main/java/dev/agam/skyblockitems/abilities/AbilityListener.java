@@ -163,13 +163,20 @@ public class AbilityListener implements Listener {
 
     // Check Armor for Set Bonuses (Farmer Aura, Retaliation)
     private void checkArmorForSetBonus(Player player, TriggerType trigger, Event event) {
-        for (Map.Entry<String, SkyBlockAbility> entry : abilityManager.getAbilities().entrySet()) {
-            String abilityId = entry.getKey();
-            SkyBlockAbility ability = entry.getValue();
+        for (String abilityId : abilityManager.getAbilities().keySet()) {
+            SkyBlockAbility ability = abilityManager.getAbilities().get(abilityId);
 
             if (ability.getDefaultTrigger() != trigger)
                 continue;
 
+            // Global NPC Protection: Skip activation if the event target is an NPC
+            if (isTargetingNPC(event)) {
+                continue;
+            }
+
+            // WorldGuard Check
+            String id = abilityId.toUpperCase();
+            
             // Only specific abilities are treated as "Set Bonuses" requiring full armor
             if (!isSetBonusAbility(abilityId))
                 continue;
@@ -215,23 +222,42 @@ public class AbilityListener implements Listener {
         if (nbtItem != null && !nbtItem.hasType())
             nbtItem = null;
 
-        // WorldGuard Check
-        if (!dev.agam.skyblockitems.integration.WorldGuardHook.isAbilitiesEnabled(player, player.getLocation())) {
-            return;
-        }
-
-        for (Map.Entry<String, SkyBlockAbility> entry : abilityManager.getAbilities().entrySet()) {
-            String abilityId = entry.getKey();
-            SkyBlockAbility ability = entry.getValue();
+        for (String abilityId : abilityManager.getAbilities().keySet()) {
+            SkyBlockAbility ability = abilityManager.getAbilities().get(abilityId);
 
             if (ability.getDefaultTrigger() != trigger)
                 continue;
 
+            // Global NPC Protection: Skip activation if the event target is an NPC
+            if (isTargetingNPC(event)) {
+                continue;
+            }
+
+            // WorldGuard Check
+            String id = abilityId.toUpperCase();
+            boolean wgEnabled;
+            if (id.equals("GRAPPLING_HOOK")) {
+                wgEnabled = dev.agam.skyblockitems.integration.WorldGuardHook.isGrapplingHookEnabled(player, player.getLocation());
+            } else if (id.equals("TREE_CAPITATOR")) {
+                wgEnabled = dev.agam.skyblockitems.integration.WorldGuardHook.isTreeCapitatorEnabled(player, player.getLocation());
+            } else {
+                wgEnabled = dev.agam.skyblockitems.integration.WorldGuardHook.isAbilitiesEnabled(player, player.getLocation());
+            }
+
+            if (!wgEnabled) {
+                continue;
+            }
+
             // SPECIAL FIX: Prevent Set Bonus abilities from activating on individual Armor
-            // pieces
+            // pièces
             // They must ONLY be activated via checkArmorForSetBonus() which enforces the
             // full set
             if (isSetBonusAbility(abilityId) && item != null && isArmor(item.getType())) {
+                continue;
+            }
+
+            // Grappling Hook handles its own logic via PlayerFishEvent to support the reel-in mechanic
+            if (id.equals("GRAPPLING_HOOK")) {
                 continue;
             }
 
@@ -279,11 +305,14 @@ public class AbilityListener implements Listener {
         }
 
         if (CooldownManager.isOnCooldown(player.getUniqueId(), ability.getId())) {
-            double remaining = CooldownManager.getRemainingCooldown(player.getUniqueId(), ability.getId());
-            String msg = plugin.getConfigManager().getMessage("players.cooldown",
-                    "{ability}", ability.getDisplayName(),
-                    "{remaining}", String.format("%.1f", remaining));
-            dev.agam.skyblockitems.utils.MessageUtils.send(player, msg, dev.agam.skyblockitems.utils.MessageUtils.MessageType.CHAT);
+            // Only send message for "Active" triggers to avoid spam
+            if (isActiveTrigger(ability.getDefaultTrigger())) {
+                double remaining = CooldownManager.getRemainingCooldown(player.getUniqueId(), ability.getId());
+                String msg = plugin.getConfigManager().getMessage("players.cooldown",
+                        "{ability}", ability.getDisplayName(),
+                        "{remaining}", String.format("%.1f", remaining));
+                dev.agam.skyblockitems.utils.MessageUtils.send(player, msg, dev.agam.skyblockitems.utils.MessageUtils.MessageType.CHAT);
+            }
             return;
         }
 
@@ -336,6 +365,15 @@ public class AbilityListener implements Listener {
         if (ability.activate(player, event, cooldown, mana, damage, range)) {
             if (cooldown > 0) {
                 CooldownManager.setCooldown(player.getUniqueId(), ability.getId(), cooldown);
+                
+                // Visual Cooldown Effect (Ender Pearl style)
+                // Only for Active triggers to avoid confusing UI while mining/fighting
+                if (isActiveTrigger(ability.getDefaultTrigger())) {
+                    ItemStack item = player.getInventory().getItemInMainHand();
+                    if (item != null && !item.getType().isAir()) {
+                        player.setCooldown(item.getType(), (int) (cooldown * 20));
+                    }
+                }
             }
         }
     }
@@ -356,5 +394,27 @@ public class AbilityListener implements Listener {
             event.setCancelled(true);
             event.getEntity().removeMetadata("NEGATE_FALL_DAMAGE", plugin);
         }
+    }
+
+    private boolean isActiveTrigger(TriggerType trigger) {
+        return trigger == TriggerType.RIGHT_CLICK || 
+               trigger == TriggerType.SHIFT_RIGHT_CLICK || 
+               trigger == TriggerType.LEFT_CLICK || 
+               trigger == TriggerType.SHIFT_LEFT_CLICK;
+    }
+
+    private boolean isTargetingNPC(Event event) {
+        if (event instanceof EntityDamageByEntityEvent) {
+            return dev.agam.skyblockitems.utils.TargetUtils.isNPC(((EntityDamageByEntityEvent) event).getEntity());
+        } else if (event instanceof ProjectileHitEvent) {
+            org.bukkit.entity.Entity hit = ((ProjectileHitEvent) event).getHitEntity();
+            return hit != null && dev.agam.skyblockitems.utils.TargetUtils.isNPC(hit);
+        } else if (event instanceof org.bukkit.event.entity.EntityDeathEvent) {
+            return dev.agam.skyblockitems.utils.TargetUtils.isNPC(((org.bukkit.event.entity.EntityDeathEvent) event).getEntity());
+        } else if (event instanceof org.bukkit.event.player.PlayerFishEvent) {
+            org.bukkit.entity.Entity caught = ((org.bukkit.event.player.PlayerFishEvent) event).getCaught();
+            return caught != null && dev.agam.skyblockitems.utils.TargetUtils.isNPC(caught);
+        }
+        return false;
     }
 }

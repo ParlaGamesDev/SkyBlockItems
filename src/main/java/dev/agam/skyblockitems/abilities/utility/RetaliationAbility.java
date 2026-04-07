@@ -43,7 +43,7 @@ public class RetaliationAbility extends SkyBlockAbility {
             }
         }
 
-        if (attacker == null)
+        if (attacker == null || dev.agam.skyblockitems.utils.TargetUtils.isNPC(attacker))
             return false;
 
         // chance = range (params[3] in AbilityStat)

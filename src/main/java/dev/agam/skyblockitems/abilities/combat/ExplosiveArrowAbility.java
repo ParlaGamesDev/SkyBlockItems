@@ -53,7 +53,7 @@ public class ExplosiveArrowAbility extends SkyBlockAbility implements Listener {
 
         // Damage logic
         for (Entity nearby : explodeLoc.getWorld().getNearbyEntities(explodeLoc, range, range, range)) {
-            if (nearby instanceof LivingEntity && nearby != player) {
+            if (nearby instanceof LivingEntity && nearby != player && !dev.agam.skyblockitems.utils.TargetUtils.isNPC(nearby)) {
                 ((LivingEntity) nearby).damage(damage, player);
             }
         }

@@ -102,7 +102,7 @@ public class SkySmashAbility extends SkyBlockAbility {
 
         // Damage nearby
         for (Entity e : player.getNearbyEntities(radius, 3.0, radius)) {
-            if (e instanceof LivingEntity && e != player) {
+            if (e instanceof LivingEntity && e != player && !dev.agam.skyblockitems.utils.TargetUtils.isNPC(e)) {
                 ((LivingEntity) e).damage(damage, player);
                 e.setVelocity(new Vector(0, 0.5, 0)); // Pop them up a bit
             }

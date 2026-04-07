@@ -24,8 +24,8 @@ public class ButchersBladeAbility extends SkyBlockAbility {
             return false;
         EntityDeathEvent e = (EntityDeathEvent) event;
 
-        // Ensure victim is an animal
-        if (!(e.getEntity() instanceof org.bukkit.entity.Animals))
+        // Ensure victim is an animal and not an NPC
+        if (!(e.getEntity() instanceof org.bukkit.entity.Animals) || dev.agam.skyblockitems.utils.TargetUtils.isNPC(e.getEntity()))
             return false;
 
         // Double drops

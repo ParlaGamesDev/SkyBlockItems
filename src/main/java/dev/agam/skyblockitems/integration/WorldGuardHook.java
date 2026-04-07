@@ -13,6 +13,8 @@ import org.bukkit.entity.Player;
 public class WorldGuardHook {
 
     public static StateFlag ABILITIES_FLAG;
+    public static StateFlag GRAPPLING_HOOK_FLAG;
+    public static StateFlag TREE_CAPITATOR_FLAG;
     private static boolean enabled = false;
 
     /**
@@ -20,22 +22,38 @@ public class WorldGuardHook {
      */
     public static void registerFlags() {
         FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
+        
+        ABILITIES_FLAG = registerFlag(registry, "sbi-ability", true);
+        GRAPPLING_HOOK_FLAG = registerFlag(registry, "sbi-grappling-hook", true);
+        TREE_CAPITATOR_FLAG = registerFlag(registry, "sbi-tree-capitator", true);
+        
+        enabled = true;
+    }
+
+    private static StateFlag registerFlag(FlagRegistry registry, String name, boolean defaultValue) {
         try {
-            StateFlag flag = new StateFlag("skyblock-abilities", true);
+            StateFlag flag = new StateFlag(name, defaultValue);
             registry.register(flag);
-            ABILITIES_FLAG = flag;
-            enabled = true;
+            return flag;
         } catch (FlagConflictException e) {
-            com.sk89q.worldguard.protection.flags.Flag<?> existing = registry.get("skyblock-abilities");
-            if (existing instanceof StateFlag)
-                ABILITIES_FLAG = (StateFlag) existing;
-            enabled = true;
-        } catch (Exception ignored) {
-        }
+            com.sk89q.worldguard.protection.flags.Flag<?> existing = registry.get(name);
+            if (existing instanceof StateFlag) {
+                return (StateFlag) existing;
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 
     public static boolean isAbilitiesEnabled(Player player, Location loc) {
         return testState(player, loc, ABILITIES_FLAG);
+    }
+
+    public static boolean isGrapplingHookEnabled(Player player, Location loc) {
+        return testState(player, loc, GRAPPLING_HOOK_FLAG);
+    }
+
+    public static boolean isTreeCapitatorEnabled(Player player, Location loc) {
+        return testState(player, loc, TREE_CAPITATOR_FLAG);
     }
 
     private static boolean testState(Player player, Location loc, StateFlag flag) {

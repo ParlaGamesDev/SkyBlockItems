@@ -46,7 +46,7 @@ public class EarthquakeAbility extends SkyBlockAbility {
 
         List<Entity> nearby = player.getNearbyEntities(radius, 2.0, radius);
         for (Entity e : nearby) {
-            if (e instanceof LivingEntity && e != player) {
+            if (e instanceof LivingEntity && e != player && !dev.agam.skyblockitems.utils.TargetUtils.isNPC(e)) {
                 LivingEntity target = (LivingEntity) e;
                 target.damage(power * 5, player); // Basic damage scaling
 

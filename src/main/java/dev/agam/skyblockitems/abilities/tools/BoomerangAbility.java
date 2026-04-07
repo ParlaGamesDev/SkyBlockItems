@@ -113,7 +113,7 @@ public class BoomerangAbility extends SkyBlockAbility implements Listener {
             }
 
             for (Entity e : as.getNearbyEntities(0.8, 0.8, 0.8)) {
-                if (e instanceof LivingEntity && e != player && !hitEntities.contains(e.getUniqueId())) {
+                if (e instanceof LivingEntity && e != player && !hitEntities.contains(e.getUniqueId()) && !dev.agam.skyblockitems.utils.TargetUtils.isNPC(e)) {
                     ((LivingEntity) e).damage(dmg, player);
                     hitEntities.add(e.getUniqueId());
                     e.getWorld().spawnParticle(Particle.FLASH, e.getLocation().add(0, 1, 0), 1);

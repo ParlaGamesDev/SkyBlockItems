@@ -53,14 +53,22 @@ public class GrapplingHookAbility extends SkyBlockAbility implements Listener {
         if (!nbtItem.hasTag("SKYBLOCK_GRAPPLING_HOOK")) return;
 
         if (event.getState() == PlayerFishEvent.State.REEL_IN || 
-            event.getState() == PlayerFishEvent.State.IN_GROUND) {
+            event.getState() == PlayerFishEvent.State.IN_GROUND ||
+            event.getState() == PlayerFishEvent.State.CAUGHT_ENTITY) {
             
+            // Prevent pulling NPCs
+            if (event.getCaught() != null && dev.agam.skyblockitems.utils.TargetUtils.isNPC(event.getCaught())) {
+                event.setCancelled(true);
+                return;
+            }
+
             FishHook hook = event.getHook();
             
-            // Check if hook is actually "somewhere" useful (either in ground or just reeling)
-            // If we want it to be "only in ground", we'd check hook.getLocation().getBlock().getType().isSolid()
-            // But usually, any reel-in should launch for responsiveness.
-            
+            // WorldGuard Check
+            if (!dev.agam.skyblockitems.integration.WorldGuardHook.isGrapplingHookEnabled(player, hook.getLocation())) {
+                return;
+            }
+
             // Check Cooldown
             if (CooldownManager.isOnCooldown(player.getUniqueId(), "GRAPPLING_HOOK")) {
                 double remaining = CooldownManager.getRemainingCooldown(player.getUniqueId(), "GRAPPLING_HOOK");
@@ -103,6 +111,9 @@ public class GrapplingHookAbility extends SkyBlockAbility implements Listener {
             
             // Set Cooldown
             CooldownManager.setCooldown(player.getUniqueId(), "GRAPPLING_HOOK", cooldownVal);
+            
+            // Visual Cooldown Effect (Ender Pearl style)
+            player.setCooldown(Material.FISHING_ROD, (int) (cooldownVal * 20));
             
             // Negate Fall Damage
             player.setMetadata("NEGATE_FALL_DAMAGE", new FixedMetadataValue(SkyBlockItems.getInstance(), true));

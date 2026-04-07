@@ -85,6 +85,7 @@ dev\agam\skyblockitems\rarity\RarityManager.class
 dev\agam\skyblockitems\utils\ColorUtils.class
 dev\agam\skyblockitems\reforge\gui\ReforgeEnchantSelectorGUI.class
 dev\agam\skyblockitems\rarity\RarityTask.class
+dev\agam\skyblockitems\api\events\TreeCapitatorEvent.class
 dev\agam\skyblockitems\abilities\combat\SkySmashAbility.class
 dev\agam\skyblockitems\abilities\CooldownManager.class
 dev\agam\skyblockitems\rarity\RarityManager$1.class
@@ -134,6 +135,7 @@ dev\agam\skyblockitems\enchantsystem\CustomEnchant$EnchantStat.class
 dev\agam\skyblockitems\api\events\SkyBlockReforgeEvent.class
 dev\agam\skyblockitems\abilities\combat\ExplosiveArrowAbility.class
 dev\agam\skyblockitems\enchantsystem\managers\EnchantManager$LevelConfig.class
+dev\agam\skyblockitems\utils\TargetUtils.class
 dev\agam\skyblockitems\abilities\combat\OverloadAbility.class
 dev\agam\skyblockitems\stats\DisableEnchantingStat.class
 dev\agam\skyblockitems\enchantsystem\gui\EnchantingGUI.class

@@ -34,7 +34,7 @@ public class PoisonAbility extends SkyBlockAbility {
             }
         }
 
-        if (target == null)
+        if (target == null || dev.agam.skyblockitems.utils.TargetUtils.isNPC(target))
             return false;
 
         int durationTicks = (int) (damage * 20);
