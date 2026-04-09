@@ -46,6 +46,7 @@ C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockite
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\abilities\utility\SpeedAbility.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\abilities\utility\UnderwaterAbility.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\api\AnvilRegistry.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\api\events\AbilityBlockBreakEvent.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\api\events\SkyBlockAnvilUpdateEvent.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\api\events\SkyBlockRarityUpdateEvent.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\api\events\SkyBlockReforgeEvent.java
@@ -124,3 +125,4 @@ C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockite
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\utils\ColorUtils.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\utils\MessageUtils.java
 C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\utils\TargetUtils.java
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java\dev\agam\skyblockitems\utils\WorldGuardUtils.java

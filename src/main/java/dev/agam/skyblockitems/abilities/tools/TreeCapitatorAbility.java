@@ -2,6 +2,7 @@ package dev.agam.skyblockitems.abilities.tools;
 
 import dev.agam.skyblockitems.abilities.SkyBlockAbility;
 import dev.agam.skyblockitems.abilities.TriggerType;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -9,12 +10,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 public class TreeCapitatorAbility extends SkyBlockAbility {
 
@@ -37,9 +33,10 @@ public class TreeCapitatorAbility extends SkyBlockAbility {
         if (!LOGS.contains(startBlock.getType()))
             return false;
 
-        // BFS to break connected logs
+        // BFS to collect logs
         Queue<Block> queue = new LinkedList<>();
         Set<Block> visited = new HashSet<>();
+        Map<Location, Material> blocksToBreakMap = new java.util.HashMap<>();
 
         queue.add(startBlock);
         visited.add(startBlock);
@@ -47,23 +44,16 @@ public class TreeCapitatorAbility extends SkyBlockAbility {
         int maxBlocks = (int) damage;
         if (maxBlocks <= 0)
             maxBlocks = 100; // Default fallback
-        int broken = 0;
 
-        ItemStack tool = player.getInventory().getItemInMainHand();
-        java.util.Map<org.bukkit.Location, org.bukkit.Material> brokenBlocks = new java.util.HashMap<>();
-
-        while (!queue.isEmpty() && broken < maxBlocks) {
+        while (!queue.isEmpty() && blocksToBreakMap.size() < maxBlocks) {
             Block current = queue.poll();
-
-            // Break block (if not the start block, which is already broken by event)
-            if (!current.equals(startBlock)) {
-                brokenBlocks.put(current.getLocation(), current.getType());
-                current.breakNaturally(tool);
-                broken++;
-            } else {
-                // Add start block too for the event
-                brokenBlocks.put(current.getLocation(), current.getType());
+            
+            // Check if player can break this block (WorldGuard)
+            if (!dev.agam.skyblockitems.utils.WorldGuardUtils.canBreakBlock(player, current.getLocation())) {
+                continue;
             }
+
+            blocksToBreakMap.put(current.getLocation(), current.getType());
 
             // Check neighbors
             for (int x = -1; x <= 1; x++) {
@@ -79,11 +69,21 @@ public class TreeCapitatorAbility extends SkyBlockAbility {
             }
         }
 
-        // Fire Event
-        if (!brokenBlocks.isEmpty()) {
-            dev.agam.skyblockitems.api.events.TreeCapitatorEvent treeEvent = new dev.agam.skyblockitems.api.events.TreeCapitatorEvent(
-                    player, tool, brokenBlocks);
-            dev.agam.skyblockitems.SkyBlockItems.getInstance().getServer().getPluginManager().callEvent(treeEvent);
+        // Fire cancellable event
+        ItemStack tool = player.getInventory().getItemInMainHand();
+        dev.agam.skyblockitems.api.events.TreeCapitatorEvent treeEvent = new dev.agam.skyblockitems.api.events.TreeCapitatorEvent(
+                player, tool, blocksToBreakMap);
+        dev.agam.skyblockitems.SkyBlockItems.getInstance().getServer().getPluginManager().callEvent(treeEvent);
+
+        if (treeEvent.isCancelled()) {
+            return false;
+        }
+
+        // Perform breaking
+        for (org.bukkit.Location loc : blocksToBreakMap.keySet()) {
+            Block b = loc.getBlock();
+            if (b.equals(startBlock)) continue; // Start block handled by the original event
+            b.breakNaturally(tool);
         }
 
         return true;

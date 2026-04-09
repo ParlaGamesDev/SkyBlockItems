@@ -31,6 +31,7 @@ dev\agam\skyblockitems\tasks\CooldownLoreTask.class
 dev\agam\skyblockitems\utils\MessageUtils$MessageType.class
 dev\agam\skyblockitems\reforge\ReforgeApplier.class
 dev\agam\skyblockitems\tasks\PassiveAbilityTask.class
+dev\agam\skyblockitems\api\events\AbilityBlockBreakEvent.class
 dev\agam\skyblockitems\enchantsystem\managers\EnchantManager.class
 dev\agam\skyblockitems\enchantsystem\listeners\CustomEnchantListener$1.class
 dev\agam\skyblockitems\abilities\combat\SkySmashAbility$1$1.class
@@ -131,6 +132,7 @@ dev\agam\skyblockitems\reforge\ReforgeListener.class
 dev\agam\skyblockitems\rarity\Rarity.class
 dev\agam\skyblockitems\rarity\RarityCommand.class
 dev\agam\skyblockitems\enchantsystem\CustomEnchant.class
+dev\agam\skyblockitems\utils\WorldGuardUtils.class
 dev\agam\skyblockitems\enchantsystem\CustomEnchant$EnchantStat.class
 dev\agam\skyblockitems\api\events\SkyBlockReforgeEvent.class
 dev\agam\skyblockitems\abilities\combat\ExplosiveArrowAbility.class

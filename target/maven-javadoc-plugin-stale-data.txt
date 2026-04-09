@@ -1,0 +1,127 @@
+@options
+@packages
+-classpath
+'C:/Users/agamm/.m2/repository/dev/aurelium/auraskills-api-bukkit/2.2.4/auraskills-api-bukkit-2.2.4.jar;C:/Users/agamm/.m2/repository/dev/aurelium/auraskills-api/2.2.4/auraskills-api-2.2.4.jar;C:/Users/agamm/.m2/repository/dev/aurelium/slate/1.1.8/slate-1.1.8.jar;C:/Users/agamm/.m2/repository/net/kyori/adventure-text-minimessage/4.16.0/adventure-text-minimessage-4.16.0.jar;C:/Users/agamm/.m2/repository/net/kyori/adventure-api/4.16.0/adventure-api-4.16.0.jar;C:/Users/agamm/.m2/repository/net/kyori/adventure-key/4.16.0/adventure-key-4.16.0.jar;C:/Users/agamm/.m2/repository/net/kyori/examination-api/1.3.0/examination-api-1.3.0.jar;C:/Users/agamm/.m2/repository/net/kyori/examination-string/1.3.0/examination-string-1.3.0.jar;C:/Users/agamm/.m2/repository/org/jetbrains/annotations/24.1.0/annotations-24.1.0.jar;C:/Users/agamm/.m2/repository/net/kyori/adventure-platform-bukkit/4.3.2/adventure-platform-bukkit-4.3.2.jar;C:/Users/agamm/.m2/repository/net/kyori/adventure-platform-api/4.3.2/adventure-platform-api-4.3.2.jar;C:/Users/agamm/.m2/repository/net/kyori/adventure-text-serializer-bungeecord/4.3.2/adventure-text-serializer-bungeecord-4.3.2.jar;C:/Users/agamm/.m2/repository/net/kyori/adventure-text-serializer-legacy/4.13.1/adventure-text-serializer-legacy-4.13.1.jar;C:/Users/agamm/.m2/repository/net/kyori/adventure-nbt/4.13.1/adventure-nbt-4.13.1.jar;C:/Users/agamm/.m2/repository/net/kyori/adventure-text-serializer-gson/4.13.1/adventure-text-serializer-gson-4.13.1.jar;C:/Users/agamm/.m2/repository/net/kyori/adventure-text-serializer-gson-legacy-impl/4.13.1/adventure-text-serializer-gson-legacy-impl-4.13.1.jar;C:/Users/agamm/.m2/repository/net/kyori/adventure-platform-facet/4.3.2/adventure-platform-facet-4.3.2.jar;C:/Users/agamm/.m2/repository/net/kyori/adventure-platform-viaversion/4.3.2/adventure-platform-viaversion-4.3.2.jar;C:/Users/agamm/.m2/repository/org/spigotmc/spigot-api/1.21.4-R0.1-SNAPSHOT/spigot-api-1.21.4-R0.1-SNAPSHOT.jar;C:/Users/agamm/.m2/repository/com/google/guava/guava/33.3.1-jre/guava-33.3.1-jre.jar;C:/Users/agamm/.m2/repository/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar;C:/Users/agamm/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar;C:/Users/agamm/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar;C:/Users/agamm/.m2/repository/org/checkerframework/checker-qual/3.43.0/checker-qual-3.43.0.jar;C:/Users/agamm/.m2/repository/com/google/errorprone/error_prone_annotations/2.28.0/error_prone_annotations-2.28.0.jar;C:/Users/agamm/.m2/repository/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar;C:/Users/agamm/.m2/repository/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar;C:/Users/agamm/.m2/repository/org/joml/joml/1.10.8/joml-1.10.8.jar;C:/Users/agamm/.m2/repository/net/md-5/bungeecord-chat/1.20-R0.2/bungeecord-chat-1.20-R0.2.jar;C:/Users/agamm/.m2/repository/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar;C:/Users/agamm/.m2/repository/io/lumine/MythicLib-dist/1.7.1-SNAPSHOT/MythicLib-dist-1.7.1-SNAPSHOT.jar;C:/Users/agamm/.m2/repository/net/Indyuce/MMOItems-API/6.10.1-SNAPSHOT/MMOItems-API-6.10.1-SNAPSHOT.jar;C:/Users/agamm/.m2/repository/com/sk89q/worldguard/worldguard-bukkit/7.0.13/worldguard-bukkit-7.0.13.jar;C:/Users/agamm/.m2/repository/com/sk89q/worldguard/worldguard-core/7.0.13/worldguard-core-7.0.13.jar;C:/Users/agamm/.m2/repository/com/sk89q/worldguard/worldguard-libs/core/7.0.13/core-7.0.13.jar;C:/Users/agamm/.m2/repository/org/flywaydb/flyway-core/3.0/flyway-core-3.0.jar;C:/Users/agamm/.m2/repository/io/papermc/paperlib/1.0.8/paperlib-1.0.8.jar;C:/Users/agamm/.m2/repository/org/bstats/bstats-bukkit/2.2.1/bstats-bukkit-2.2.1.jar;C:/Users/agamm/.m2/repository/org/bstats/bstats-base/2.2.1/bstats-base-2.2.1.jar;C:/Users/agamm/.m2/repository/com/sk89q/worldedit/worldedit-bukkit/7.3.9/worldedit-bukkit-7.3.9.jar;C:/Users/agamm/.m2/repository/com/sk89q/worldedit/worldedit-core/7.3.9/worldedit-core-7.3.9.jar;C:/Users/agamm/.m2/repository/com/sk89q/worldedit/worldedit-libs/core/7.3.9/core-7.3.9.jar;C:/Users/agamm/.m2/repository/org/antlr/antlr4/4.13.1/antlr4-4.13.1.jar;C:/Users/agamm/.m2/repository/org/antlr/antlr-runtime/3.5.3/antlr-runtime-3.5.3.jar;C:/Users/agamm/.m2/repository/org/antlr/ST4/4.3.4/ST4-4.3.4.jar;C:/Users/agamm/.m2/repository/org/abego/treelayout/org.abego.treelayout.core/1.0.3/org.abego.treelayout.core-1.0.3.jar;C:/Users/agamm/.m2/repository/com/ibm/icu/icu4j/72.1/icu4j-72.1.jar;C:/Users/agamm/.m2/repository/org/mozilla/rhino-runtime/1.7.13/rhino-runtime-1.7.13.jar;C:/Users/agamm/.m2/repository/com/sk89q/jchronic/0.2.4a/jchronic-0.2.4a.jar;C:/Users/agamm/.m2/repository/com/sk89q/lib/jlibnoise/1.0.0/jlibnoise-1.0.0.jar;C:/Users/agamm/.m2/repository/org/apache/logging/log4j/log4j-api/2.22.1/log4j-api-2.22.1.jar;C:/Users/agamm/.m2/repository/org/antlr/antlr4-runtime/4.13.1/antlr4-runtime-4.13.1.jar;C:/Users/agamm/.m2/repository/com/sk89q/worldedit/worldedit-libs/bukkit/7.3.9/bukkit-7.3.9.jar;C:/Users/agamm/.m2/repository/it/unimi/dsi/fastutil/8.5.12/fastutil-8.5.12.jar;C:/Users/agamm/.m2/repository/com/github/MilkBowl/VaultAPI/1.7/VaultAPI-1.7.jar;C:/Users/agamm/.m2/repository/org/bukkit/bukkit/1.13.1-R0.1-SNAPSHOT/bukkit-1.13.1-R0.1-SNAPSHOT.jar;C:/Users/agamm/.m2/repository/commons-lang/commons-lang/2.6/commons-lang-2.6.jar;C:/Users/agamm/.m2/repository/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar;C:/Users/agamm/.m2/repository/junit/junit/4.10/junit-4.10.jar;C:/Users/agamm/.m2/repository/org/hamcrest/hamcrest-core/1.1/hamcrest-core-1.1.jar'
+-encoding
+'UTF-8'
+-protected
+-sourcepath
+'C:/Users/agamm/Documents/GitHub/SkyBlockItems/src/main/java;C:/Users/agamm/Documents/GitHub/SkyBlockItems/target/generated-sources/annotations'
+-Xdoclint:none
+-author
+-bottom
+'Copyright &#169; 2026. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'C:/Users/agamm/Documents/GitHub/SkyBlockItems/target/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'SkyBlockItems 1.0 API'
+-use
+-version
+-windowtitle
+'SkyBlockItems 1.0 API'
+dev.agam.skyblockitems.abilities
+dev.agam.skyblockitems.abilities.booleans
+dev.agam.skyblockitems.abilities.combat
+dev.agam.skyblockitems.abilities.tools
+dev.agam.skyblockitems.abilities.utility
+dev.agam.skyblockitems.api
+dev.agam.skyblockitems.api.events
+dev.agam.skyblockitems.commands
+dev.agam.skyblockitems.enchantsystem.config
+dev.agam.skyblockitems.enchantsystem
+dev.agam.skyblockitems.enchantsystem.gui
+dev.agam.skyblockitems.enchantsystem.hooks
+dev.agam.skyblockitems.enchantsystem.listeners
+dev.agam.skyblockitems.enchantsystem.managers
+dev.agam.skyblockitems.enchantsystem.utils
+dev.agam.skyblockitems.integration
+dev.agam.skyblockitems.listeners
+dev.agam.skyblockitems.rarity
+dev.agam.skyblockitems.reforge.gui
+dev.agam.skyblockitems.reforge
+dev.agam.skyblockitems
+dev.agam.skyblockitems.stats
+dev.agam.skyblockitems.tasks
+dev.agam.skyblockitems.utils
+C:\Users\agamm\.m2\repository\dev\aurelium\auraskills-api-bukkit\2.2.4\auraskills-api-bukkit-2.2.4.jar = 1768232461160
+C:\Users\agamm\.m2\repository\dev\aurelium\auraskills-api\2.2.4\auraskills-api-2.2.4.jar = 1768232461345
+C:\Users\agamm\.m2\repository\dev\aurelium\slate\1.1.8\slate-1.1.8.jar = 1768232460914
+C:\Users\agamm\.m2\repository\net\kyori\adventure-text-minimessage\4.16.0\adventure-text-minimessage-4.16.0.jar = 1768232461068
+C:\Users\agamm\.m2\repository\net\kyori\adventure-api\4.16.0\adventure-api-4.16.0.jar = 1769085149723
+C:\Users\agamm\.m2\repository\net\kyori\adventure-key\4.16.0\adventure-key-4.16.0.jar = 1769085149835
+C:\Users\agamm\.m2\repository\net\kyori\examination-api\1.3.0\examination-api-1.3.0.jar = 1757682791583
+C:\Users\agamm\.m2\repository\net\kyori\examination-string\1.3.0\examination-string-1.3.0.jar = 1757682790967
+C:\Users\agamm\.m2\repository\org\jetbrains\annotations\24.1.0\annotations-24.1.0.jar = 1762884003742
+C:\Users\agamm\.m2\repository\net\kyori\adventure-platform-bukkit\4.3.2\adventure-platform-bukkit-4.3.2.jar = 1763926902315
+C:\Users\agamm\.m2\repository\net\kyori\adventure-platform-api\4.3.2\adventure-platform-api-4.3.2.jar = 1763926902497
+C:\Users\agamm\.m2\repository\net\kyori\adventure-text-serializer-bungeecord\4.3.2\adventure-text-serializer-bungeecord-4.3.2.jar = 1763926902219
+C:\Users\agamm\.m2\repository\net\kyori\adventure-text-serializer-legacy\4.13.1\adventure-text-serializer-legacy-4.13.1.jar = 1763852917184
+C:\Users\agamm\.m2\repository\net\kyori\adventure-nbt\4.13.1\adventure-nbt-4.13.1.jar = 1763852917017
+C:\Users\agamm\.m2\repository\net\kyori\adventure-text-serializer-gson\4.13.1\adventure-text-serializer-gson-4.13.1.jar = 1763852917339
+C:\Users\agamm\.m2\repository\net\kyori\adventure-text-serializer-gson-legacy-impl\4.13.1\adventure-text-serializer-gson-legacy-impl-4.13.1.jar = 1763852917978
+C:\Users\agamm\.m2\repository\net\kyori\adventure-platform-facet\4.3.2\adventure-platform-facet-4.3.2.jar = 1763926902610
+C:\Users\agamm\.m2\repository\net\kyori\adventure-platform-viaversion\4.3.2\adventure-platform-viaversion-4.3.2.jar = 1763926902349
+C:\Users\agamm\.m2\repository\org\spigotmc\spigot-api\1.21.4-R0.1-SNAPSHOT\spigot-api-1.21.4-R0.1-SNAPSHOT.jar = 1766495357433
+C:\Users\agamm\.m2\repository\com\google\guava\guava\33.3.1-jre\guava-33.3.1-jre.jar = 1757682794566
+C:\Users\agamm\.m2\repository\com\google\guava\failureaccess\1.0.2\failureaccess-1.0.2.jar = 1757682793976
+C:\Users\agamm\.m2\repository\com\google\guava\listenablefuture\9999.0-empty-to-avoid-conflict-with-guava\listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar = 1757682794258
+C:\Users\agamm\.m2\repository\com\google\code\findbugs\jsr305\3.0.2\jsr305-3.0.2.jar = 1757682791627
+C:\Users\agamm\.m2\repository\org\checkerframework\checker-qual\3.43.0\checker-qual-3.43.0.jar = 1757682790888
+C:\Users\agamm\.m2\repository\com\google\errorprone\error_prone_annotations\2.28.0\error_prone_annotations-2.28.0.jar = 1757682793924
+C:\Users\agamm\.m2\repository\com\google\j2objc\j2objc-annotations\3.0.0\j2objc-annotations-3.0.0.jar = 1757682792104
+C:\Users\agamm\.m2\repository\com\google\code\gson\gson\2.11.0\gson-2.11.0.jar = 1757682792391
+C:\Users\agamm\.m2\repository\org\joml\joml\1.10.8\joml-1.10.8.jar = 1757682790885
+C:\Users\agamm\.m2\repository\net\md-5\bungeecord-chat\1.20-R0.2\bungeecord-chat-1.20-R0.2.jar = 1763855608579
+C:\Users\agamm\.m2\repository\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar = 1757682792276
+C:\Users\agamm\.m2\repository\io\lumine\MythicLib-dist\1.7.1-SNAPSHOT\MythicLib-dist-1.7.1-SNAPSHOT.jar = 1775335284208
+C:\Users\agamm\.m2\repository\net\Indyuce\MMOItems-API\6.10.1-SNAPSHOT\MMOItems-API-6.10.1-SNAPSHOT.jar = 1775335284555
+C:\Users\agamm\.m2\repository\com\sk89q\worldguard\worldguard-bukkit\7.0.13\worldguard-bukkit-7.0.13.jar = 1769865407377
+C:\Users\agamm\.m2\repository\com\sk89q\worldguard\worldguard-core\7.0.13\worldguard-core-7.0.13.jar = 1769865407881
+C:\Users\agamm\.m2\repository\com\sk89q\worldguard\worldguard-libs\core\7.0.13\core-7.0.13.jar = 1769865407748
+C:\Users\agamm\.m2\repository\org\flywaydb\flyway-core\3.0\flyway-core-3.0.jar = 1766839646710
+C:\Users\agamm\.m2\repository\io\papermc\paperlib\1.0.8\paperlib-1.0.8.jar = 1769865336851
+C:\Users\agamm\.m2\repository\org\bstats\bstats-bukkit\2.2.1\bstats-bukkit-2.2.1.jar = 1769865336135
+C:\Users\agamm\.m2\repository\org\bstats\bstats-base\2.2.1\bstats-base-2.2.1.jar = 1769865336778
+C:\Users\agamm\.m2\repository\com\sk89q\worldedit\worldedit-bukkit\7.3.9\worldedit-bukkit-7.3.9.jar = 1769865337919
+C:\Users\agamm\.m2\repository\com\sk89q\worldedit\worldedit-core\7.3.9\worldedit-core-7.3.9.jar = 1769865338854
+C:\Users\agamm\.m2\repository\com\sk89q\worldedit\worldedit-libs\core\7.3.9\core-7.3.9.jar = 1769865338433
+C:\Users\agamm\.m2\repository\org\antlr\antlr4\4.13.1\antlr4-4.13.1.jar = 1769865336224
+C:\Users\agamm\.m2\repository\org\antlr\antlr-runtime\3.5.3\antlr-runtime-3.5.3.jar = 1769865335930
+C:\Users\agamm\.m2\repository\org\antlr\ST4\4.3.4\ST4-4.3.4.jar = 1769865335917
+C:\Users\agamm\.m2\repository\org\abego\treelayout\org.abego.treelayout.core\1.0.3\org.abego.treelayout.core-1.0.3.jar = 1766839647450
+C:\Users\agamm\.m2\repository\com\ibm\icu\icu4j\72.1\icu4j-72.1.jar = 1769865337070
+C:\Users\agamm\.m2\repository\org\mozilla\rhino-runtime\1.7.13\rhino-runtime-1.7.13.jar = 1766839647085
+C:\Users\agamm\.m2\repository\com\sk89q\jchronic\0.2.4a\jchronic-0.2.4a.jar = 1769865338177
+C:\Users\agamm\.m2\repository\com\sk89q\lib\jlibnoise\1.0.0\jlibnoise-1.0.0.jar = 1769865338236
+C:\Users\agamm\.m2\repository\org\apache\logging\log4j\log4j-api\2.22.1\log4j-api-2.22.1.jar = 1769865336193
+C:\Users\agamm\.m2\repository\org\antlr\antlr4-runtime\4.13.1\antlr4-runtime-4.13.1.jar = 1769865336032
+C:\Users\agamm\.m2\repository\com\sk89q\worldedit\worldedit-libs\bukkit\7.3.9\bukkit-7.3.9.jar = 1769865337979
+C:\Users\agamm\.m2\repository\it\unimi\dsi\fastutil\8.5.12\fastutil-8.5.12.jar = 1769865337431
+C:\Users\agamm\.m2\repository\com\github\MilkBowl\VaultAPI\1.7\VaultAPI-1.7.jar = 1766839647626
+C:\Users\agamm\.m2\repository\org\bukkit\bukkit\1.13.1-R0.1-SNAPSHOT\bukkit-1.13.1-R0.1-SNAPSHOT.jar = 1766839646547
+C:\Users\agamm\.m2\repository\commons-lang\commons-lang\2.6\commons-lang-2.6.jar = 1757947258117
+C:\Users\agamm\.m2\repository\com\googlecode\json-simple\json-simple\1.1.1\json-simple-1.1.1.jar = 1762884000232
+C:\Users\agamm\.m2\repository\junit\junit\4.10\junit-4.10.jar = 1766501065313
+C:\Users\agamm\.m2\repository\org\hamcrest\hamcrest-core\1.1\hamcrest-core-1.1.jar = 1766501065370
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\src\main\java = 1769614546161
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\generated-sources\annotations = 1775771643970
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\allclasses-index.html = 1775771652954
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\allpackages-index.html = 1775771652956
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\constant-values.html = 1775771652016
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\deprecated-list.html = 1775771652886
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\element-list = 1775771651692
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\help-doc.html = 1775771653006
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\index-all.html = 1775771652998
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\index.html = 1775771652892
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\member-search-index.js = 1775771652962
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\module-search-index.js = 1775771652957
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\overview-summary.html = 1775771653002
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\overview-tree.html = 1775771652879
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\package-search-index.js = 1775771652958
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\search.html = 1775771653000
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\tag-search-index.js = 1775771652963
+C:\Users\agamm\Documents\GitHub\SkyBlockItems\target\apidocs\type-search-index.js = 1775771652959
