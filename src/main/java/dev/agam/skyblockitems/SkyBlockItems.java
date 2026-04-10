@@ -205,6 +205,14 @@ public class SkyBlockItems extends JavaPlugin {
         getServer().getPluginManager()
                 .registerEvents(new dev.agam.skyblockitems.reforge.ReforgeListener(this), this);
 
+        // Cooldown Item Filter + SET_COOLDOWN suppression during rod cast (ProtocolLib)
+        try {
+            dev.agam.skyblockitems.utils.CooldownItemFilter.register();
+            dev.agam.skyblockitems.utils.CooldownPacketSuppressor.register();
+        } catch (Throwable e) {
+            getLogger().warning("Failed to register ProtocolLib cooldown helpers: " + e.getMessage());
+        }
+
         // Durability Listener
         getServer().getPluginManager()
                 .registerEvents(new dev.agam.skyblockitems.listeners.DurabilityListener(this), this);

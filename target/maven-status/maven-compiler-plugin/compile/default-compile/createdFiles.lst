@@ -26,6 +26,7 @@ dev\agam\skyblockitems\api\AnvilRegistry.class
 dev\agam\skyblockitems\abilities\utility\CropOverdriveAbility.class
 dev\agam\skyblockitems\abilities\combat\SolarRepairAbility.class
 dev\agam\skyblockitems\enchantsystem\gui\EnchantEditorGUI.class
+dev\agam\skyblockitems\utils\CooldownPacketSuppressor.class
 dev\agam\skyblockitems\SkyBlockItems.class
 dev\agam\skyblockitems\tasks\CooldownLoreTask.class
 dev\agam\skyblockitems\utils\MessageUtils$MessageType.class
@@ -39,6 +40,7 @@ dev\agam\skyblockitems\abilities\combat\SkySmashAbility$1$1.class
 dev\agam\skyblockitems\stats\GlowStat.class
 dev\agam\skyblockitems\abilities\AbilityManager.class
 dev\agam\skyblockitems\abilities\utility\NightVisionCharmAbility.class
+dev\agam\skyblockitems\utils\CooldownItemFilter.class
 dev\agam\skyblockitems\abilities\combat\ArrowEffectsAbility.class
 dev\agam\skyblockitems\reforge\gui\ReforgeVIPGUI$1.class
 dev\agam\skyblockitems\stats\NaturalAbilityLoreStat.class
@@ -119,6 +121,7 @@ dev\agam\skyblockitems\abilities\tools\LaserAbility.class
 dev\agam\skyblockitems\listeners\DurabilityListener.class
 dev\agam\skyblockitems\abilities\booleans\InfiniteReservoirStat.class
 dev\agam\skyblockitems\enchantsystem\gui\TargetSelectorGUI.class
+dev\agam\skyblockitems\utils\CooldownPacketSuppressor$1.class
 dev\agam\skyblockitems\abilities\TriggerType.class
 dev\agam\skyblockitems\api\events\SkyBlockAnvilUpdateEvent.class
 dev\agam\skyblockitems\abilities\LoreFixListener.class
@@ -141,6 +144,7 @@ dev\agam\skyblockitems\enchantsystem\managers\EnchantManager$LevelConfig.class
 dev\agam\skyblockitems\utils\TargetUtils.class
 dev\agam\skyblockitems\abilities\combat\OverloadAbility.class
 dev\agam\skyblockitems\stats\DisableEnchantingStat.class
+dev\agam\skyblockitems\utils\CooldownItemFilter$1.class
 dev\agam\skyblockitems\enchantsystem\gui\EnchantingGUI.class
 dev\agam\skyblockitems\enchantsystem\gui\EnchantmentGuideGUI.class
 dev\agam\skyblockitems\reforge\gui\ReforgeStatSelectorGUI.class
