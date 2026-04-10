@@ -112,9 +112,6 @@ public class GrapplingHookAbility extends SkyBlockAbility implements Listener {
             // Set Cooldown
             CooldownManager.setCooldown(player.getUniqueId(), "GRAPPLING_HOOK", cooldownVal);
             
-            // Visual Cooldown Effect (Ender Pearl style)
-            player.setCooldown(Material.FISHING_ROD, (int) (cooldownVal * 20));
-            
             // Negate Fall Damage
             player.setMetadata("NEGATE_FALL_DAMAGE", new FixedMetadataValue(SkyBlockItems.getInstance(), true));
             new BukkitRunnable() {

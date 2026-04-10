@@ -20,8 +20,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Map;
-
 /**
  * Main listener for handling ability activations.
  * Updated to support MMOItems Set Bonuses via PlayerData.
@@ -183,7 +181,7 @@ public class AbilityListener implements Listener {
 
             String params = getFullSetParams(player, abilityId);
             if (params != null) {
-                activateAbility(player, ability, params, event);
+                activateAbility(player, ability, params, null, event);
             }
         }
     }
@@ -219,8 +217,10 @@ public class AbilityListener implements Listener {
 
     private void tryActivateAbilities(Player player, ItemStack item, TriggerType trigger, Event event) {
         NBTItem nbtItem = (item != null && !item.getType().isAir()) ? NBTItem.get(item) : null;
-        if (nbtItem != null && !nbtItem.hasType())
+        // Strict check: Only proceed if it is a valid MMOItem with NBT tags
+        if (nbtItem == null || !nbtItem.hasType()) {
             nbtItem = null;
+        }
 
         for (String abilityId : abilityManager.getAbilities().keySet()) {
             SkyBlockAbility ability = abilityManager.getAbilities().get(abilityId);
@@ -271,8 +271,9 @@ public class AbilityListener implements Listener {
                 }
             }
 
-            if (params != null && !params.isEmpty()) {
-                activateAbility(player, ability, params, event);
+            // Double check: Only activate if we definitely have the ability params from the NBT
+            if (params != null && !params.isEmpty() && nbtItem != null) {
+                activateAbility(player, ability, params, item, event);
             }
         }
     }
@@ -283,7 +284,7 @@ public class AbilityListener implements Listener {
                 || name.endsWith("_BOOTS");
     }
 
-    private void activateAbility(Player player, SkyBlockAbility ability, String paramsStr, Event event) {
+    private void activateAbility(Player player, SkyBlockAbility ability, String paramsStr, ItemStack triggeringItem, Event event) {
         String[] params = paramsStr.trim().split("\\s+");
 
         // Start with defaults
@@ -365,15 +366,6 @@ public class AbilityListener implements Listener {
         if (ability.activate(player, event, cooldown, mana, damage, range)) {
             if (cooldown > 0) {
                 CooldownManager.setCooldown(player.getUniqueId(), ability.getId(), cooldown);
-                
-                // Visual Cooldown Effect (Ender Pearl style)
-                // Only for Active triggers to avoid confusing UI while mining/fighting
-                if (isActiveTrigger(ability.getDefaultTrigger())) {
-                    ItemStack item = player.getInventory().getItemInMainHand();
-                    if (item != null && !item.getType().isAir()) {
-                        player.setCooldown(item.getType(), (int) (cooldown * 20));
-                    }
-                }
             }
         }
     }
