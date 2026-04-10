@@ -225,3 +225,7 @@ gui:
     item-slot: 13
     roll-button-slot: 16
     filler-material: PURPLE_STAINED_GLASS_PANE
+
+abilities:
+  visual-cooldown:
+    enabled: true

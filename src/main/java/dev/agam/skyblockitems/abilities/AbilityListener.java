@@ -366,6 +366,12 @@ public class AbilityListener implements Listener {
         if (ability.activate(player, event, cooldown, mana, damage, range)) {
             if (cooldown > 0) {
                 CooldownManager.setCooldown(player.getUniqueId(), ability.getId(), cooldown);
+                
+                // Send visual cooldown packet
+                if (triggeringItem != null && !triggeringItem.getType().isAir()) {
+                    int ticks = (int) (cooldown * 20);
+                    dev.agam.skyblockitems.utils.VisualCooldownUtils.sendVisualCooldown(player, triggeringItem.getType(), ticks, ability.getId());
+                }
             }
         }
     }

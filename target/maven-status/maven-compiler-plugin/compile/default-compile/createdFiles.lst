@@ -29,6 +29,7 @@ dev\agam\skyblockitems\enchantsystem\gui\EnchantEditorGUI.class
 dev\agam\skyblockitems\SkyBlockItems.class
 dev\agam\skyblockitems\tasks\CooldownLoreTask.class
 dev\agam\skyblockitems\utils\MessageUtils$MessageType.class
+dev\agam\skyblockitems\utils\VisualCooldownUtils.class
 dev\agam\skyblockitems\reforge\ReforgeApplier.class
 dev\agam\skyblockitems\tasks\PassiveAbilityTask.class
 dev\agam\skyblockitems\api\events\AbilityBlockBreakEvent.class
