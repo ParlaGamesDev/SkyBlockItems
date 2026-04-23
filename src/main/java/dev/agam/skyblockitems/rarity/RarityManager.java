@@ -386,9 +386,11 @@ public class RarityManager {
         }
 
         ItemStack result = nbtItem.toItem();
-
-        // Update name and lore (using original item lore)
-        result = updateRarityLore(result, rarity);
+        
+        // SHARP: Explicitly strip any existing rarity lore from the server-side item.
+        // This cleans up items from the old system. The visual lore will be handled 
+        // by the PacketListener.
+        result = removeRarityLore(result);
 
         // CRITICAL FIX: Save to rarity.yml if this is a custom rarity assignment
         if (isCustom) {
@@ -530,9 +532,9 @@ public class RarityManager {
             // Still check version - if version mismatch OR if we just synced from NBT
             // re-apply the custom rarity to refresh lore
             if (nbt.hasTag(NBT_VERSION_KEY) && nbt.getDouble(NBT_VERSION_KEY) == currentConfigVersion && !synced) {
-                // NBT ok but lore stripped (merge/creative/client) — restore display
+                // NBT ok but lore exists on server — strip it (we only want visual lore)
                 if (currentRarity != null && !currentRarity.getIdentifier().equalsIgnoreCase("NONE")
-                        && !hasRarityLore(item)) {
+                        && hasRarityLore(item)) {
                     return applyRarity(item, currentRarity, true);
                 }
                 return item;
@@ -554,7 +556,8 @@ public class RarityManager {
 
             // If and ONLY if the versions match exactly AND we didn't just sync, we skip.
             if (itemVersion == currentConfigVersion && !synced) {
-                if (!targetRarity.getIdentifier().equalsIgnoreCase("NONE") && !hasRarityLore(item)) {
+                if (!targetRarity.getIdentifier().equalsIgnoreCase("NONE") && hasRarityLore(item)) {
+                    // If it has lore on server, strip it!
                     return applyRarity(item, targetRarity, false);
                 }
                 // IMPORTANT: Return original item instance to avoid triggering setItem
@@ -830,7 +833,11 @@ public class RarityManager {
         for (Rarity r : rarities.values()) {
             String id = r.getIdentifier().toLowerCase().trim();
             String name = stripFullColor(r.getDisplayName()).toLowerCase().trim();
-            if (strippedText.equals(id) || strippedText.equals(name))
+            
+            // Check original name, identifier, and reversed name (for RTL/Hebrew support)
+            String reversedName = new StringBuilder(name).reverse().toString().toLowerCase().trim();
+            
+            if (strippedText.equals(id) || strippedText.equals(name) || strippedText.equals(reversedName))
                 return true;
         }
         return false;
@@ -1072,20 +1079,26 @@ public class RarityManager {
         if (a.getType() != b.getType()) {
             return false;
         }
+        
+        // Use full logic to determine what rarity they SHOULD have.
+        // This allows raw items (no NBT) to match items that already have NBT.
+        Rarity targetA = getRarityForItem(a);
+        Rarity targetB = getRarityForItem(b);
+        
+        String ra = targetA != null ? targetA.getIdentifier() : "NONE";
+        String rb = targetB != null ? targetB.getIdentifier() : "NONE";
+        
+        if (!ra.equalsIgnoreCase(rb)) {
+            return false;
+        }
+
         NBTItem na = NBTItem.get(a);
         NBTItem nb = NBTItem.get(b);
+        
         if (na.hasTag("MMOITEMS_ITEM_ID") || nb.hasTag("MMOITEMS_ITEM_ID")) {
             return false;
         }
-        String ra = na.hasTag(NBT_RARITY_KEY) ? na.getString(NBT_RARITY_KEY) : "";
-        String rb = nb.hasTag(NBT_RARITY_KEY) ? nb.getString(NBT_RARITY_KEY) : "";
-        if (!ra.equalsIgnoreCase(rb)) {
-            boolean aMiss = !na.hasTag(NBT_RARITY_KEY);
-            boolean bMiss = !nb.hasTag(NBT_RARITY_KEY);
-            if (!(aMiss ^ bMiss)) {
-                return false;
-            }
-        }
+        
         double va = na.hasTag(NBT_VERSION_KEY) ? na.getDouble(NBT_VERSION_KEY) : -1d;
         double vb = nb.hasTag(NBT_VERSION_KEY) ? nb.getDouble(NBT_VERSION_KEY) : -1d;
         // Mismatch only when both stacks are version-stamped differently (-1 = no tag yet, ok with stamped sibling).

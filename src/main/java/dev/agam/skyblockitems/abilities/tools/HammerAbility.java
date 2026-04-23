@@ -68,7 +68,10 @@ public class HammerAbility extends SkyBlockAbility {
 
         for (Block b : blocksToBreak) {
             if (b.getType() != Material.BEDROCK && b.getType() != Material.AIR) {
-                b.breakNaturally(player.getInventory().getItemInMainHand());
+                // WorldGuard check for each block
+                if (dev.agam.skyblockitems.integration.WorldGuardHook.isAbilitiesEnabled(player, b.getLocation())) {
+                    b.breakNaturally(player.getInventory().getItemInMainHand());
+                }
             }
         }
 

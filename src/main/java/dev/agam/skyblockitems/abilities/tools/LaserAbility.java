@@ -60,11 +60,14 @@ public class LaserAbility extends SkyBlockAbility {
 
             Block block = point.getBlock();
             if (block.getType() != Material.AIR && !isUnbreakable(block.getType())) {
-                block.breakNaturally(player.getInventory().getItemInMainHand());
-                blocksDestroyed++;
+                // WorldGuard check
+                if (dev.agam.skyblockitems.integration.WorldGuardHook.isAbilitiesEnabled(player, point)) {
+                    block.breakNaturally(player.getInventory().getItemInMainHand());
+                    blocksDestroyed++;
 
-                // Impact particles
-                player.getWorld().spawnParticle(Particle.BLOCK, point, 5, 0.1, 0.1, 0.1, 0.05, block.getBlockData());
+                    // Impact particles
+                    player.getWorld().spawnParticle(Particle.BLOCK, point, 5, 0.1, 0.1, 0.1, 0.05, block.getBlockData());
+                }
             }
         }
 

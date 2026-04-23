@@ -39,7 +39,10 @@ public class ThunderStrikeAbility extends SkyBlockAbility {
 
         ItemStack tool = player.getInventory().getItemInMainHand();
         for (Block b : treeBlocks) {
-            b.breakNaturally(tool);
+            // WorldGuard check (using tree-capitator specific flag)
+            if (dev.agam.skyblockitems.integration.WorldGuardHook.isTreeCapitatorEnabled(player, b.getLocation())) {
+                b.breakNaturally(tool);
+            }
         }
 
         return true;

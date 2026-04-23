@@ -236,6 +236,7 @@ public class SkyBlockItems extends JavaPlugin {
     private void startRaritySystem() {
         try {
             this.rarityManager = new dev.agam.skyblockitems.rarity.RarityManager(this);
+            dev.agam.skyblockitems.rarity.RarityPacketListener.register(this);
             getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.rarity.RarityListener(this), this);
             try {
                 Class<? extends org.bukkit.event.Event> eventClass = Class.forName("io.papermc.paper.event.player.PlayerPickBlockEvent").asSubclass(org.bukkit.event.Event.class);

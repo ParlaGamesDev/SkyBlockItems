@@ -164,6 +164,47 @@ public class RarityListener implements Listener {
         }, 1L);
     }
 
+    /**
+     * Safety check to ensure items with different rarities never stack, 
+     * even if Minecraft's NBT-based stacking check is somehow bypassed.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onInventoryClickStackCheck(InventoryClickEvent event) {
+        ItemStack cursor = event.getCursor();
+        ItemStack current = event.getCurrentItem();
+
+        if (cursor == null || cursor.getType().isAir() || current == null || current.getType().isAir()) {
+            return;
+        }
+
+        if (cursor.getType() != current.getType()) {
+            return;
+        }
+
+        Rarity cursorRarity = rarityManager.getCurrentRarity(cursor);
+        Rarity currentRarity = rarityManager.getCurrentRarity(current);
+
+        String cursorId = cursorRarity != null ? cursorRarity.getIdentifier() : "NONE";
+        String currentId = currentRarity != null ? currentRarity.getIdentifier() : "NONE";
+
+        if (!cursorId.equalsIgnoreCase(currentId)) {
+            // Rarities are different. We must prevent any stacking action.
+            // Minecraft naturally swaps items with different NBT, but we block 
+            // specific stacking actions to be 100% safe.
+            
+            switch (event.getAction()) {
+                case PLACE_ALL:
+                case PLACE_ONE:
+                case PLACE_SOME:
+                case COLLECT_TO_CURSOR:
+                    event.setCancelled(true);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemPickup(EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) {

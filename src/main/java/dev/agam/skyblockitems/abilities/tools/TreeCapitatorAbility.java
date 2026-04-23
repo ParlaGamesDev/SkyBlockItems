@@ -48,8 +48,11 @@ public class TreeCapitatorAbility extends SkyBlockAbility {
         while (!queue.isEmpty() && blocksToBreakMap.size() < maxBlocks) {
             Block current = queue.poll();
             
-            // Check if player can break this block (WorldGuard)
-            if (!dev.agam.skyblockitems.utils.WorldGuardUtils.canBreakBlock(player, current.getLocation())) {
+            // If our custom TreeCapitator flag is disabled at this location, skip this block.
+            // We deliberately use our own flag (sbi-tree-capitator) rather than the standard
+            // WG build flag, so that admins can allow tree-capitating in protected zones (e.g. spawn)
+            // simply by setting the sbi-tree-capitator flag to ALLOW.
+            if (!dev.agam.skyblockitems.integration.WorldGuardHook.isTreeCapitatorEnabled(player, current.getLocation())) {
                 continue;
             }
 
@@ -67,6 +70,12 @@ public class TreeCapitatorAbility extends SkyBlockAbility {
                     }
                 }
             }
+        }
+
+        // Safety: if no blocks were collected (e.g. all locations blocked by WorldGuard),
+        // return false so no cooldown or visual cooldown is applied.
+        if (blocksToBreakMap.isEmpty()) {
+            return false;
         }
 
         // Fire cancellable event

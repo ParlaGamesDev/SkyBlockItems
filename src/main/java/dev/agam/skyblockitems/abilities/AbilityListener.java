@@ -306,13 +306,16 @@ public class AbilityListener implements Listener {
         }
 
         if (CooldownManager.isOnCooldown(player.getUniqueId(), ability.getId())) {
-            // Only send message for "Active" triggers to avoid spam
+            double remaining = CooldownManager.getRemainingCooldown(player.getUniqueId(), ability.getId());
+            String msg = plugin.getConfigManager().getMessage("players.cooldown",
+                    "{ability}", ability.getDisplayName(),
+                    "{remaining}", String.format("%.1f", remaining));
             if (isActiveTrigger(ability.getDefaultTrigger())) {
-                double remaining = CooldownManager.getRemainingCooldown(player.getUniqueId(), ability.getId());
-                String msg = plugin.getConfigManager().getMessage("players.cooldown",
-                        "{ability}", ability.getDisplayName(),
-                        "{remaining}", String.format("%.1f", remaining));
+                // Active click triggers → send to chat
                 dev.agam.skyblockitems.utils.MessageUtils.send(player, msg, dev.agam.skyblockitems.utils.MessageUtils.MessageType.CHAT);
+            } else if (ability.getDefaultTrigger() == TriggerType.ON_BLOCK_BREAK) {
+                // Block-break triggers → send to action bar to avoid spamming chat
+                dev.agam.skyblockitems.utils.MessageUtils.send(player, msg, dev.agam.skyblockitems.utils.MessageUtils.MessageType.ACTION_BAR);
             }
             return;
         }

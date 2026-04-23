@@ -31,6 +31,15 @@ public class RarityTask extends BukkitRunnable {
                 continue;
             }
             rarityManager.processInventory(player, false);
+            
+            // SHARP: Process open containers (chests, etc.) so minion-added items 
+            // stack while the player is watching.
+            if (rarityManager.isAllowedInventory(player.getOpenInventory())) {
+                org.bukkit.inventory.Inventory top = player.getOpenInventory().getTopInventory();
+                if (top != null && top.getType() != org.bukkit.event.inventory.InventoryType.CRAFTING) {
+                    rarityManager.processContainerInventory(top);
+                }
+            }
         }
     }
 }

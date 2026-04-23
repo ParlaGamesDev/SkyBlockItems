@@ -735,5 +735,3 @@ enchants:
       6: { value: "6", xp-cost: 70 }
       7: { value: "7", xp-cost: 80 }
       8: { value: "8", xp-cost: 80 }
-
-
