@@ -10,6 +10,7 @@ import dev.agam.skyblockitems.stats.DisableAnvilStat;
 import dev.agam.skyblockitems.stats.DisableEnchantingStat;
 import dev.agam.skyblockitems.stats.GlowStat;
 import dev.agam.skyblockitems.stats.NaturalAbilityLoreStat;
+import dev.agam.skyblockitems.stats.PermissionVoucherStat;
 import net.Indyuce.mmoitems.MMOItems;
 
 public class MMOItemsHook {
@@ -47,8 +48,9 @@ public class MMOItemsHook {
         MMOItems.plugin.getStats().register(new DisableEnchantingStat());
         MMOItems.plugin.getStats().register(new DisableAnvilStat());
         MMOItems.plugin.getStats().register(new ReforgeableStat());
+        MMOItems.plugin.getStats().register(new PermissionVoucherStat());
 
-        SkyBlockItems.getInstance().getLogger().info("Registered custom stats: REFORGEABLE, Glow, Solar, etc.");
+        SkyBlockItems.getInstance().getLogger().info("Registered custom stats: REFORGEABLE, PERM_VOUCHER, Glow, Solar, etc.");
 
         // FORCE A RELOAD OF MMOITEMS TEMPLATES
         // This is required because MMOItems loads before us (due to dependency)

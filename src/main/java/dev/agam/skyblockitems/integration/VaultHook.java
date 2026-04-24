@@ -1,6 +1,7 @@
 package dev.agam.skyblockitems.integration;
 
 import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -14,9 +15,13 @@ public class VaultHook {
     private Economy economy;
     private boolean enabled;
 
+    private Permission permission;
+    private boolean permissionEnabled;
+
     public VaultHook() {
         this.enabled = false;
         setupEconomy();
+        setupPermission();
     }
 
     /**
@@ -40,6 +45,23 @@ public class VaultHook {
         Bukkit.getLogger().info("[SkyBlockItems] Vault economy hooked successfully");
     }
 
+    private void setupPermission() {
+        this.permissionEnabled = false;
+        if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
+            Bukkit.getLogger().info("[SkyBlockItems] Vault not found - permission grants disabled");
+            return;
+        }
+        RegisteredServiceProvider<Permission> rsp = Bukkit.getServicesManager().getRegistration(Permission.class);
+        if (rsp == null) {
+            Bukkit.getLogger()
+                    .warning("[SkyBlockItems] Vault found but no permission provider - permission voucher items disabled");
+            return;
+        }
+        permission = rsp.getProvider();
+        permissionEnabled = true;
+        Bukkit.getLogger().info("[SkyBlockItems] Vault permissions hooked successfully");
+    }
+
     /**
      * Checks if Vault economy is available.
      * 
@@ -47,6 +69,23 @@ public class VaultHook {
      */
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public boolean isPermissionEnabled() {
+        return permissionEnabled;
+    }
+
+    /**
+     * Adds a persistent <strong>global</strong> permission (Vault world {@code null}),
+     * not scoped to the player's current world.
+     *
+     * @return true if the provider reports success
+     */
+    public boolean addPermission(Player player, String permissionNode) {
+        if (!permissionEnabled || permission == null) {
+            return false;
+        }
+        return permission.playerAdd((String) null, player, permissionNode);
     }
 
     /**

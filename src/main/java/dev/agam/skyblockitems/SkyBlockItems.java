@@ -173,8 +173,13 @@ public class SkyBlockItems extends JavaPlugin {
         }
 
         if (mmoItemsEnabled) {
-            // AbilityLoreListener is deprecated and redundant (handled by
-            // NaturalAbilityLoreStat)
+            try {
+                getServer().getPluginManager().registerEvents(
+                        new dev.agam.skyblockitems.listeners.PermissionVoucherListener(this), this);
+            } catch (Throwable e) {
+                System.err.println("[SkyBlockItems] [ERROR] Failed to register PermissionVoucherListener: "
+                        + e.getMessage());
+            }
         }
 
         if (mythicLibEnabled) {
