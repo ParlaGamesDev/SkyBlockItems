@@ -6,6 +6,8 @@ import io.lumine.mythic.lib.api.item.NBTItem;
 import java.util.Map;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -15,6 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
@@ -233,15 +236,16 @@ public class AbilityListener implements Listener {
                 continue;
             }
 
-            // WorldGuard Check
+            // WorldGuard Check (use block/target location when the event has one — not only player feet)
             String id = abilityId.toUpperCase();
+            Location wgLoc = worldGuardReferenceLocation(event, player);
             boolean wgEnabled;
             if (id.equals("GRAPPLING_HOOK")) {
-                wgEnabled = dev.agam.skyblockitems.integration.WorldGuardHook.isGrapplingHookEnabled(player, player.getLocation());
-            } else if (id.equals("TREE_CAPITATOR")) {
-                wgEnabled = dev.agam.skyblockitems.integration.WorldGuardHook.isTreeCapitatorEnabled(player, player.getLocation());
+                wgEnabled = dev.agam.skyblockitems.integration.WorldGuardHook.isGrapplingHookEnabled(player, wgLoc);
+            } else if (id.equals("TREE_CAPITATOR") || id.equals("THUNDER_STRIKE")) {
+                wgEnabled = dev.agam.skyblockitems.integration.WorldGuardHook.isTreeMassBreakAllowed(player, wgLoc);
             } else {
-                wgEnabled = dev.agam.skyblockitems.integration.WorldGuardHook.isAbilitiesEnabled(player, player.getLocation());
+                wgEnabled = dev.agam.skyblockitems.integration.WorldGuardHook.isAbilitiesEnabled(player, wgLoc);
             }
 
             if (!wgEnabled) {
@@ -402,6 +406,37 @@ public class AbilityListener implements Listener {
                trigger == TriggerType.SHIFT_RIGHT_CLICK || 
                trigger == TriggerType.LEFT_CLICK || 
                trigger == TriggerType.SHIFT_LEFT_CLICK;
+    }
+
+    /**
+     * Location used for WorldGuard flags: broken block, clicked block, projectile hit, damaged entity, or player.
+     */
+    private static Location worldGuardReferenceLocation(Event event, Player player) {
+        if (event instanceof BlockBreakEvent bbe) {
+            return bbe.getBlock().getLocation();
+        }
+        if (event instanceof PlayerInteractEvent pie) {
+            Block clicked = pie.getClickedBlock();
+            if (clicked != null) {
+                return clicked.getLocation();
+            }
+        }
+        if (event instanceof ProjectileHitEvent phe) {
+            Block hitBlock = phe.getHitBlock();
+            if (hitBlock != null) {
+                return hitBlock.getLocation();
+            }
+            if (phe.getHitEntity() != null) {
+                return phe.getHitEntity().getLocation();
+            }
+        }
+        if (event instanceof EntityDamageByEntityEvent ede) {
+            return ede.getEntity().getLocation();
+        }
+        if (event instanceof EntityDeathEvent de) {
+            return de.getEntity().getLocation();
+        }
+        return player.getLocation();
     }
 
     private boolean isTargetingNPC(Event event) {

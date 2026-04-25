@@ -56,6 +56,14 @@ public class WorldGuardHook {
         return testState(player, loc, TREE_CAPITATOR_FLAG);
     }
 
+    /**
+     * Mass tree abilities (Tree Capitator, Thunder Strike) require both the general
+     * {@code sbi-ability} flag and {@code sbi-tree-capitator} at the location.
+     */
+    public static boolean isTreeMassBreakAllowed(Player player, Location loc) {
+        return isAbilitiesEnabled(player, loc) && isTreeCapitatorEnabled(player, loc);
+    }
+
     private static boolean testState(Player player, Location loc, StateFlag flag) {
         if (!enabled || flag == null)
             return true;

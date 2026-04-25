@@ -3,6 +3,7 @@ package dev.agam.skyblockitems.abilities.combat;
 import dev.agam.skyblockitems.SkyBlockItems;
 import dev.agam.skyblockitems.abilities.SkyBlockAbility;
 import dev.agam.skyblockitems.abilities.TriggerType;
+import dev.agam.skyblockitems.integration.WorldGuardHook;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -51,14 +52,15 @@ public class WebSnareAbility extends SkyBlockAbility {
             int offsetZ = random.nextInt(3) - 1; // -1 to 1
 
             Block target = center.getRelative(offsetX, offsetY, offsetZ);
-            if (target.getType() == Material.AIR) {
+            if (target.getType() == Material.AIR
+                    && WorldGuardHook.isAbilitiesEnabled(player, target.getLocation())) {
                 webBlocks.add(target);
                 target.setType(Material.COBWEB);
             }
         }
 
-        // Also place one at center if possible
-        if (center.getType() == Material.AIR) {
+        if (center.getType() == Material.AIR
+                && WorldGuardHook.isAbilitiesEnabled(player, center.getLocation())) {
             webBlocks.add(center);
             center.setType(Material.COBWEB);
         }

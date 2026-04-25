@@ -2,6 +2,7 @@ package dev.agam.skyblockitems.abilities.tools;
 
 import dev.agam.skyblockitems.abilities.SkyBlockAbility;
 import dev.agam.skyblockitems.abilities.TriggerType;
+import dev.agam.skyblockitems.integration.WorldGuardHook;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -13,7 +14,9 @@ import org.bukkit.event.Event;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class LaserAbility extends SkyBlockAbility {
 
@@ -23,16 +26,11 @@ public class LaserAbility extends SkyBlockAbility {
 
     @Override
     public boolean activate(Player player, Event event, double cooldown, double manaCost, double damage, double range) {
-        // range = distance (as defined in AbilityStat MAX_DISTANCE is params[2] which
-        // maps to damage here)
-        // Wait, AbilityStat says: prefix + "MAX_DISTANCE" (params[2])
-        // SkyBlockAbility.java maps values[2] to damage.
         double maxDist = damage > 0 ? damage : 15;
 
         Location start = player.getEyeLocation();
         Vector eyeDir = start.getDirection().normalize();
 
-        // Snap direction to nearest axis (Up, Down, North, South, East, West)
         Vector direction;
         double absX = Math.abs(eyeDir.getX());
         double absY = Math.abs(eyeDir.getY());
@@ -46,29 +44,38 @@ public class LaserAbility extends SkyBlockAbility {
             direction = new Vector(0, 0, eyeDir.getZ() > 0 ? 1 : -1);
         }
 
-        // Sound effect (Guardian beam sound)
-        player.getWorld().playSound(start, Sound.ENTITY_GUARDIAN_ATTACK, 1.0f, 1.5f);
-        player.getWorld().playSound(start, Sound.BLOCK_BEACON_ACTIVATE, 0.5f, 2.0f);
+        Set<Block> toBreak = new LinkedHashSet<>();
+        List<Location> particlePoints = new ArrayList<>();
 
-        int blocksDestroyed = 0;
         for (double i = 0.5; i <= maxDist; i += 0.5) {
             Location point = start.clone().add(direction.clone().multiply(i));
-
-            // Laser red beam particles
-            player.getWorld().spawnParticle(Particle.DUST, point, 2, 0, 0, 0, 0,
-                    new Particle.DustOptions(Color.RED, 0.6f));
+            particlePoints.add(point);
 
             Block block = point.getBlock();
             if (block.getType() != Material.AIR && !isUnbreakable(block.getType())) {
-                // WorldGuard check
-                if (dev.agam.skyblockitems.integration.WorldGuardHook.isAbilitiesEnabled(player, point)) {
-                    block.breakNaturally(player.getInventory().getItemInMainHand());
-                    blocksDestroyed++;
-
-                    // Impact particles
-                    player.getWorld().spawnParticle(Particle.BLOCK, point, 5, 0.1, 0.1, 0.1, 0.05, block.getBlockData());
+                if (WorldGuardHook.isAbilitiesEnabled(player, point)) {
+                    toBreak.add(block);
                 }
             }
+        }
+
+        if (toBreak.isEmpty()) {
+            return false;
+        }
+
+        player.getWorld().playSound(start, Sound.ENTITY_GUARDIAN_ATTACK, 1.0f, 1.5f);
+        player.getWorld().playSound(start, Sound.BLOCK_BEACON_ACTIVATE, 0.5f, 2.0f);
+
+        for (Location point : particlePoints) {
+            player.getWorld().spawnParticle(Particle.DUST, point, 2, 0, 0, 0, 0,
+                    new Particle.DustOptions(Color.RED, 0.6f));
+        }
+
+        for (Block block : toBreak) {
+            Location point = block.getLocation().add(0.5, 0.5, 0.5);
+            var brokenData = block.getBlockData();
+            block.breakNaturally(player.getInventory().getItemInMainHand());
+            player.getWorld().spawnParticle(Particle.BLOCK, point, 5, 0.1, 0.1, 0.1, 0.05, brokenData);
         }
 
         return true;
@@ -80,6 +87,6 @@ public class LaserAbility extends SkyBlockAbility {
 
     @Override
     public List<String> getLore(double cooldown, double manaCost, double damage, double range, TriggerType trigger) {
-        return new ArrayList<>(); // Handled by AbilityStat.java
+        return new ArrayList<>();
     }
 }

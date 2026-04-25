@@ -2,6 +2,7 @@ package dev.agam.skyblockitems.abilities.tools;
 
 import dev.agam.skyblockitems.abilities.SkyBlockAbility;
 import dev.agam.skyblockitems.abilities.TriggerType;
+import dev.agam.skyblockitems.integration.WorldGuardHook;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -66,16 +67,17 @@ public class HammerAbility extends SkyBlockAbility {
             }
         }
 
+        boolean brokeAny = false;
         for (Block b : blocksToBreak) {
             if (b.getType() != Material.BEDROCK && b.getType() != Material.AIR) {
-                // WorldGuard check for each block
-                if (dev.agam.skyblockitems.integration.WorldGuardHook.isAbilitiesEnabled(player, b.getLocation())) {
+                if (WorldGuardHook.isAbilitiesEnabled(player, b.getLocation())) {
                     b.breakNaturally(player.getInventory().getItemInMainHand());
+                    brokeAny = true;
                 }
             }
         }
 
-        return true;
+        return brokeAny;
     }
 
     @Override

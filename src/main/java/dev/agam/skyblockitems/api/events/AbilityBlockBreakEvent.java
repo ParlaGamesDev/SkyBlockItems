@@ -12,8 +12,9 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Map;
 
 /**
- * Fired before an ability breaks multiple blocks (e.g., Tree Capitator, Hammer).
- * Allowing other plugins to cancel the action.
+ * Fired on the main thread before an ability breaks multiple blocks.
+ * Used for tree mass-break abilities ({@code TREE_CAPITATOR} extra logs, {@code THUNDER_STRIKE})
+ * and available for other integrations (e.g. region regrowth). Cancelling prevents those breaks.
  */
 public class AbilityBlockBreakEvent extends Event implements Cancellable {
 

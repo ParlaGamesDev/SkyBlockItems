@@ -2,6 +2,8 @@ package dev.agam.skyblockitems.abilities.tools;
 
 import dev.agam.skyblockitems.abilities.SkyBlockAbility;
 import dev.agam.skyblockitems.abilities.TriggerType;
+import dev.agam.skyblockitems.api.events.AbilityBlockBreakEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -10,7 +12,14 @@ import org.bukkit.event.Event;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 
 public class TreeCapitatorAbility extends SkyBlockAbility {
 
@@ -36,7 +45,7 @@ public class TreeCapitatorAbility extends SkyBlockAbility {
         // BFS to collect logs
         Queue<Block> queue = new LinkedList<>();
         Set<Block> visited = new HashSet<>();
-        Map<Location, Material> blocksToBreakMap = new java.util.HashMap<>();
+        Map<Location, Material> blocksToBreakMap = new HashMap<>();
 
         queue.add(startBlock);
         visited.add(startBlock);
@@ -48,11 +57,8 @@ public class TreeCapitatorAbility extends SkyBlockAbility {
         while (!queue.isEmpty() && blocksToBreakMap.size() < maxBlocks) {
             Block current = queue.poll();
             
-            // If our custom TreeCapitator flag is disabled at this location, skip this block.
-            // We deliberately use our own flag (sbi-tree-capitator) rather than the standard
-            // WG build flag, so that admins can allow tree-capitating in protected zones (e.g. spawn)
-            // simply by setting the sbi-tree-capitator flag to ALLOW.
-            if (!dev.agam.skyblockitems.integration.WorldGuardHook.isTreeCapitatorEnabled(player, current.getLocation())) {
+            // Skip unless both sbi-ability and sbi-tree-capitator allow mass tree break here.
+            if (!dev.agam.skyblockitems.integration.WorldGuardHook.isTreeMassBreakAllowed(player, current.getLocation())) {
                 continue;
             }
 
@@ -86,6 +92,21 @@ public class TreeCapitatorAbility extends SkyBlockAbility {
 
         if (treeEvent.isCancelled()) {
             return false;
+        }
+
+        // Extra logs only: the block from the original BlockBreakEvent is handled like a normal break.
+        Map<Location, Material> abilityBreaks = new HashMap<>();
+        for (Map.Entry<Location, Material> e : blocksToBreakMap.entrySet()) {
+            if (!e.getKey().equals(startBlock.getLocation())) {
+                abilityBreaks.put(e.getKey(), e.getValue());
+            }
+        }
+        if (!abilityBreaks.isEmpty()) {
+            AbilityBlockBreakEvent abilityEvent = new AbilityBlockBreakEvent(player, this, tool, abilityBreaks);
+            Bukkit.getPluginManager().callEvent(abilityEvent);
+            if (abilityEvent.isCancelled()) {
+                return false;
+            }
         }
 
         // Perform breaking

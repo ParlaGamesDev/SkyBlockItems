@@ -2,6 +2,7 @@ package dev.agam.skyblockitems.abilities.tools;
 
 import dev.agam.skyblockitems.abilities.SkyBlockAbility;
 import dev.agam.skyblockitems.abilities.TriggerType;
+import dev.agam.skyblockitems.integration.WorldGuardHook;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -26,6 +27,10 @@ public class LuckyTreasureAbility extends SkyBlockAbility {
         if (!(event instanceof BlockBreakEvent))
             return false;
         BlockBreakEvent e = (BlockBreakEvent) event;
+
+        if (!WorldGuardHook.isAbilitiesEnabled(player, e.getBlock().getLocation())) {
+            return false;
+        }
 
         // chance = damage (params[2]), multiplier = range (params[3])
         double chance = damage / 100.0;

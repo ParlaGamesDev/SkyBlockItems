@@ -2,6 +2,7 @@ package dev.agam.skyblockitems.abilities.tools;
 
 import dev.agam.skyblockitems.abilities.SkyBlockAbility;
 import dev.agam.skyblockitems.abilities.TriggerType;
+import dev.agam.skyblockitems.integration.WorldGuardHook;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -24,6 +25,10 @@ public class MinersLuckAbility extends SkyBlockAbility {
         if (!(event instanceof BlockBreakEvent))
             return false;
         BlockBreakEvent e = (BlockBreakEvent) event;
+
+        if (!WorldGuardHook.isAbilitiesEnabled(player, e.getBlock().getLocation())) {
+            return false;
+        }
 
         Material type = e.getBlock().getType();
         if (type != Material.STONE && type != Material.DEEPSLATE)
