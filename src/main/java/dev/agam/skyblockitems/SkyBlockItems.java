@@ -19,6 +19,7 @@ public class SkyBlockItems extends JavaPlugin {
 
     private static SkyBlockItems instance;
     private AbilityManager abilityManager;
+    private dev.agam.skyblockitems.utils.DatabaseManager databaseManager;
     private dev.agam.skyblockitems.rarity.RarityManager rarityManager;
     private dev.agam.skyblockitems.reforge.ReforgeManager reforgeManager;
     private ConfigManager enchantConfigManager;
@@ -69,6 +70,7 @@ public class SkyBlockItems extends JavaPlugin {
 
             // 2. Core Managers
             System.out.println("[SkyBlockItems] [BOOT] Step 2/7: Initializing Managers...");
+            this.databaseManager = new dev.agam.skyblockitems.utils.DatabaseManager(this);
             this.chatInputManager = new ChatInputManager();
             this.enchantManager = new EnchantManager(this);
             this.customEnchantManager = new CustomEnchantManager(this);
@@ -221,6 +223,10 @@ public class SkyBlockItems extends JavaPlugin {
         // Durability Listener
         getServer().getPluginManager()
                 .registerEvents(new dev.agam.skyblockitems.listeners.DurabilityListener(this), this);
+
+        // Give Command Listener
+        getServer().getPluginManager()
+                .registerEvents(new dev.agam.skyblockitems.commands.GiveCommand(this), this);
     }
 
     private void registerAllCommands() {
@@ -297,12 +303,19 @@ public class SkyBlockItems extends JavaPlugin {
     @Override
     public void onDisable() {
         getServer().getScheduler().cancelTasks(this);
+        if (databaseManager != null) {
+            databaseManager.close();
+        }
         System.out.println("[SkyBlockItems] [BOOT] Plugin disabled.");
     }
 
     // Accessors
     public AbilityManager getAbilityManager() {
         return abilityManager;
+    }
+
+    public dev.agam.skyblockitems.utils.DatabaseManager getDatabaseManager() {
+        return databaseManager;
     }
 
     public dev.agam.skyblockitems.rarity.RarityManager getRarityManager() {

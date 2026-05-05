@@ -163,6 +163,15 @@ public class RarityManager {
                 }
             }
         }
+
+        // Load item mappings from Database
+        if (plugin.getDatabaseManager() != null) {
+            Map<String, String> dbMappings = plugin.getDatabaseManager().loadAllItemRarities();
+            for (Map.Entry<String, String> entry : dbMappings.entrySet()) {
+                String normalizedKey = entry.getKey().replace(".", "_").toUpperCase();
+                itemMappings.put(normalizedKey, new ItemMappingData(entry.getValue().toLowerCase()));
+            }
+        }
     }
 
     /**
@@ -748,7 +757,11 @@ public class RarityManager {
         if (meta.hasLore()) {
             List<String> currentLore = new ArrayList<>(meta.getLore());
             currentLore = stripRarityLore(currentLore);
-            meta.setLore(currentLore);
+            if (currentLore.isEmpty()) {
+                meta.setLore(null);
+            } else {
+                meta.setLore(currentLore);
+            }
         }
 
         item.setItemMeta(meta);
@@ -856,15 +869,8 @@ public class RarityManager {
         if (key == null)
             return;
 
-        // Use a safe key for YAML paths (escaping dots) - SHARP: CONSISTENT
-        // ATOMIC PERSISTENCE: Reload from disk immediately before modification
-        // This prevents overwriting manual user edits made while the plugin was
-        // running.
-        rarityConfig = YamlConfiguration.loadConfiguration(rarityFile);
-
-        // Normalize the key for YAML and cache
+        // Normalize the key for cache and database
         String safeKey = key.replace(".", "_").toUpperCase();
-        String safePath = "Items." + safeKey;
 
         // Logic check: Is this a removal?
         boolean isNone = rarityId == null || rarityId.equalsIgnoreCase("NONE");
@@ -875,40 +881,40 @@ public class RarityManager {
 
             if (defaultRarityForType != null && !defaultRarityForType.getIdentifier().equalsIgnoreCase("NONE")) {
                 // If there IS a default, we MUST save 'NONE' to override it
-                rarityConfig.set(safePath + ".rarity", "NONE");
+                if (plugin.getDatabaseManager() != null) {
+                    plugin.getDatabaseManager().saveItemRarity(safeKey, "NONE");
+                }
                 saveAndReload(safeKey, "NONE", refresh);
             } else {
                 // If there is NO default, we can just delete the entire record
-                rarityConfig.set(safePath, null);
+                if (plugin.getDatabaseManager() != null) {
+                    plugin.getDatabaseManager().removeItemRarity(safeKey);
+                }
                 saveAndReload(safeKey, "REMOVED", refresh);
             }
         } else {
-            // Save Custom Rarity (using the long format for consistency)
-            rarityConfig.set(safePath + ".rarity", rarityId);
+            // Save Custom Rarity to SQL
+            if (plugin.getDatabaseManager() != null) {
+                plugin.getDatabaseManager().saveItemRarity(safeKey, rarityId);
+            }
             saveAndReload(safeKey, rarityId, refresh);
         }
     }
 
     private void saveAndReload(String key, String value, boolean refresh) {
-        try {
-            rarityConfig.save(rarityFile);
+        // Optimization: Update in-memory map directly
+        // key passed here is ALREADY sanitized (A_B)
+        String upperKey = key.toUpperCase();
+        if (value.startsWith("REMOVED")) {
+            itemMappings.remove(upperKey);
+        } else {
+            itemMappings.put(upperKey, new ItemMappingData(value.toLowerCase()));
+        }
 
-            // Optimization: Update in-memory map directly instead of full reload
-            // key passed here is ALREADY sanitized (A_B)
-            String upperKey = key.toUpperCase();
-            if (value.startsWith("REMOVED")) {
-                itemMappings.remove(upperKey);
-            } else {
-                itemMappings.put(upperKey, new ItemMappingData(value.toLowerCase()));
+        if (refresh) {
+            for (org.bukkit.entity.Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+                refreshPlayer(player);
             }
-
-            if (refresh) {
-                for (org.bukkit.entity.Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
-                    refreshPlayer(player);
-                }
-            }
-        } catch (java.io.IOException e) {
-            plugin.getLogger().severe("Could not save rarity.yml: " + e.getMessage());
         }
     }
 
