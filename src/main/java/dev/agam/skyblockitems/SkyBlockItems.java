@@ -22,6 +22,7 @@ public class SkyBlockItems extends JavaPlugin {
     private dev.agam.skyblockitems.utils.DatabaseManager databaseManager;
     private dev.agam.skyblockitems.rarity.RarityManager rarityManager;
     private dev.agam.skyblockitems.reforge.ReforgeManager reforgeManager;
+    private dev.agam.skyblockitems.crafting.CraftingManager craftingManager;
     private ConfigManager enchantConfigManager;
     private EnchantManager enchantManager;
     private CustomEnchantManager customEnchantManager;
@@ -88,6 +89,8 @@ public class SkyBlockItems extends JavaPlugin {
             } catch (Throwable e) {
                 System.err.println("[SkyBlockItems] [ERROR] Failed to initialize ReforgeManager: " + e.getMessage());
             }
+
+            this.craftingManager = new dev.agam.skyblockitems.crafting.CraftingManager(this);
             System.out.println("[SkyBlockItems] [BOOT] Step 2/7 complete.");
 
             // 3. Plugin Integration
@@ -114,10 +117,12 @@ public class SkyBlockItems extends JavaPlugin {
             // 7. Background Tasks
             System.out.println("[SkyBlockItems] [BOOT] Step 7/7: Starting Passive Tasks...");
             new dev.agam.skyblockitems.tasks.PassiveAbilityTask().runTaskTimer(this, 20L, 20L);
-            // Cooldown is now shown only in chat, not in item lore
-            // new dev.agam.skyblockitems.tasks.CooldownLoreTask().runTaskTimer(this, 10L,
-            // 10L);
             System.out.println("[SkyBlockItems] [BOOT] Step 7/7 complete.");
+            
+            Bukkit.getScheduler().runTaskLater(this, () -> {
+                this.craftingManager.loadRecipes();
+                System.out.println("[SkyBlockItems] [BOOT] Finalizing Crafting System (MMOItems recipes imported).");
+            }, 100L); // 5 second delay
 
             getLogger().info("SkyBlockItems v" + getDescription().getVersion() + " enriched and enabled!");
 
@@ -227,6 +232,10 @@ public class SkyBlockItems extends JavaPlugin {
         // Give Command Listener
         getServer().getPluginManager()
                 .registerEvents(new dev.agam.skyblockitems.commands.GiveCommand(this), this);
+
+        // Crafting System
+        getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.listeners.CraftingTableListener(this), this);
+        getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.crafting.gui.CraftingListener(this), this);
     }
 
     private void registerAllCommands() {
@@ -238,10 +247,12 @@ public class SkyBlockItems extends JavaPlugin {
         getCommand("anvil").setExecutor(new dev.agam.skyblockitems.commands.AnvilCommand(this));
         getCommand("reforge").setExecutor(new dev.agam.skyblockitems.commands.ReforgeCommand(this));
         getCommand("blacksmith").setExecutor(new dev.agam.skyblockitems.commands.BlacksmithCommand(this));
+        getCommand("craft").setExecutor(new dev.agam.skyblockitems.commands.CraftCommand(this));
 
         dev.agam.skyblockitems.rarity.RarityCommand rarityCmd = new dev.agam.skyblockitems.rarity.RarityCommand(this);
         getCommand("rarity").setExecutor(rarityCmd);
         getCommand("rarity").setTabCompleter(rarityCmd);
+        
     }
 
     private void startRaritySystem() {
@@ -369,5 +380,9 @@ public class SkyBlockItems extends JavaPlugin {
 
     public dev.agam.skyblockitems.integration.VaultHook getVaultHook() {
         return vaultHook;
+    }
+
+    public dev.agam.skyblockitems.crafting.CraftingManager getCraftingManager() {
+        return craftingManager;
     }
 }

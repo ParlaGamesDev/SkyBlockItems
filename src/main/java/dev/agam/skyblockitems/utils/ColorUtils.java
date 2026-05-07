@@ -29,4 +29,8 @@ public class ColorUtils {
         // Translate Legacy colors (&c)
         return ChatColor.translateAlternateColorCodes('&', hexTranslated);
     }
+
+    public static String colorize(String message) {
+        return translate(message);
+    }
 }

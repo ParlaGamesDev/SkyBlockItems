@@ -68,6 +68,21 @@ gui:
     size: 54
     filler-material: GRAY_STAINED_GLASS_PANE
 
+  crafting:
+    title: "&8Crafting Table"
+    gui:
+      filler: BLACK_STAINED_GLASS_PANE
+      quick-craft-no-perm-lore:
+        - "&7אפשרות זו חסומה."
+        - "&7נדרשת הרשאת &eQuick Craft&7."
+    messages:
+      no-recipe: "&cמתכון לא נמצא"
+      no-permission-quick-craft: "&cאין לך הרשאה לייצור מהיר!"
+      insufficient-materials: "&cאין לך מספיק חומרים!"
+      inventory-full: "&cהתיק שלך מלא!"
+      crafted-item: "&aייצרת בהצלחה &f%item%&a!"
+
+
 # You can add 'custom-model-data: <number>' to any item here to define a custom model for it
   items:
     reforge-roll:
@@ -195,6 +210,24 @@ gui:
       name: "&e&lנתוני כישוף"
       lore:
         - "&7לחץ כדי לערוך נתונים"
+
+# Custom recipes for the SkyBlock Crafting Table
+recipes:
+  example_sword:
+    type: SHAPED
+    result:
+      mmoitem:
+        type: SWORD
+        id: SILVER_SWORD
+    shape:
+      - " S "
+      - " S "
+      - " W "
+    ingredients:
+      S:
+        material: IRON_INGOT
+      W:
+        material: STICK
 
   target-icons:
     SWORD: IRON_SWORD
