@@ -678,6 +678,19 @@ public class RarityManager {
 
         // Get current lore, remove any existing rarity lines
         List<String> currentLore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
+        
+        // Extract "Click to Quick Craft" or other footer lines to re-append them later
+        List<String> footerLines = new ArrayList<>();
+        Iterator<String> it = currentLore.iterator();
+        while (it.hasNext()) {
+            String line = it.next();
+            String stripped = stripFullColor(line).toLowerCase().trim();
+            if (stripped.contains("click to quick craft") || stripped.contains("לחץ להכנה מהירה")) {
+                footerLines.add(line);
+                it.remove();
+            }
+        }
+        
         currentLore = stripRarityLore(currentLore);
 
         // Build new lore from format
@@ -715,6 +728,14 @@ public class RarityManager {
                 String processedLine = formatLine.replace("{rarity-prefix}", coloredRarity);
                 newLore.add(ColorUtils.colorize(processedLine));
             }
+        }
+        
+        // Re-append footer lines at the very bottom
+        if (!footerLines.isEmpty()) {
+            if (!newLore.isEmpty() && !stripFullColor(newLore.get(newLore.size()-1)).trim().isEmpty()) {
+                newLore.add("");
+            }
+            newLore.addAll(footerLines);
         }
 
         // Final reconstruction with safety gap

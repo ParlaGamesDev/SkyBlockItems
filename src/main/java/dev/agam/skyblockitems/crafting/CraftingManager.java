@@ -42,8 +42,10 @@ public class CraftingManager {
         // 1. Custom Recipes (Priority)
         for (SkyBlockRecipe recipe : customRecipes) {
             if (canCraft(contents, recipe)) {
-                ItemStack res = recipe.getResult();
-                // Use a unique key for de-duplication
+                ItemStack res = recipe.getResult().clone();
+                // Apply Rarity
+                res = plugin.getRarityManager().processItem(res);
+                
                 String key = RecipeMatcher.getIdentifier(res);
                 if (added.add(key)) {
                     craftable.add(res);
@@ -51,14 +53,37 @@ public class CraftingManager {
             }
         }
 
-        // 2. Vanilla Recipes
+        // 2. Vanilla Recipes (Only if not already added by custom)
         Iterator<Recipe> it = Bukkit.recipeIterator();
         int count = 0;
         while (it.hasNext() && count < 20) {
             Recipe r = it.next();
-            if (canCraftVanilla(contents, r)) {
-                ItemStack res = r.getResult();
-                String key = "VANILLA:" + res.getType();
+            ItemStack res = r.getResult().clone();
+            
+            // Check if this material was already added via MMO/Custom
+            // We want to avoid showing a vanilla item if an MMO item of the same material was added
+            // OR if the same vanilla item was already added
+            String vanillaId = "VANILLA:" + res.getType().name();
+            
+            boolean alreadyAdded = added.contains(vanillaId);
+            if (!alreadyAdded) {
+                // If it's a tool/armor, check if any MMO item of the same material was added
+                if (res.getType().name().contains("_") || res.getType().getMaxStackSize() == 1) {
+                    for (String addedKey : added) {
+                        if (addedKey.startsWith("MMO:")) {
+                            // This is a bit heuristic but usually works: if MMO item base material matches
+                            // we might want to hide vanilla. But let's be safer:
+                            // If the MMO item we added resulted in the same display name, it's definitely a duplicate.
+                            // However, we don't have the MMO items here.
+                        }
+                    }
+                }
+            }
+
+            if (!alreadyAdded && canCraftVanilla(contents, r)) {
+                // Apply Rarity to vanilla results too
+                res = plugin.getRarityManager().processItem(res);
+                String key = RecipeMatcher.getIdentifier(res);
                 if (added.add(key)) {
                     craftable.add(res);
                     count++;

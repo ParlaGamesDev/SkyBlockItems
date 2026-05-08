@@ -2,6 +2,7 @@ package dev.agam.skyblockitems.crafting.gui;
 
 import dev.agam.skyblockitems.SkyBlockItems;
 import dev.agam.skyblockitems.crafting.RecipeMatcher;
+import dev.agam.skyblockitems.rarity.Rarity;
 import dev.agam.skyblockitems.utils.ColorUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -114,7 +115,17 @@ public class CraftingGUI implements InventoryHolder {
         Optional<ItemStack> result = plugin.getCraftingManager().findResult(matrix);
         
         if (result.isPresent()) {
-            inventory.setItem(RESULT_SLOT, result.get());
+            ItemStack res = result.get().clone();
+            // Apply Rarity
+            res = plugin.getRarityManager().processItem(res);
+            
+            // Apply Lore for display
+            Rarity rarity = plugin.getRarityManager().getRarityForItem(res);
+            if (rarity != null) {
+                res = plugin.getRarityManager().updateRarityLore(res, rarity);
+            }
+            
+            inventory.setItem(RESULT_SLOT, res);
         } else {
             ItemStack noRecipe = new ItemStack(Material.BARRIER);
             ItemMeta meta = noRecipe.getItemMeta();
@@ -150,14 +161,23 @@ public class CraftingGUI implements InventoryHolder {
                 for (int i = 0; i < QUICK_CRAFT_SLOTS.length; i++) {
                     if (index < craftable.size()) {
                         ItemStack item = craftable.get(index).clone();
+                        
+                        // Add Footer Lore FIRST
                         ItemMeta qMeta = item.getItemMeta();
                         if (qMeta != null) {
                             List<String> lore = qMeta.hasLore() ? qMeta.getLore() : new ArrayList<>();
-                            if (!lore.isEmpty()) lore.add("");
+                            if (!lore.isEmpty() && !lore.get(lore.size()-1).isEmpty()) lore.add("");
                             lore.add(ColorUtils.colorize("&eClick to Quick Craft!"));
                             qMeta.setLore(lore);
                             item.setItemMeta(qMeta);
                         }
+
+                        // Apply Rarity Lore (it will now handle the footer correctly)
+                        Rarity rarity = plugin.getRarityManager().getRarityForItem(item);
+                        if (rarity != null) {
+                            item = plugin.getRarityManager().updateRarityLore(item, rarity);
+                        }
+
                         inventory.setItem(QUICK_CRAFT_SLOTS[i], item);
                         index++;
                     } else {
