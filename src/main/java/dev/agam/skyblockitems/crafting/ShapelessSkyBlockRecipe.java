@@ -24,39 +24,49 @@ public class ShapelessSkyBlockRecipe extends SkyBlockRecipe {
 
     @Override
     public boolean matches(ItemStack[] matrix) {
-        List<ItemStack> matrixItems = new ArrayList<>();
+        // Count all items in matrix
+        java.util.Map<String, Integer> matrixCounts = new java.util.HashMap<>();
         for (ItemStack is : matrix) {
-            if (is != null && !is.getType().isAir()) matrixItems.add(is);
+            if (is == null || is.getType() == org.bukkit.Material.AIR) continue;
+            String id = RecipeMatcher.getIdentifier(is);
+            matrixCounts.put(id, matrixCounts.getOrDefault(id, 0) + is.getAmount());
         }
 
-        if (matrixItems.size() != ingredients.size()) return false;
+        // Count all ingredients in recipe
+        java.util.Map<String, Integer> reqCounts = new java.util.HashMap<>();
+        for (ItemStack is : ingredients) {
+            if (is == null || is.getType() == org.bukkit.Material.AIR) continue;
+            String id = RecipeMatcher.getIdentifier(is);
+            reqCounts.put(id, reqCounts.getOrDefault(id, 0) + is.getAmount());
+        }
 
-        List<ItemStack> remainingIngredients = new ArrayList<>(ingredients);
-        for (ItemStack input : matrixItems) {
-            boolean found = false;
-            for (int i = 0; i < remainingIngredients.size(); i++) {
-                if (RecipeMatcher.matches(input, remainingIngredients.get(i))) {
-                    remainingIngredients.remove(i);
-                    found = true;
-                    break;
-                }
+        if (matrixCounts.size() != reqCounts.size()) return false;
+
+        for (java.util.Map.Entry<String, Integer> entry : reqCounts.entrySet()) {
+            if (!matrixCounts.containsKey(entry.getKey()) || !matrixCounts.get(entry.getKey()).equals(entry.getValue())) {
+                return false;
             }
-            if (!found) return false;
         }
-
-        return remainingIngredients.isEmpty();
+        return true;
     }
 
     @Override
     public void consume(ItemStack[] matrix) {
-        List<ItemStack> remainingIngredients = new ArrayList<>(ingredients);
-        for (ItemStack input : matrix) {
-            if (input == null || input.getType().isAir()) continue;
-            for (int i = 0; i < remainingIngredients.size(); i++) {
-                if (RecipeMatcher.matches(input, remainingIngredients.get(i))) {
-                    input.setAmount(input.getAmount() - remainingIngredients.get(i).getAmount());
-                    remainingIngredients.remove(i);
-                    break;
+        java.util.Map<String, Integer> reqCounts = new java.util.HashMap<>();
+        for (ItemStack is : ingredients) {
+            if (is == null || is.getType() == org.bukkit.Material.AIR) continue;
+            String id = RecipeMatcher.getIdentifier(is);
+            reqCounts.put(id, reqCounts.getOrDefault(id, 0) + is.getAmount());
+        }
+
+        for (java.util.Map.Entry<String, Integer> entry : reqCounts.entrySet()) {
+            int remaining = entry.getValue();
+            for (ItemStack is : matrix) {
+                if (is != null && RecipeMatcher.getIdentifier(is).equals(entry.getKey())) {
+                    int take = Math.min(is.getAmount(), remaining);
+                    is.setAmount(is.getAmount() - take);
+                    remaining -= take;
+                    if (remaining <= 0) break;
                 }
             }
         }

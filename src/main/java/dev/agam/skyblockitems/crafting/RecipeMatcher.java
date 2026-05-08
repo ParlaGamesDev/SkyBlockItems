@@ -44,14 +44,14 @@ public class RecipeMatcher {
         return input.getType() == ingredient.getType();
     }
 
-    private static String getMMOType(NBTItem nbt) {
+    public static String getMMOType(NBTItem nbt) {
         if (nbt.hasType()) return nbt.getType();
         if (nbt.hasTag("MMOITEMS_ITEM_TYPE")) return nbt.getString("MMOITEMS_ITEM_TYPE");
         if (nbt.hasTag("mmoitems_item_type")) return nbt.getString("mmoitems_item_type");
         return null;
     }
 
-    private static String getMMOId(NBTItem nbt) {
+    public static String getMMOId(NBTItem nbt) {
         if (nbt.hasTag("MMOITEMS_ITEM_ID")) return nbt.getString("MMOITEMS_ITEM_ID");
         if (nbt.hasTag("mmoitems_item_id")) return nbt.getString("mmoitems_item_id");
         return null;
@@ -63,5 +63,16 @@ public class RecipeMatcher {
         if (nbt.hasTag("MMOITEMS_DISABLE_CRAFTING")) return nbt.getBoolean("MMOITEMS_DISABLE_CRAFTING");
         if (nbt.hasTag("mmoitems_disable_crafting")) return nbt.getBoolean("mmoitems_disable_crafting");
         return false;
+    }
+
+    public static String getIdentifier(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) return "AIR";
+        NBTItem nbt = NBTItem.get(item);
+        String type = getMMOType(nbt);
+        String id = getMMOId(nbt);
+        if (type != null && id != null) {
+            return "MMO:" + type.toUpperCase() + ":" + id.toUpperCase();
+        }
+        return "VANILLA:" + item.getType().name();
     }
 }

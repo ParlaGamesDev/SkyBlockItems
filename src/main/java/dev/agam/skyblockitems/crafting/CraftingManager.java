@@ -1,6 +1,7 @@
 package dev.agam.skyblockitems.crafting;
 
 import dev.agam.skyblockitems.SkyBlockItems;
+import io.lumine.mythic.lib.api.item.NBTItem;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -8,12 +9,7 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Manages custom and vanilla recipes with MMOItems support.
@@ -32,28 +28,35 @@ public class CraftingManager {
      * Finds all recipes the player can craft from their inventory.
      * Priority: MMOItems recipes first, then Vanilla.
      */
-    public List<ItemStack> getCraftableResults(org.bukkit.entity.Player player) {
+    public List<ItemStack> getCraftableResults(org.bukkit.entity.Player player, ItemStack[] extraItems) {
         List<ItemStack> craftable = new ArrayList<>();
-        Set<String> added = new HashSet<>();
-        ItemStack[] contents = player.getInventory().getStorageContents();
+        List<ItemStack> combined = new ArrayList<>();
+        for (ItemStack is : player.getInventory().getStorageContents()) if (is != null) combined.add(is.clone());
+        if (extraItems != null) {
+            for (ItemStack is : extraItems) if (is != null) combined.add(is.clone());
+        }
         
-        // 1. Check Custom/MMOItems Recipes
+        ItemStack[] contents = combined.toArray(new ItemStack[0]);
+        Set<String> added = new HashSet<>();
+
+        // 1. Custom Recipes (Priority)
         for (SkyBlockRecipe recipe : customRecipes) {
             if (canCraft(contents, recipe)) {
                 ItemStack res = recipe.getResult();
-                String key = res.getType() + ":" + (res.hasItemMeta() && res.getItemMeta().hasDisplayName() ? res.getItemMeta().getDisplayName() : "");
+                // Use a unique key for de-duplication
+                String key = RecipeMatcher.getIdentifier(res);
                 if (added.add(key)) {
                     craftable.add(res);
                 }
             }
         }
 
-        // Add common vanilla recipes (e.g., blocks, tools)
+        // 2. Vanilla Recipes
         Iterator<Recipe> it = Bukkit.recipeIterator();
         int count = 0;
-        while (it.hasNext() && count < 20) { // Limit to avoid lag
+        while (it.hasNext() && count < 20) {
             Recipe r = it.next();
-            if (canCraftVanilla(player, r)) {
+            if (canCraftVanilla(contents, r)) {
                 ItemStack res = r.getResult();
                 String key = "VANILLA:" + res.getType();
                 if (added.add(key)) {
@@ -66,19 +69,29 @@ public class CraftingManager {
         return craftable;
     }
 
-    private boolean canCraftVanilla(org.bukkit.entity.Player player, Recipe recipe) {
+    private boolean canCraftVanilla(ItemStack[] contents, Recipe recipe) {
         if (recipe instanceof ShapedRecipe shaped) {
-            return hasAllIngredients(player.getInventory().getStorageContents(), shaped.getIngredientMap().values().toArray(new ItemStack[0]));
+            return hasAllIngredients(contents, shaped.getIngredientMap().values().toArray(new ItemStack[0]));
         } else if (recipe instanceof ShapelessRecipe shapeless) {
-            return hasAllIngredients(player.getInventory().getStorageContents(), shapeless.getIngredientList().toArray(new ItemStack[0]));
+            return hasAllIngredients(contents, shapeless.getIngredientList().toArray(new ItemStack[0]));
         }
         return false;
     }
 
     private boolean canCraft(ItemStack[] inventory, SkyBlockRecipe recipe) {
-        if (recipe instanceof ShapedSkyBlockRecipe shaped) {
-            // For shaped, we just need to ensure all ingredients are present in enough quantity
-            // This is a simplified check for quick craft (shapeless style scanning of inventory)
+        java.util.Map<String, Integer> available = new java.util.HashMap<>();
+        for (ItemStack is : inventory) {
+            if (is == null || is.getType() == Material.AIR) continue;
+            String id = RecipeMatcher.getIdentifier(is);
+            available.put(id, available.getOrDefault(id, 0) + is.getAmount());
+        }
+
+        if (recipe instanceof FlexibleSkyBlockRecipe flexible) {
+            for (java.util.Map.Entry<String, Integer> req : flexible.getIngredientsMap().entrySet()) {
+                if (available.getOrDefault(req.getKey(), 0) < req.getValue()) return false;
+            }
+            return true;
+        } else if (recipe instanceof ShapedSkyBlockRecipe shaped) {
             return hasAllIngredients(inventory, shaped.getIngredients());
         } else if (recipe instanceof ShapelessSkyBlockRecipe shapeless) {
             return hasAllIngredients(inventory, shapeless.getIngredients().toArray(new ItemStack[0]));
@@ -87,21 +100,22 @@ public class CraftingManager {
     }
 
     private boolean hasAllIngredients(ItemStack[] inventory, ItemStack[] ingredients) {
-        List<ItemStack> tempInv = new ArrayList<>();
-        for (ItemStack is : inventory) if (is != null) tempInv.add(is.clone());
+        java.util.Map<String, Integer> available = new java.util.HashMap<>();
+        for (ItemStack is : inventory) {
+            if (is == null || is.getType() == Material.AIR) continue;
+            String id = RecipeMatcher.getIdentifier(is);
+            available.put(id, available.getOrDefault(id, 0) + is.getAmount());
+        }
 
-        for (ItemStack req : ingredients) {
-            if (req == null || req.getType() == Material.AIR) continue;
-            int remaining = req.getAmount();
-            for (ItemStack invItem : tempInv) {
-                if (RecipeMatcher.matches(invItem, req)) {
-                    int take = Math.min(invItem.getAmount(), remaining);
-                    invItem.setAmount(invItem.getAmount() - take);
-                    remaining -= take;
-                    if (remaining <= 0) break;
-                }
-            }
-            if (remaining > 0) return false;
+        java.util.Map<String, Integer> reqs = new java.util.HashMap<>();
+        for (ItemStack is : ingredients) {
+            if (is == null || is.getType() == Material.AIR) continue;
+            String id = RecipeMatcher.getIdentifier(is);
+            reqs.put(id, reqs.getOrDefault(id, 0) + is.getAmount());
+        }
+
+        for (java.util.Map.Entry<String, Integer> entry : reqs.entrySet()) {
+            if (available.getOrDefault(entry.getKey(), 0) < entry.getValue()) return false;
         }
         return true;
     }
@@ -160,106 +174,188 @@ public class CraftingManager {
         return customRecipes;
     }
 
-    public void consumeFromInventory(org.bukkit.entity.Player player, SkyBlockRecipe recipe) {
-        ItemStack[] contents = player.getInventory().getStorageContents();
-        ItemStack[] ingredients = (recipe instanceof ShapedSkyBlockRecipe s) ? s.getIngredients() : 
-                                   ((ShapelessSkyBlockRecipe)recipe).getIngredients().toArray(new ItemStack[0]);
-
-        for (ItemStack req : ingredients) {
-            if (req == null || req.getType() == Material.AIR) continue;
-            int remaining = req.getAmount();
-            for (ItemStack invItem : contents) {
-                if (invItem != null && RecipeMatcher.matches(invItem, req)) {
-                    int take = Math.min(invItem.getAmount(), remaining);
-                    invItem.setAmount(invItem.getAmount() - take);
-                    remaining -= take;
-                    if (remaining <= 0) break;
+    public void consumeFromInventory(org.bukkit.entity.Player player, SkyBlockRecipe recipe, ItemStack[] extraItems) {
+        List<ItemStack> combined = new ArrayList<>();
+        // Note: we must use the actual references for consumption
+        ItemStack[] invContents = player.getInventory().getStorageContents();
+        
+        java.util.Map<String, Integer> reqs = new java.util.HashMap<>();
+        if (recipe instanceof FlexibleSkyBlockRecipe flexible) {
+            reqs.putAll(flexible.getIngredientsMap());
+        } else {
+            ItemStack[] ings = (recipe instanceof ShapedSkyBlockRecipe s) ? s.getIngredients() : 
+                               ((ShapelessSkyBlockRecipe)recipe).getIngredients().toArray(new ItemStack[0]);
+            for (ItemStack is : ings) {
+                if (is != null && is.getType() != Material.AIR) {
+                    String id = RecipeMatcher.getIdentifier(is);
+                    reqs.put(id, reqs.getOrDefault(id, 0) + is.getAmount());
                 }
             }
         }
-        player.getInventory().setStorageContents(contents);
+
+        for (java.util.Map.Entry<String, Integer> entry : reqs.entrySet()) {
+            int remaining = entry.getValue();
+            
+            // 1. Grid
+            if (extraItems != null) {
+                for (ItemStack invItem : extraItems) {
+                    if (invItem != null && RecipeMatcher.getIdentifier(invItem).equals(entry.getKey())) {
+                        int take = Math.min(invItem.getAmount(), remaining);
+                        invItem.setAmount(invItem.getAmount() - take);
+                        remaining -= take;
+                        if (remaining <= 0) break;
+                    }
+                }
+            }
+            
+            // 2. Inventory
+            if (remaining > 0) {
+                for (ItemStack invItem : invContents) {
+                    if (invItem != null && RecipeMatcher.getIdentifier(invItem).equals(entry.getKey())) {
+                        int take = Math.min(invItem.getAmount(), remaining);
+                        invItem.setAmount(invItem.getAmount() - take);
+                        remaining -= take;
+                        if (remaining <= 0) break;
+                    }
+                }
+            }
+        }
+        player.getInventory().setStorageContents(invContents);
     }
 
     public void loadRecipes() {
         customRecipes.clear();
-        org.bukkit.configuration.ConfigurationSection section = plugin.getConfig().getConfigurationSection("recipes");
-        if (section != null) {
-            for (String key : section.getKeys(false)) {
-                try {
-                    org.bukkit.configuration.ConfigurationSection recipeSec = section.getConfigurationSection(key);
-                    if (recipeSec == null) continue;
-                    ItemStack result = parseItem(recipeSec.getConfigurationSection("result"));
-                    if (result == null) continue;
-                    String type = recipeSec.getString("type", "SHAPED");
-                    if (type.equalsIgnoreCase("SHAPED")) {
-                        List<String> shape = recipeSec.getStringList("shape");
-                        org.bukkit.configuration.ConfigurationSection ingSec = recipeSec.getConfigurationSection("ingredients");
-                        ItemStack[] matrix = new ItemStack[9];
-                        if (ingSec != null) {
-                            for (int r = 0; r < shape.size(); r++) {
-                                for (int c = 0; c < shape.get(r).length(); c++) {
-                                    char symbol = shape.get(r).charAt(c);
-                                    if (symbol != ' ') {
-                                        matrix[r * 3 + c] = parseItem(ingSec.getConfigurationSection(String.valueOf(symbol)));
-                                    }
-                                }
-                            }
-                        }
-                        registerRecipe(new ShapedSkyBlockRecipe(result, matrix));
-                    } else {
-                        List<ItemStack> ingredients = new ArrayList<>();
-                        org.bukkit.configuration.ConfigurationSection ingSec = recipeSec.getConfigurationSection("ingredients");
-                        if (ingSec != null) {
-                            for (String iKey : ingSec.getKeys(false)) {
-                                ingredients.add(parseItem(ingSec.getConfigurationSection(iKey)));
-                            }
-                        }
-                        registerRecipe(new ShapelessSkyBlockRecipe(result, ingredients));
-                    }
-                } catch (Exception e) {
-                    plugin.getLogger().warning("Failed to load recipe: " + key + " - " + e.getMessage());
-                }
-            }
-        }
+        List<String> flexibleItems = plugin.getConfig().getStringList("flexible-items");
+        Set<String> flexSet = new HashSet<>();
+        for (String s : flexibleItems) flexSet.add(s.toUpperCase());
 
-        if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("MMOItems")) {
-            loadMMOItemsRecipes();
-        }
-        plugin.getLogger().info("CraftingManager: Loaded " + customRecipes.size() + " custom recipes.");
-    }
-
-    private void loadMMOItemsRecipes() {
-        plugin.getLogger().info("CraftingManager: Scanning Bukkit registry for MMOItems recipes...");
+        plugin.getLogger().info("CraftingManager: Unified recipe scan starting...");
         Iterator<Recipe> it = Bukkit.recipeIterator();
         int count = 0;
         
         while (it.hasNext()) {
-            Recipe recipe = it.next();
-            ItemStack result = recipe.getResult();
-            
-            // Check if result is an MMOItem
-            io.lumine.mythic.lib.api.item.NBTItem nbt = io.lumine.mythic.lib.api.item.NBTItem.get(result);
-            if (nbt.hasType()) {
-                if (recipe instanceof ShapedRecipe shaped) {
-                    // Convert Shaped to SBI Shaped
-                    ItemStack[] matrix = new ItemStack[9];
-                    String[] shape = shaped.getShape();
-                    java.util.Map<Character, ItemStack> ingMap = shaped.getIngredientMap();
-                    
-                    for (int r = 0; r < shape.length; r++) {
-                        for (int c = 0; c < shape[r].length(); c++) {
-                            char symbol = shape[r].charAt(c);
-                            matrix[r * 3 + c] = ingMap.get(symbol);
+            try {
+                Recipe recipe = it.next();
+                ItemStack result = recipe.getResult();
+                if (result == null || result.getType() == Material.AIR) continue;
+                
+                NBTItem nbt = NBTItem.get(result);
+                String mmoType = RecipeMatcher.getMMOType(nbt);
+                String mmoId = RecipeMatcher.getMMOId(nbt);
+                
+                boolean isMMO = mmoType != null;
+                String identifier = isMMO ? "MMOITEMS:" + mmoType + ":" + mmoId : result.getType().name();
+                identifier = identifier.toUpperCase();
+
+                if (isMMO || flexSet.contains(identifier)) {
+                    ItemStack fullResult = result;
+                    if (isMMO) {
+                        net.Indyuce.mmoitems.api.Type type = net.Indyuce.mmoitems.MMOItems.plugin.getTypes().get(mmoType);
+                        if (type != null) fullResult = net.Indyuce.mmoitems.MMOItems.plugin.getItem(type, mmoId);
+                    }
+
+                    if (flexSet.contains(identifier)) {
+                        Map<String, Integer> ingredients = new HashMap<>();
+                        if (recipe instanceof ShapedRecipe shaped) {
+                            for (ItemStack ing : shaped.getIngredientMap().values()) {
+                                if (ing != null && ing.getType() != Material.AIR) {
+                                    String id = RecipeMatcher.getIdentifier(ing);
+                                    ingredients.put(id, ingredients.getOrDefault(id, 0) + ing.getAmount());
+                                }
+                            }
+                        } else if (recipe instanceof ShapelessRecipe shapeless) {
+                            for (ItemStack ing : shapeless.getIngredientList()) {
+                                if (ing != null && ing.getType() != Material.AIR) {
+                                    String id = RecipeMatcher.getIdentifier(ing);
+                                    ingredients.put(id, ingredients.getOrDefault(id, 0) + ing.getAmount());
+                                }
+                            }
+                        }
+                        if (!ingredients.isEmpty()) {
+                            registerRecipe(new FlexibleSkyBlockRecipe(fullResult, ingredients));
+                            count++;
+                        }
+                    } else if (isMMO) {
+                        if (recipe instanceof ShapedRecipe shaped) {
+                            ItemStack[] matrix = new ItemStack[9];
+                            String[] shape = shaped.getShape();
+                            java.util.Map<Character, ItemStack> ingMap = shaped.getIngredientMap();
+                            for (int r = 0; r < shape.length; r++) {
+                                for (int c = 0; c < shape[r].length(); c++) {
+                                    matrix[r * 3 + c] = ingMap.get(shape[r].charAt(c));
+                                }
+                            }
+                            registerRecipe(new ShapedSkyBlockRecipe(fullResult, matrix));
+                            count++;
+                        } else if (recipe instanceof ShapelessRecipe shapeless) {
+                            registerRecipe(new ShapelessSkyBlockRecipe(fullResult, shapeless.getIngredientList()));
+                            count++;
                         }
                     }
-                    registerRecipe(new ShapedSkyBlockRecipe(result, matrix));
-                    count++;
-                } else if (recipe instanceof ShapelessRecipe shapeless) {
-                    // Convert Shapeless to SBI Shapeless
-                    registerRecipe(new ShapelessSkyBlockRecipe(result, shapeless.getIngredientList()));
-                    count++;
                 }
+            } catch (Exception ignored) {}
+        }
+        plugin.getLogger().info("CraftingManager: Loaded " + count + " recipes from registry.");
+    }
+
+    private ItemStack parseItemString(String str) {
+        if (str == null) return null;
+        if (str.toUpperCase().startsWith("MMOITEMS:")) {
+            String[] parts = str.split(":");
+            if (parts.length >= 3) {
+                String typeId = parts[1];
+                String id = parts[2];
+                net.Indyuce.mmoitems.api.Type type = net.Indyuce.mmoitems.MMOItems.plugin.getTypes().get(typeId);
+                if (type != null) return net.Indyuce.mmoitems.MMOItems.plugin.getItem(type, id);
             }
+        } else {
+            Material mat = Material.matchMaterial(str);
+            if (mat != null) return new ItemStack(mat);
+        }
+        return null;
+    }
+
+    private void loadMMOItemsRecipes() {
+        plugin.getLogger().info("CraftingManager: Deep-scanning Bukkit registry for MMOItems recipes...");
+        Iterator<Recipe> it = Bukkit.recipeIterator();
+        int count = 0;
+        
+        while (it.hasNext()) {
+            try {
+                Recipe recipe = it.next();
+                ItemStack result = recipe.getResult();
+                if (result == null || result.getType() == Material.AIR) continue;
+                
+                NBTItem nbt = NBTItem.get(result);
+                    // Re-fetch the full MMOItem to get all stats and lore
+                    ItemStack fullResult = null;
+                    String typeId = nbt.getString("MMOITEMS_ITEM_TYPE");
+                    String id = nbt.getString("MMOITEMS_ITEM_ID");
+                    net.Indyuce.mmoitems.api.Type type = net.Indyuce.mmoitems.MMOItems.plugin.getTypes().get(typeId);
+                    if (type != null) {
+                        fullResult = net.Indyuce.mmoitems.MMOItems.plugin.getItem(type, id);
+                    }
+                    
+                    if (fullResult == null) fullResult = result;
+
+                    if (recipe instanceof ShapedRecipe shaped) {
+                        ItemStack[] matrix = new ItemStack[9];
+                        String[] shape = shaped.getShape();
+                        java.util.Map<Character, ItemStack> ingMap = shaped.getIngredientMap();
+                        
+                        for (int r = 0; r < shape.length; r++) {
+                            for (int c = 0; c < shape[r].length(); c++) {
+                                char symbol = shape[r].charAt(c);
+                                matrix[r * 3 + c] = ingMap.get(symbol);
+                            }
+                        }
+                        registerRecipe(new ShapedSkyBlockRecipe(fullResult, matrix));
+                        count++;
+                    } else if (recipe instanceof ShapelessRecipe shapeless) {
+                        registerRecipe(new ShapelessSkyBlockRecipe(fullResult, shapeless.getIngredientList()));
+                        count++;
+                    }
+            } catch (Exception ignored) {}
         }
         plugin.getLogger().info("CraftingManager: Automatically imported " + count + " MMOItems recipes.");
     }

@@ -103,6 +103,12 @@ public class CraftingGUI implements InventoryHolder {
         return contents;
     }
 
+    private void setGridContents(ItemStack[] contents) {
+        for (int i = 0; i < 9; i++) {
+            inventory.setItem(GRID_SLOTS[i], contents[i]);
+        }
+    }
+
     private void updateResult() {
         ItemStack[] matrix = getGridContents();
         Optional<ItemStack> result = plugin.getCraftingManager().findResult(matrix);
@@ -122,6 +128,7 @@ public class CraftingGUI implements InventoryHolder {
 
     private void updateQuickCraft() {
         boolean hasPerm = player.hasPermission("skyblock.quickcraft") || player.isOp();
+        ItemStack[] grid = getGridContents();
         
         for (int slot : QUICK_CRAFT_SLOTS) {
             if (!hasPerm) {
@@ -138,7 +145,7 @@ public class CraftingGUI implements InventoryHolder {
                 }
                 inventory.setItem(slot, noPerm);
             } else {
-                List<ItemStack> craftable = plugin.getCraftingManager().getCraftableResults(player);
+                List<ItemStack> craftable = plugin.getCraftingManager().getCraftableResults(player, grid);
                 int index = 0;
                 for (int i = 0; i < QUICK_CRAFT_SLOTS.length; i++) {
                     if (index < craftable.size()) {
@@ -146,7 +153,7 @@ public class CraftingGUI implements InventoryHolder {
                         ItemMeta qMeta = item.getItemMeta();
                         if (qMeta != null) {
                             List<String> lore = qMeta.hasLore() ? qMeta.getLore() : new ArrayList<>();
-                            lore.add("");
+                            if (!lore.isEmpty()) lore.add("");
                             lore.add(ColorUtils.colorize("&eClick to Quick Craft!"));
                             qMeta.setLore(lore);
                             item.setItemMeta(qMeta);
@@ -157,7 +164,7 @@ public class CraftingGUI implements InventoryHolder {
                         inventory.setItem(QUICK_CRAFT_SLOTS[i], new ItemStack(Material.AIR));
                     }
                 }
-                break; // Break outer loop since we handled all slots
+                break;
             }
         }
     }
@@ -184,8 +191,29 @@ public class CraftingGUI implements InventoryHolder {
             } else if (!isGridSlot(slot)) {
                 event.setCancelled(true);
             } else {
+                // Check blacklist for cursor item
+                ItemStack cursor = event.getCursor();
+                if (cursor != null && cursor.getType() != Material.AIR && plugin.getConfigManager().isBlacklisted(cursor)) {
+                    event.setCancelled(true);
+                    player.sendMessage(plugin.getConfigManager().getMessage("general.blacklisted-item"));
+                    return;
+                }
+                
+                // Check blacklist for hotbar swap
+                if (event.getAction() == InventoryAction.HOTBAR_SWAP || event.getAction() == InventoryAction.HOTBAR_MOVE_AND_READD) {
+                    ItemStack hotbarItem = player.getInventory().getItem(event.getHotbarButton());
+                    if (hotbarItem != null && hotbarItem.getType() != Material.AIR && plugin.getConfigManager().isBlacklisted(hotbarItem)) {
+                        event.setCancelled(true);
+                        player.sendMessage(plugin.getConfigManager().getMessage("general.blacklisted-item"));
+                        return;
+                    }
+                }
+
                 // Update result after any change to grid
-                Bukkit.getScheduler().runTaskLater(plugin, gui::updateResult, 1L);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    gui.updateResult();
+                    gui.updateQuickCraft();
+                }, 1L);
             }
         } else {
             // Player inventory click
@@ -193,6 +221,12 @@ public class CraftingGUI implements InventoryHolder {
                 ItemStack item = event.getCurrentItem();
                 if (item == null || item.getType() == Material.AIR) return;
                 
+                if (plugin.getConfigManager().isBlacklisted(item)) {
+                    event.setCancelled(true);
+                    player.sendMessage(plugin.getConfigManager().getMessage("general.blacklisted-item"));
+                    return;
+                }
+
                 event.setCancelled(true);
                 for (int s : GRID_SLOTS) {
                     ItemStack slotItem = inventory.getItem(s);
@@ -202,7 +236,10 @@ public class CraftingGUI implements InventoryHolder {
                         break;
                     }
                 }
-                Bukkit.getScheduler().runTaskLater(plugin, gui::updateResult, 1L);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    gui.updateResult();
+                    gui.updateQuickCraft();
+                }, 1L);
             }
         }
     }
@@ -243,38 +280,39 @@ public class CraftingGUI implements InventoryHolder {
     private void handleQuickCraft(int slot) {
         if (!(player.hasPermission("skyblock.quickcraft") || player.isOp())) return;
         
-        List<ItemStack> craftable = plugin.getCraftingManager().getCraftableResults(player);
+        ItemStack[] grid = getGridContents();
+        List<ItemStack> craftable = plugin.getCraftingManager().getCraftableResults(player, grid);
         int index = -1;
         for (int i = 0; i < QUICK_CRAFT_SLOTS.length; i++) if (QUICK_CRAFT_SLOTS[i] == slot) index = i;
         
         if (index >= 0 && index < craftable.size()) {
             ItemStack result = craftable.get(index);
-            // Re-find the recipe to consume
-            // This is slightly inefficient but safe
             Optional<dev.agam.skyblockitems.crafting.SkyBlockRecipe> custom = plugin.getCraftingManager().getCustomRecipes().stream()
                     .filter(r -> r.getResult().isSimilar(result)).findFirst();
             
             if (player.getInventory().addItem(result.clone()).isEmpty()) {
                 if (custom.isPresent()) {
-                    plugin.getCraftingManager().consumeFromInventory(player, custom.get());
+                    plugin.getCraftingManager().consumeFromInventory(player, custom.get(), grid);
+                    setGridContents(grid);
                 } else {
-                    // Try to find a vanilla recipe
-                    Iterator<Recipe> it = Bukkit.recipeIterator();
+                    Iterator<org.bukkit.inventory.Recipe> it = Bukkit.recipeIterator();
                     while (it.hasNext()) {
                         org.bukkit.inventory.Recipe r = it.next();
                         if (r.getResult().isSimilar(result)) {
-                            consumeVanilla(r);
+                            consumeVanillaCombined(r, grid);
+                            setGridContents(grid);
                             break;
                         }
                     }
                 }
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 2.0f);
+                updateResult();
                 updateQuickCraft();
             }
         }
     }
 
-    private void consumeVanilla(org.bukkit.inventory.Recipe recipe) {
+    private void consumeVanillaCombined(org.bukkit.inventory.Recipe recipe, ItemStack[] grid) {
         ItemStack[] ingredients = null;
         if (recipe instanceof org.bukkit.inventory.ShapedRecipe s) ingredients = s.getIngredientMap().values().toArray(new ItemStack[0]);
         else if (recipe instanceof org.bukkit.inventory.ShapelessRecipe s) ingredients = s.getIngredientList().toArray(new ItemStack[0]);
@@ -284,12 +322,23 @@ public class CraftingGUI implements InventoryHolder {
             for (ItemStack req : ingredients) {
                 if (req == null) continue;
                 int remaining = req.getAmount();
-                for (ItemStack inv : contents) {
+                
+                for (ItemStack inv : grid) {
                     if (inv != null && inv.getType() == req.getType()) {
                         int take = Math.min(inv.getAmount(), remaining);
                         inv.setAmount(inv.getAmount() - take);
                         remaining -= take;
                         if (remaining <= 0) break;
+                    }
+                }
+                if (remaining > 0) {
+                    for (ItemStack inv : contents) {
+                        if (inv != null && inv.getType() == req.getType()) {
+                            int take = Math.min(inv.getAmount(), remaining);
+                            inv.setAmount(inv.getAmount() - take);
+                            remaining -= take;
+                            if (remaining <= 0) break;
+                        }
                     }
                 }
             }
@@ -299,13 +348,28 @@ public class CraftingGUI implements InventoryHolder {
 
     public void handleDrag(InventoryDragEvent event) {
         if (!(event.getInventory().getHolder() instanceof CraftingGUI)) return;
+        
+        ItemStack dragged = event.getOldCursor();
+        if (dragged != null && dragged.getType() != Material.AIR && plugin.getConfigManager().isBlacklisted(dragged)) {
+            for (int slot : event.getRawSlots()) {
+                if (slot < 54) {
+                    event.setCancelled(true);
+                    player.sendMessage(plugin.getConfigManager().getMessage("general.blacklisted-item"));
+                    return;
+                }
+            }
+        }
+
         for (int slot : event.getRawSlots()) {
             if (slot < 54 && !isGridSlot(slot)) {
                 event.setCancelled(true);
                 return;
             }
         }
-        Bukkit.getScheduler().runTaskLater(plugin, this::updateResult, 1L);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            this.updateResult();
+            this.updateQuickCraft();
+        }, 1L);
     }
 
     public void handleClose(InventoryCloseEvent event) {
