@@ -42,9 +42,18 @@ public class ShapedSkyBlockRecipe extends SkyBlockRecipe {
                 if (mR >= 0 && mR < 3 && mC >= 0 && mC < 3) {
                     matrixItem = matrix[mR * 3 + mC];
                 }
-                if (!RecipeMatcher.matches(matrixItem, recipeIng)) return false;
+                
+                // If recipe expects an item here, check if matrix has it AND has enough amount
+                if (recipeIng != null && recipeIng.getType() != Material.AIR) {
+                    if (matrixItem == null || !RecipeMatcher.matches(matrixItem, recipeIng)) return false;
+                    if (matrixItem.getAmount() < recipeIng.getAmount()) return false;
+                } else {
+                    // Recipe expects AIR here
+                    if (matrixItem != null && matrixItem.getType() != Material.AIR) return false;
+                }
             }
         }
+        // Rest of the empty space check
         for (int i = 0; i < 9; i++) {
             boolean inRegion = false;
             int mR = i / 3;
@@ -76,8 +85,9 @@ public class ShapedSkyBlockRecipe extends SkyBlockRecipe {
                             int mC = c + xOff;
                             if (mR >= 0 && mR < 3 && mC >= 0 && mC < 3) {
                                 ItemStack item = matrix[mR * 3 + mC];
-                                if (item != null && ingredients[r * 3 + c] != null) {
-                                    item.setAmount(item.getAmount() - 1);
+                                ItemStack recipeIng = ingredients[r * 3 + c];
+                                if (item != null && recipeIng != null && recipeIng.getType() != Material.AIR) {
+                                    item.setAmount(item.getAmount() - recipeIng.getAmount());
                                 }
                             }
                         }

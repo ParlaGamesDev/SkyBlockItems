@@ -40,10 +40,11 @@ public class ShapelessSkyBlockRecipe extends SkyBlockRecipe {
             reqCounts.put(id, reqCounts.getOrDefault(id, 0) + is.getAmount());
         }
 
+        // Must have at least as many unique types as required
         if (matrixCounts.size() != reqCounts.size()) return false;
 
         for (java.util.Map.Entry<String, Integer> entry : reqCounts.entrySet()) {
-            if (!matrixCounts.containsKey(entry.getKey()) || !matrixCounts.get(entry.getKey()).equals(entry.getValue())) {
+            if (!matrixCounts.containsKey(entry.getKey()) || matrixCounts.get(entry.getKey()) < entry.getValue()) {
                 return false;
             }
         }

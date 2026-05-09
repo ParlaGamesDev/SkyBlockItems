@@ -204,10 +204,10 @@ public class CraftingGUI implements InventoryHolder {
                 player.performCommand("profile");
             } else if (slot == RESULT_SLOT) {
                 event.setCancelled(true);
-                handleCraft();
+                handleCraft(event.isShiftClick());
             } else if (isQuickCraftSlot(slot)) {
                 event.setCancelled(true);
-                handleQuickCraft(slot);
+                handleQuickCraft(slot, event.isShiftClick());
             } else if (!isGridSlot(slot)) {
                 event.setCancelled(true);
             } else {
@@ -264,71 +264,113 @@ public class CraftingGUI implements InventoryHolder {
         }
     }
 
-    private void handleCraft() {
+    private void handleCraft(boolean shift) {
         ItemStack result = inventory.getItem(RESULT_SLOT);
         if (result == null || result.getType() == Material.AIR || result.getType() == Material.BARRIER) return;
 
         ItemStack[] matrix = getGridContents();
         Optional<dev.agam.skyblockitems.crafting.SkyBlockRecipe> recipe = plugin.getCraftingManager().findMatchingRecipe(matrix);
 
-        if (player.getInventory().addItem(result.clone()).isEmpty()) {
-            if (recipe.isPresent()) {
-                recipe.get().consume(matrix);
-                for (int i = 0; i < 9; i++) inventory.setItem(GRID_SLOTS[i], matrix[i]);
-            } else {
-                for (int slot : GRID_SLOTS) {
-                    ItemStack item = inventory.getItem(slot);
-                    if (item != null) {
-                        item.setAmount(item.getAmount() - 1);
-                        if (item.getAmount() <= 0) inventory.setItem(slot, null);
+        int crafted = 0;
+        int maxCrafts = shift ? 64 : 1; // Limit to 64 for safety/stack size
+        
+        while (crafted < maxCrafts) {
+            // Check if we still have a recipe match
+            Optional<ItemStack> currentResult = plugin.getCraftingManager().findResult(matrix);
+            if (!currentResult.isPresent()) break;
+            
+            ItemStack toAdd = currentResult.get().clone();
+            // Apply Rarity
+            toAdd = plugin.getRarityManager().processItem(toAdd);
+            
+            if (player.getInventory().addItem(toAdd).isEmpty()) {
+                if (recipe.isPresent()) {
+                    recipe.get().consume(matrix);
+                } else {
+                    // Vanilla fallback
+                    for (int i = 0; i < 9; i++) {
+                        ItemStack item = matrix[i];
+                        if (item != null && item.getType() != Material.AIR) {
+                            item.setAmount(item.getAmount() - 1);
+                            if (item.getAmount() <= 0) matrix[i] = null;
+                        }
                     }
                 }
+                crafted++;
+                if (!shift) break;
+            } else {
+                if (crafted == 0) player.sendMessage(ColorUtils.colorize(plugin.getConfig().getString("crafting.messages.inventory-full", "&cYour inventory is full!")));
+                break;
             }
+        }
+
+        if (crafted > 0) {
+            for (int i = 0; i < 9; i++) inventory.setItem(GRID_SLOTS[i], matrix[i]);
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 2.0f);
             
             String craftMsg = plugin.getConfig().getString("crafting.messages.crafted-item", "&aYou crafted &f%item%&a!");
             String itemName = result.hasItemMeta() && result.getItemMeta().hasDisplayName() ? 
                              result.getItemMeta().getDisplayName() : result.getType().name();
+            
+            if (crafted > 1) craftMsg += " &7(x" + crafted + ")";
             player.sendMessage(ColorUtils.colorize(craftMsg.replace("%item%", itemName)));
             
             updateResult();
-        } else {
-            player.sendMessage(ColorUtils.colorize(plugin.getConfig().getString("crafting.messages.inventory-full", "&cYour inventory is full!")));
+            updateQuickCraft();
         }
     }
 
-    private void handleQuickCraft(int slot) {
+    private void handleQuickCraft(int slot, boolean shift) {
         if (!(player.hasPermission("skyblock.quickcraft") || player.isOp())) return;
         
-        ItemStack[] grid = getGridContents();
-        List<ItemStack> craftable = plugin.getCraftingManager().getCraftableResults(player, grid);
-        int index = -1;
-        for (int i = 0; i < QUICK_CRAFT_SLOTS.length; i++) if (QUICK_CRAFT_SLOTS[i] == slot) index = i;
-        
-        if (index >= 0 && index < craftable.size()) {
-            ItemStack result = craftable.get(index);
+        int slotIndex = -1;
+        for (int i = 0; i < QUICK_CRAFT_SLOTS.length; i++) if (QUICK_CRAFT_SLOTS[i] == slot) slotIndex = i;
+        if (slotIndex == -1) return;
+
+        int totalCrafted = 0;
+        int maxCrafts = shift ? 64 : 1;
+
+        while (totalCrafted < maxCrafts) {
+            ItemStack[] grid = getGridContents();
+            List<ItemStack> craftable = plugin.getCraftingManager().getCraftableResults(player, grid);
+            
+            if (slotIndex >= craftable.size()) break;
+            
+            ItemStack result = craftable.get(slotIndex);
             Optional<dev.agam.skyblockitems.crafting.SkyBlockRecipe> custom = plugin.getCraftingManager().getCustomRecipes().stream()
                     .filter(r -> r.getResult().isSimilar(result)).findFirst();
             
+            // Note: getCraftableResults already processed the item with rarity
             if (player.getInventory().addItem(result.clone()).isEmpty()) {
                 if (custom.isPresent()) {
                     plugin.getCraftingManager().consumeFromInventory(player, custom.get(), grid);
                     setGridContents(grid);
                 } else {
                     Iterator<org.bukkit.inventory.Recipe> it = Bukkit.recipeIterator();
+                    boolean found = false;
                     while (it.hasNext()) {
                         org.bukkit.inventory.Recipe r = it.next();
                         if (r.getResult().isSimilar(result)) {
                             consumeVanillaCombined(r, grid);
                             setGridContents(grid);
+                            found = true;
                             break;
                         }
                     }
+                    if (!found) break; // Should not happen
                 }
-                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 2.0f);
-                updateResult();
-                updateQuickCraft();
+                totalCrafted++;
+                if (!shift) break;
+            } else {
+                if (totalCrafted == 0) player.sendMessage(ColorUtils.colorize(plugin.getConfig().getString("crafting.messages.inventory-full", "&cYour inventory is full!")));
+                break;
             }
+        }
+
+        if (totalCrafted > 0) {
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 2.0f);
+            updateResult();
+            updateQuickCraft();
         }
     }
 
