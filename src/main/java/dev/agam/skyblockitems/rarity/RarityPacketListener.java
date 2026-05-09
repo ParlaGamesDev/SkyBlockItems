@@ -20,7 +20,10 @@ public class RarityPacketListener extends PacketAdapter {
     private final RarityManager rarityManager;
 
     public RarityPacketListener(SkyBlockItems plugin) {
-        super(plugin, ListenerPriority.NORMAL, PacketType.Play.Server.SET_SLOT, PacketType.Play.Server.WINDOW_ITEMS);
+        super(plugin, ListenerPriority.HIGHEST, 
+            PacketType.Play.Server.SET_SLOT, 
+            PacketType.Play.Server.WINDOW_ITEMS,
+            PacketType.Play.Server.SET_CURSOR_ITEM);
         this.rarityManager = plugin.getRarityManager();
     }
 
@@ -35,31 +38,52 @@ public class RarityPacketListener extends PacketAdapter {
         if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
             ItemStack item = packet.getItemModifier().read(0);
             if (shouldProcess(item)) {
-                // Clone to ensure we don't modify the server-side reference
+                ItemStack visualItem = item.clone();
+                if (applyVisualRarity(visualItem)) {
+                    packet.getItemModifier().write(0, visualItem);
+                }
+            }
+        } else if (event.getPacketType() == PacketType.Play.Server.SET_CURSOR_ITEM) {
+            ItemStack item = packet.getItemModifier().read(0);
+            if (shouldProcess(item)) {
                 ItemStack visualItem = item.clone();
                 if (applyVisualRarity(visualItem)) {
                     packet.getItemModifier().write(0, visualItem);
                 }
             }
         } else if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
-            // In 1.17.1+ WINDOW_ITEMS uses a list of items
+            // Process the list of items
             List<ItemStack> items = packet.getItemListModifier().read(0);
-            boolean modified = false;
-            
-            for (int i = 0; i < items.size(); i++) {
-                ItemStack item = items.get(i);
-                if (shouldProcess(item)) {
-                    ItemStack visualItem = item.clone();
-                    if (applyVisualRarity(visualItem)) {
-                        items.set(i, visualItem);
-                        modified = true;
+            if (items != null) {
+                boolean modified = false;
+                for (int i = 0; i < items.size(); i++) {
+                    ItemStack item = items.get(i);
+                    if (shouldProcess(item)) {
+                        ItemStack visualItem = item.clone();
+                        if (applyVisualRarity(visualItem)) {
+                            items.set(i, visualItem);
+                            modified = true;
+                        }
                     }
+                }
+                if (modified) {
+                    packet.getItemListModifier().write(0, items);
                 }
             }
             
-            if (modified) {
-                packet.getItemListModifier().write(0, items);
-            }
+            // Process the carried item (cursor item in 1.17+)
+            // Some ProtocolLib versions map this to the second ItemStack modifier
+            try {
+                if (packet.getItemModifier().size() > 1) {
+                    ItemStack carried = packet.getItemModifier().read(1);
+                    if (shouldProcess(carried)) {
+                        ItemStack visualItem = carried.clone();
+                        if (applyVisualRarity(visualItem)) {
+                            packet.getItemModifier().write(1, visualItem);
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
         }
     }
 

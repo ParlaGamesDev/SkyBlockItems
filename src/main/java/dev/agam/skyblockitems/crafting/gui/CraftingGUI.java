@@ -39,7 +39,7 @@ public class CraftingGUI implements InventoryHolder {
     public CraftingGUI(SkyBlockItems plugin, Player player) {
         this.plugin = plugin;
         this.player = player;
-        String title = ColorUtils.colorize(plugin.getConfig().getString("crafting.title", "&8Crafting Table"));
+        String title = plugin.getConfigManager().getMessage("crafting.gui-title");
         this.inventory = Bukkit.createInventory(this, 54, title);
         
         if (player != null) {
@@ -130,7 +130,7 @@ public class CraftingGUI implements InventoryHolder {
             ItemStack noRecipe = new ItemStack(Material.BARRIER);
             ItemMeta meta = noRecipe.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName(ColorUtils.colorize(plugin.getConfig().getString("crafting.messages.no-recipe", "&cNo Recipe Found")));
+                meta.setDisplayName(plugin.getConfigManager().getMessage("crafting.no-recipe"));
                 noRecipe.setItemMeta(meta);
             }
             inventory.setItem(RESULT_SLOT, noRecipe);
@@ -141,50 +141,48 @@ public class CraftingGUI implements InventoryHolder {
         boolean hasPerm = player.hasPermission("skyblock.quickcraft") || player.isOp();
         ItemStack[] grid = getGridContents();
         
-        for (int slot : QUICK_CRAFT_SLOTS) {
-            if (!hasPerm) {
+        if (!hasPerm) {
+            for (int slot : QUICK_CRAFT_SLOTS) {
                 ItemStack noPerm = new ItemStack(Material.RED_STAINED_GLASS_PANE);
                 ItemMeta meta = noPerm.getItemMeta();
                 if (meta != null) {
-                    meta.setDisplayName(ColorUtils.colorize(plugin.getConfig().getString("crafting.messages.no-permission-quick-craft", "&cNo Permission")));
+                    meta.setDisplayName(plugin.getConfigManager().getMessage("crafting.no-permission-quick-craft"));
                     List<String> lore = new ArrayList<>();
-                    for (String line : plugin.getConfig().getStringList("crafting.gui.quick-craft-no-perm-lore")) {
+                    for (String line : plugin.getConfigManager().getMessageList("crafting.quick-craft-no-perm-lore")) {
                         lore.add(ColorUtils.colorize(line));
                     }
                     meta.setLore(lore);
                     noPerm.setItemMeta(meta);
                 }
                 inventory.setItem(slot, noPerm);
-            } else {
-                List<ItemStack> craftable = plugin.getCraftingManager().getCraftableResults(player, grid);
-                int index = 0;
-                for (int i = 0; i < QUICK_CRAFT_SLOTS.length; i++) {
-                    if (index < craftable.size()) {
-                        ItemStack item = craftable.get(index).clone();
-                        
-                        // Add Footer Lore FIRST
-                        ItemMeta qMeta = item.getItemMeta();
-                        if (qMeta != null) {
-                            List<String> lore = qMeta.hasLore() ? qMeta.getLore() : new ArrayList<>();
-                            if (!lore.isEmpty() && !lore.get(lore.size()-1).isEmpty()) lore.add("");
-                            lore.add(ColorUtils.colorize("&eClick to Quick Craft!"));
-                            qMeta.setLore(lore);
-                            item.setItemMeta(qMeta);
-                        }
+            }
+            return;
+        }
 
-                        // Apply Rarity Lore (it will now handle the footer correctly)
-                        Rarity rarity = plugin.getRarityManager().getRarityForItem(item);
-                        if (rarity != null) {
-                            item = plugin.getRarityManager().updateRarityLore(item, rarity);
-                        }
-
-                        inventory.setItem(QUICK_CRAFT_SLOTS[i], item);
-                        index++;
-                    } else {
-                        inventory.setItem(QUICK_CRAFT_SLOTS[i], new ItemStack(Material.AIR));
-                    }
+        List<ItemStack> craftable = plugin.getCraftingManager().getCraftableResults(player, grid);
+        for (int i = 0; i < QUICK_CRAFT_SLOTS.length; i++) {
+            if (i < craftable.size()) {
+                ItemStack item = craftable.get(i).clone();
+                
+                // Add Footer Lore FIRST
+                ItemMeta qMeta = item.getItemMeta();
+                if (qMeta != null) {
+                    List<String> lore = qMeta.hasLore() ? qMeta.getLore() : new ArrayList<>();
+                    if (!lore.isEmpty() && !lore.get(lore.size()-1).isEmpty()) lore.add("");
+                    lore.add(ColorUtils.colorize("&eClick to Quick Craft!"));
+                    qMeta.setLore(lore);
+                    item.setItemMeta(qMeta);
                 }
-                break;
+
+                // Apply Rarity Lore
+                Rarity rarity = plugin.getRarityManager().getRarityForItem(item);
+                if (rarity != null) {
+                    item = plugin.getRarityManager().updateRarityLore(item, rarity);
+                }
+
+                inventory.setItem(QUICK_CRAFT_SLOTS[i], item);
+            } else {
+                inventory.setItem(QUICK_CRAFT_SLOTS[i], new ItemStack(Material.AIR));
             }
         }
     }
@@ -299,7 +297,7 @@ public class CraftingGUI implements InventoryHolder {
                 crafted++;
                 if (!shift) break;
             } else {
-                if (crafted == 0) player.sendMessage(ColorUtils.colorize(plugin.getConfig().getString("crafting.messages.inventory-full", "&cYour inventory is full!")));
+                if (crafted == 0) player.sendMessage(plugin.getConfigManager().getMessage("crafting.inventory-full"));
                 break;
             }
         }
@@ -307,13 +305,6 @@ public class CraftingGUI implements InventoryHolder {
         if (crafted > 0) {
             for (int i = 0; i < 9; i++) inventory.setItem(GRID_SLOTS[i], matrix[i]);
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 2.0f);
-            
-            String craftMsg = plugin.getConfig().getString("crafting.messages.crafted-item", "&aYou crafted &f%item%&a!");
-            String itemName = result.hasItemMeta() && result.getItemMeta().hasDisplayName() ? 
-                             result.getItemMeta().getDisplayName() : result.getType().name();
-            
-            if (crafted > 1) craftMsg += " &7(x" + crafted + ")";
-            player.sendMessage(ColorUtils.colorize(craftMsg.replace("%item%", itemName)));
             
             updateResult();
             updateQuickCraft();
@@ -337,8 +328,9 @@ public class CraftingGUI implements InventoryHolder {
             if (slotIndex >= craftable.size()) break;
             
             ItemStack result = craftable.get(slotIndex);
+            String resultId = RecipeMatcher.getIdentifier(result);
             Optional<dev.agam.skyblockitems.crafting.SkyBlockRecipe> custom = plugin.getCraftingManager().getCustomRecipes().stream()
-                    .filter(r -> r.getResult().isSimilar(result)).findFirst();
+                    .filter(r -> RecipeMatcher.getIdentifier(r.getResult()).equals(resultId)).findFirst();
             
             // Note: getCraftableResults already processed the item with rarity
             if (player.getInventory().addItem(result.clone()).isEmpty()) {
@@ -350,8 +342,8 @@ public class CraftingGUI implements InventoryHolder {
                     boolean found = false;
                     while (it.hasNext()) {
                         org.bukkit.inventory.Recipe r = it.next();
-                        if (r.getResult().isSimilar(result)) {
-                            consumeVanillaCombined(r, grid);
+                        if (RecipeMatcher.getIdentifier(r.getResult()).equals(resultId)) {
+                            plugin.getCraftingManager().consumeVanillaFromInventory(player, r, grid);
                             setGridContents(grid);
                             found = true;
                             break;
@@ -362,7 +354,7 @@ public class CraftingGUI implements InventoryHolder {
                 totalCrafted++;
                 if (!shift) break;
             } else {
-                if (totalCrafted == 0) player.sendMessage(ColorUtils.colorize(plugin.getConfig().getString("crafting.messages.inventory-full", "&cYour inventory is full!")));
+                if (totalCrafted == 0) player.sendMessage(plugin.getConfigManager().getMessage("crafting.inventory-full"));
                 break;
             }
         }
@@ -374,39 +366,6 @@ public class CraftingGUI implements InventoryHolder {
         }
     }
 
-    private void consumeVanillaCombined(org.bukkit.inventory.Recipe recipe, ItemStack[] grid) {
-        ItemStack[] ingredients = null;
-        if (recipe instanceof org.bukkit.inventory.ShapedRecipe s) ingredients = s.getIngredientMap().values().toArray(new ItemStack[0]);
-        else if (recipe instanceof org.bukkit.inventory.ShapelessRecipe s) ingredients = s.getIngredientList().toArray(new ItemStack[0]);
-        
-        if (ingredients != null) {
-            ItemStack[] contents = player.getInventory().getStorageContents();
-            for (ItemStack req : ingredients) {
-                if (req == null) continue;
-                int remaining = req.getAmount();
-                
-                for (ItemStack inv : grid) {
-                    if (inv != null && inv.getType() == req.getType()) {
-                        int take = Math.min(inv.getAmount(), remaining);
-                        inv.setAmount(inv.getAmount() - take);
-                        remaining -= take;
-                        if (remaining <= 0) break;
-                    }
-                }
-                if (remaining > 0) {
-                    for (ItemStack inv : contents) {
-                        if (inv != null && inv.getType() == req.getType()) {
-                            int take = Math.min(inv.getAmount(), remaining);
-                            inv.setAmount(inv.getAmount() - take);
-                            remaining -= take;
-                            if (remaining <= 0) break;
-                        }
-                    }
-                }
-            }
-            player.getInventory().setStorageContents(contents);
-        }
-    }
 
     public void handleDrag(InventoryDragEvent event) {
         if (!(event.getInventory().getHolder() instanceof CraftingGUI)) return;

@@ -200,11 +200,9 @@ public class CraftingManager {
     }
 
     public void consumeFromInventory(org.bukkit.entity.Player player, SkyBlockRecipe recipe, ItemStack[] extraItems) {
-        List<ItemStack> combined = new ArrayList<>();
-        // Note: we must use the actual references for consumption
         ItemStack[] invContents = player.getInventory().getStorageContents();
-        
         java.util.Map<String, Integer> reqs = new java.util.HashMap<>();
+        
         if (recipe instanceof FlexibleSkyBlockRecipe flexible) {
             reqs.putAll(flexible.getIngredientsMap());
         } else {
@@ -218,10 +216,34 @@ public class CraftingManager {
             }
         }
 
+        consumeReqs(player, reqs, invContents, extraItems);
+    }
+
+    public void consumeVanillaFromInventory(org.bukkit.entity.Player player, org.bukkit.inventory.Recipe recipe, ItemStack[] extraItems) {
+        ItemStack[] invContents = player.getInventory().getStorageContents();
+        java.util.Map<String, Integer> reqs = new java.util.HashMap<>();
+        
+        ItemStack[] ingredients = null;
+        if (recipe instanceof org.bukkit.inventory.ShapedRecipe s) ingredients = s.getIngredientMap().values().toArray(new ItemStack[0]);
+        else if (recipe instanceof org.bukkit.inventory.ShapelessRecipe s) ingredients = s.getIngredientList().toArray(new ItemStack[0]);
+        
+        if (ingredients != null) {
+            for (ItemStack is : ingredients) {
+                if (is != null && is.getType() != Material.AIR) {
+                    String id = RecipeMatcher.getIdentifier(is);
+                    reqs.put(id, reqs.getOrDefault(id, 0) + 1); // Vanilla ingredients are always 1
+                }
+            }
+        }
+
+        consumeReqs(player, reqs, invContents, extraItems);
+    }
+
+    private void consumeReqs(org.bukkit.entity.Player player, java.util.Map<String, Integer> reqs, ItemStack[] invContents, ItemStack[] extraItems) {
         for (java.util.Map.Entry<String, Integer> entry : reqs.entrySet()) {
             int remaining = entry.getValue();
             
-            // 1. Grid
+            // 1. Extra Items (Grid)
             if (extraItems != null) {
                 for (ItemStack invItem : extraItems) {
                     if (invItem != null && RecipeMatcher.getIdentifier(invItem).equals(entry.getKey())) {

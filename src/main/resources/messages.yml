@@ -546,3 +546,12 @@ enchant-descriptions:
 
 ability:
   missing-config: "&cהגדרה חסרה בקונפיג: {id}"
+
+crafting:
+  gui-title: "&8שולחן יצירה"
+  no-recipe: "&cמתכון לא נמצא"
+  no-permission-quick-craft: "&cאין לך הרשאה לייצור מהיר!"
+  insufficient-materials: "&cאין לך מספיק חומרים!"
+  inventory-full: "&cהתיק שלך מלא!"
+  quick-craft-no-perm-lore:
+    - "&7אפשרות זו חסומה"
