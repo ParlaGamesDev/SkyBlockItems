@@ -29,4 +29,4 @@ commands:
   craft:
     description: Open the custom crafting table
     permission: skyblock.craft
-    aliases: [crafting, workbench]
+    aliases: [crafting]

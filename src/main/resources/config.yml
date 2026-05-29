@@ -202,6 +202,14 @@ gui:
       lore:
         - "&7לחץ כדי לערוך נתונים"
 
+  reforge:
+    title: "<#aa55ff>&lשולחן חישול"
+    size: 27
+    item-slot: 13
+    roll-button-slot: 16
+    filler-material: PURPLE_STAINED_GLASS_PANE
+
+
 # List of items that should have "flexible" crafting (place items anywhere, stackable ingredients)
 # Format: "MMOITEMS:TYPE:ID" or "VANILLA_MATERIAL"
 flexible-items:
@@ -263,13 +271,6 @@ target-icons:
     error: ENTITY_VILLAGER_NO
     reforge-success: BLOCK_ANVIL_USE
     reforge-fail: ENTITY_VILLAGER_NO
-
-  reforge:
-    title: "<#aa55ff>&lשולחן חישול"
-    size: 27
-    item-slot: 13
-    roll-button-slot: 16
-    filler-material: PURPLE_STAINED_GLASS_PANE
 
 abilities:
   visual-cooldown:

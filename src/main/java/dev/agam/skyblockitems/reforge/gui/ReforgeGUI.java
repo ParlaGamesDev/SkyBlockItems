@@ -47,10 +47,8 @@ public class ReforgeGUI implements BaseGUI {
         this.itemSlot = 13; // Row 2, Slot 5
         this.rollButtonSlot = 22; // Row 3, Slot 5
 
-        ConfigurationSection config = plugin.getConfig().getConfigurationSection("gui.reforge");
         String title = ColorUtils
-                .colorize(config != null ? config.getString("title", "<#aa55ff>&lReforge")
-                        : "<#aa55ff>&lReforge");
+                .colorize(plugin.getConfig().getString("gui.reforge.title", "<#aa55ff>&lReforge"));
 
         this.inventory = Bukkit.createInventory(this, size, title);
 
