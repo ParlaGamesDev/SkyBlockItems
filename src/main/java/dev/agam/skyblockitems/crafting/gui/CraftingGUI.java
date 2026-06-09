@@ -68,7 +68,7 @@ public class CraftingGUI implements InventoryHolder {
         ItemStack backToProfile = new ItemStack(Material.NETHER_STAR);
         ItemMeta backMeta = backToProfile.getItemMeta();
         if (backMeta != null) {
-            backMeta.setDisplayName(ColorUtils.colorize("&aBack to Profile"));
+            backMeta.setDisplayName(ColorUtils.colorize("&cחזרה לפרופיל"));
             backToProfile.setItemMeta(backMeta);
         }
         inventory.setItem(CLOSE_SLOT, backToProfile);
