@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Command handler for /rarity commands.
+ * Command handler for /sbi rarity subcommands.
  */
 public class RarityCommand implements CommandExecutor, TabCompleter {
 
@@ -30,20 +30,22 @@ public class RarityCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("rarity.usage")));
             return true;
         }
 
-        String subCommand = args[0].toLowerCase();
-
-        switch (subCommand) {
+        switch (args[0].toLowerCase()) {
             case "set" -> handleSet(sender, args);
             case "custom" -> handleCustom(sender, args);
             case "remove" -> handleRemove(sender);
-            default -> sender.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("rarity.usage")));
+            default -> {
+            }
         }
 
         return true;
+    }
+
+    private boolean isValidAssignableRarity(Rarity rarity) {
+        return rarity != null && !rarity.getIdentifier().equalsIgnoreCase("NONE");
     }
 
     private void handleSet(CommandSender sender, String[] args) {
@@ -58,40 +60,26 @@ public class RarityCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length < 2) {
-            player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("rarity.set-usage")));
             return;
         }
 
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item.getType() == Material.AIR) {
-            player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("rarity.no-item")));
             return;
         }
 
-        String rarityId = args[1];
-        Rarity rarity = rarityManager.getRarity(rarityId);
-
-        if (rarity == null) {
-            player.sendMessage(ColorUtils.colorize(
-                    plugin.getConfigManager().getMessage("rarity.invalid-rarity").replace("{id}", rarityId)));
+        Rarity rarity = rarityManager.getRarity(args[1]);
+        if (!isValidAssignableRarity(rarity)) {
             return;
         }
 
-        // Apply rarity globally (saves to config + refreshes online players)
-        rarityManager.saveMapping(item, rarity.getIdentifier());
+        rarityManager.saveTypeMapping(item, rarity.getIdentifier());
 
-        // Immediate update for the player
-        player.getInventory().setItemInMainHand(rarityManager.processItem(item));
-
-        player.sendMessage(ColorUtils.colorize(
-                plugin.getConfigManager().getMessage("rarity.set-success")
-                        .replace("{rarity}", ColorUtils.colorize(rarity.getDisplayName()))));
+        ItemStack processed = rarityManager.reprocessItem(item);
+        player.getInventory().setItemInMainHand(processed);
+        player.updateInventory();
     }
 
-    /**
-     * Handles /rarity custom <rarity_id> - marks item as custom so it won't be
-     * auto-assigned.
-     */
     private void handleCustom(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("general.player-only")));
@@ -104,34 +92,22 @@ public class RarityCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length < 2) {
-            player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("rarity.custom-usage")));
             return;
         }
 
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item.getType() == Material.AIR) {
-            player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("rarity.no-item")));
             return;
         }
 
-        String rarityId = args[1];
-        Rarity rarity = rarityManager.getRarity(rarityId);
-
-        if (rarity == null) {
-            player.sendMessage(ColorUtils.colorize(
-                    plugin.getConfigManager().getMessage("rarity.invalid-rarity").replace("{id}", rarityId)));
+        Rarity rarity = rarityManager.getRarity(args[1]);
+        if (!isValidAssignableRarity(rarity)) {
             return;
         }
 
-        // Apply rarity globally (saves to config + refreshes online players)
-        rarityManager.saveMapping(item, rarity.getIdentifier());
-
-        // Immediate update for the player
-        player.getInventory().setItemInMainHand(rarityManager.processItem(item));
-
-        player.sendMessage(ColorUtils.colorize(
-                plugin.getConfigManager().getMessage("rarity.custom-success")
-                        .replace("{rarity}", ColorUtils.colorize(rarity.getDisplayName()))));
+        ItemStack processed = rarityManager.applyRarity(item, rarity, true);
+        player.getInventory().setItemInMainHand(processed);
+        player.updateInventory();
     }
 
     private void handleRemove(CommandSender sender) {
@@ -147,27 +123,26 @@ public class RarityCommand implements CommandExecutor, TabCompleter {
 
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item.getType() == Material.AIR) {
-            player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("rarity.no-item")));
             return;
         }
 
-        // Remove mapping globally (removes from config + refreshes online players)
-        rarityManager.removeMapping(item);
+        ItemStack processed;
+        if (rarityManager.hasCustomRarity(item)) {
+            processed = rarityManager.removeRarity(item, true);
+        } else {
+            rarityManager.removeTypeMapping(item);
+            processed = rarityManager.reprocessItem(item);
+        }
 
-        // Immediate update for the player
-        player.getInventory().setItemInMainHand(rarityManager.processItem(item));
-
-        player.sendMessage(ColorUtils.colorize(plugin.getConfigManager().getMessage("rarity.removed")));
+        player.getInventory().setItemInMainHand(processed);
+        player.updateInventory();
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> completions = new ArrayList<>();
-
         if (args.length == 1) {
-            List<String> subCommands = List.of("set", "custom", "remove");
             String input = args[0].toLowerCase();
-            return subCommands.stream()
+            return List.of("set", "custom", "remove").stream()
                     .filter(s -> s.startsWith(input))
                     .collect(Collectors.toList());
         }
@@ -176,10 +151,11 @@ public class RarityCommand implements CommandExecutor, TabCompleter {
             String input = args[1].toLowerCase();
             return rarityManager.getAllRarities().stream()
                     .map(Rarity::getIdentifier)
+                    .filter(id -> !id.equalsIgnoreCase("NONE"))
                     .filter(id -> id.toLowerCase().startsWith(input))
                     .collect(Collectors.toList());
         }
 
-        return completions;
+        return new ArrayList<>();
     }
 }

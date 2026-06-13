@@ -230,9 +230,16 @@ public class RarityManager {
         if (safeKey != null) {
             ItemMappingData mappingData = itemMappings.get(safeKey);
             if (mappingData != null) {
-                Rarity savedRarity = getRarity(mappingData.rarityId);
-                if (savedRarity != null) {
-                    return savedRarity;
+                boolean uuidLockedKey = safeKey.startsWith("UUID_");
+                // Per-item UUID mappings apply only while the item is marked custom
+                if (!uuidLockedKey || hasCustomRarity(nbtItem)) {
+                    if (mappingData.rarityId.equalsIgnoreCase("NONE")) {
+                        return NONE_RARITY;
+                    }
+                    Rarity savedRarity = getRarity(mappingData.rarityId);
+                    if (savedRarity != null) {
+                        return savedRarity;
+                    }
                 }
             }
         }
@@ -885,8 +892,25 @@ public class RarityManager {
         saveMapping(item, rarityId, true, nbt);
     }
 
+    /**
+     * Saves a type-level mapping (MMO item id, material, CMD, etc.) — ignores per-item UUID keys.
+     */
+    public void saveTypeMapping(ItemStack item, String rarityId) {
+        saveMappingByKey(getBaseKey(item), rarityId, true);
+    }
+
+    /**
+     * Removes a type-level mapping so new items fall back to defaults / other rules.
+     */
+    public void removeTypeMapping(ItemStack item) {
+        saveMappingByKey(getBaseKey(item), "NONE", true);
+    }
+
     public void saveMapping(ItemStack item, String rarityId, boolean refresh, NBTItem nbt) {
-        String key = getItemKey(item, nbt);
+        saveMappingByKey(getItemKey(item, nbt), rarityId, refresh);
+    }
+
+    private void saveMappingByKey(String key, String rarityId, boolean refresh) {
         if (key == null)
             return;
 
@@ -897,17 +921,13 @@ public class RarityManager {
         boolean isNone = rarityId == null || rarityId.equalsIgnoreCase("NONE");
 
         if (isNone) {
-            // Check if there is a DEFAULT rarity for this item type
-            Rarity defaultRarityForType = getRarityForItem(new ItemStack(item.getType()));
-
-            if (defaultRarityForType != null && !defaultRarityForType.getIdentifier().equalsIgnoreCase("NONE")) {
-                // If there IS a default, we MUST save 'NONE' to override it
+            // When a global default exists, persist NONE so items don't fall back to Common
+            if (defaultRarity != null && !defaultRarity.getIdentifier().equalsIgnoreCase("NONE")) {
                 if (plugin.getDatabaseManager() != null) {
                     plugin.getDatabaseManager().saveItemRarity(safeKey, "NONE");
                 }
                 saveAndReload(safeKey, "NONE", refresh);
             } else {
-                // If there is NO default, we can just delete the entire record
                 if (plugin.getDatabaseManager() != null) {
                     plugin.getDatabaseManager().removeItemRarity(safeKey);
                 }
@@ -1234,7 +1254,21 @@ public class RarityManager {
     }
 
     public void removeMapping(ItemStack item) {
-        saveMapping(item, "NONE", true, NBTItem.get(item)); // This triggers the deletion logic in saveMapping
+        saveMapping(item, "NONE", true, NBTItem.get(item));
+    }
+
+    /**
+     * Clears rarity NBT and re-applies mapping rules (used after admin mapping changes).
+     */
+    public ItemStack reprocessItem(ItemStack item) {
+        if (item == null || item.getType().isAir()) {
+            return item;
+        }
+        NBTItem nbtItem = NBTItem.get(item);
+        nbtItem.removeTag(NBT_RARITY_KEY);
+        nbtItem.removeTag(NBT_CUSTOM_KEY);
+        nbtItem.removeTag(NBT_VERSION_KEY);
+        return processItem(nbtItem.toItem());
     }
 
     /**

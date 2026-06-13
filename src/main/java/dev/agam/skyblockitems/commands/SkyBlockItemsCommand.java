@@ -4,6 +4,7 @@ import dev.agam.skyblockitems.SkyBlockItems;
 import dev.agam.skyblockitems.enchantsystem.CustomEnchant;
 import dev.agam.skyblockitems.enchantsystem.gui.EnchantListGUI;
 import dev.agam.skyblockitems.enchantsystem.utils.ColorUtils;
+import dev.agam.skyblockitems.rarity.RarityCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -23,9 +24,11 @@ import java.util.stream.Collectors;
 public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
 
     private final SkyBlockItems plugin;
+    private final RarityCommand rarityCommand;
 
     public SkyBlockItemsCommand(SkyBlockItems plugin) {
         this.plugin = plugin;
+        this.rarityCommand = new RarityCommand(plugin);
     }
 
     @Override
@@ -107,10 +110,9 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
             }
 
             case "rarity" -> {
-                // Delegate to RarityCommand
                 String[] rarityArgs = new String[args.length - 1];
                 System.arraycopy(args, 1, rarityArgs, 0, args.length - 1);
-                new dev.agam.skyblockitems.rarity.RarityCommand(plugin).onCommand(sender, command, label, rarityArgs);
+                rarityCommand.onCommand(sender, command, label, rarityArgs);
             }
 
             default -> {
@@ -292,8 +294,7 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
                 case "rarity" -> {
                     String[] rarityArgs = new String[args.length - 1];
                     System.arraycopy(args, 1, rarityArgs, 0, args.length - 1);
-                    return new dev.agam.skyblockitems.rarity.RarityCommand(plugin).onTabComplete(sender, command, alias,
-                            rarityArgs);
+                    return rarityCommand.onTabComplete(sender, command, alias, rarityArgs);
                 }
             }
         }
@@ -302,8 +303,7 @@ public class SkyBlockItemsCommand implements CommandExecutor, TabCompleter {
             if (args[0].equalsIgnoreCase("rarity")) {
                 String[] rarityArgs = new String[args.length - 1];
                 System.arraycopy(args, 1, rarityArgs, 0, args.length - 1);
-                return new dev.agam.skyblockitems.rarity.RarityCommand(plugin).onTabComplete(sender, command, alias,
-                        rarityArgs);
+                return rarityCommand.onTabComplete(sender, command, alias, rarityArgs);
             }
         }
 

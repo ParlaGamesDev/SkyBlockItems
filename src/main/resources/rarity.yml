@@ -17,7 +17,7 @@
 #
 # Special Identifiers:
 #   DEFAULT - Applied to items not in the Items list
-#   NONE    - Removes rarity from item (use in /rarity remove)
+#   NONE    - Removes rarity from item (use in /sbi rarity remove)
 # =============================================================================
 
 Config:

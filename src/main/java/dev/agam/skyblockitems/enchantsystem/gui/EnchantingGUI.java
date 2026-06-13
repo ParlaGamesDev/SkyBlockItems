@@ -776,6 +776,10 @@ public class EnchantingGUI implements BaseGUI {
                     .replace("{cost}", String.valueOf(totalCost));
             player.sendMessage(ColorUtils.colorize(successMsg));
 
+            org.bukkit.Bukkit.getPluginManager().callEvent(
+                    new dev.agam.skyblockitems.api.events.SkyBlockEnchantEvent(
+                            player, itemToEnchant.clone(), enchant.getId(), 1));
+
             // Refresh the item in the inventory slot!
             inventory.setItem(ITEM_SLOT, itemToEnchant);
             updateEnchantments();

@@ -248,17 +248,16 @@ public class SkyBlockItems extends JavaPlugin {
         getCommand("reforge").setExecutor(new dev.agam.skyblockitems.commands.ReforgeCommand(this));
         getCommand("blacksmith").setExecutor(new dev.agam.skyblockitems.commands.BlacksmithCommand(this));
         getCommand("craft").setExecutor(new dev.agam.skyblockitems.commands.CraftCommand(this));
-
-        dev.agam.skyblockitems.rarity.RarityCommand rarityCmd = new dev.agam.skyblockitems.rarity.RarityCommand(this);
-        getCommand("rarity").setExecutor(rarityCmd);
-        getCommand("rarity").setTabCompleter(rarityCmd);
-        
     }
 
     private void startRaritySystem() {
         try {
             this.rarityManager = new dev.agam.skyblockitems.rarity.RarityManager(this);
-            dev.agam.skyblockitems.rarity.RarityPacketListener.register(this);
+            if (getServer().getPluginManager().isPluginEnabled("ProtocolLib")) {
+                dev.agam.skyblockitems.rarity.RarityPacketListener.register(this);
+            } else {
+                getLogger().warning("ProtocolLib not found — rarity lore will not display on items.");
+            }
             getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.rarity.RarityListener(this), this);
             try {
                 Class<? extends org.bukkit.event.Event> eventClass = Class.forName("io.papermc.paper.event.player.PlayerPickBlockEvent").asSubclass(org.bukkit.event.Event.class);

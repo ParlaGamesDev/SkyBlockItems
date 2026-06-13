@@ -119,9 +119,9 @@ public class CraftingGUI implements InventoryHolder {
             // Apply Rarity
             res = plugin.getRarityManager().processItem(res);
             
-            // Apply Lore for display
-            Rarity rarity = plugin.getRarityManager().getRarityForItem(res);
-            if (rarity != null) {
+            // Apply Lore for display (match inventory packet listener behavior)
+            Rarity rarity = plugin.getRarityManager().getCurrentRarity(res);
+            if (rarity != null && !rarity.getIdentifier().equalsIgnoreCase("NONE")) {
                 res = plugin.getRarityManager().updateRarityLore(res, rarity);
             }
             
@@ -174,9 +174,9 @@ public class CraftingGUI implements InventoryHolder {
                     item.setItemMeta(qMeta);
                 }
 
-                // Apply Rarity Lore
-                Rarity rarity = plugin.getRarityManager().getRarityForItem(item);
-                if (rarity != null) {
+                // Apply Rarity Lore (match inventory packet listener behavior)
+                Rarity rarity = plugin.getRarityManager().getCurrentRarity(item);
+                if (rarity != null && !rarity.getIdentifier().equalsIgnoreCase("NONE")) {
                     item = plugin.getRarityManager().updateRarityLore(item, rarity);
                 }
 
@@ -305,7 +305,13 @@ public class CraftingGUI implements InventoryHolder {
         if (crafted > 0) {
             for (int i = 0; i < 9; i++) inventory.setItem(GRID_SLOTS[i], matrix[i]);
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 2.0f);
-            
+
+            ItemStack craftedItem = inventory.getItem(RESULT_SLOT);
+            if (craftedItem != null && craftedItem.getType() != Material.AIR && craftedItem.getType() != Material.BARRIER) {
+                org.bukkit.Bukkit.getPluginManager().callEvent(
+                        new dev.agam.skyblockitems.api.events.SkyBlockCraftEvent(player, craftedItem.clone(), crafted));
+            }
+
             updateResult();
             updateQuickCraft();
         }
@@ -320,6 +326,7 @@ public class CraftingGUI implements InventoryHolder {
 
         int totalCrafted = 0;
         int maxCrafts = shift ? 64 : 1;
+        ItemStack craftedTemplate = null;
 
         while (totalCrafted < maxCrafts) {
             ItemStack[] grid = getGridContents();
@@ -328,6 +335,9 @@ public class CraftingGUI implements InventoryHolder {
             if (slotIndex >= craftable.size()) break;
             
             ItemStack result = craftable.get(slotIndex);
+            if (craftedTemplate == null) {
+                craftedTemplate = result.clone();
+            }
             String resultId = RecipeMatcher.getIdentifier(result);
             Optional<dev.agam.skyblockitems.crafting.SkyBlockRecipe> custom = plugin.getCraftingManager().getCustomRecipes().stream()
                     .filter(r -> RecipeMatcher.getIdentifier(r.getResult()).equals(resultId)).findFirst();
@@ -361,6 +371,13 @@ public class CraftingGUI implements InventoryHolder {
 
         if (totalCrafted > 0) {
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 2.0f);
+
+            ItemStack craftedItem = craftedTemplate;
+            if (craftedItem != null) {
+                org.bukkit.Bukkit.getPluginManager().callEvent(
+                        new dev.agam.skyblockitems.api.events.SkyBlockCraftEvent(player, craftedItem.clone(), totalCrafted));
+            }
+
             updateResult();
             updateQuickCraft();
         }

@@ -130,17 +130,6 @@ anvil:
   error-label: "<#e74c3c>&l שגיאה!"
   invalid-combination: "<#636e72>לא ניתן לשלב פריטים אלה"
 
-rarity:
-  set-success: "<#2ecc71> נדירות <#ecf0f1>{rarity} <#2ecc71>הוגדרה בהצלחה."
-  custom-success: "<#2ecc71> נדירות ספציפית: <#ecf0f1>{rarity} <#2ecc71>הוגדרה בהצלחה"
-  removed: "<#e74c3c> הנדירות הוסרה מהפריט"
-  invalid-rarity: "<#e74c3c> מזהה נדירות לא תקין: <#ffeaa7>{id}"
-  no-item: "<#e74c3c> עליך להחזיק פריט ביד!"
-  reloaded: "<#2ecc71> קונפיגורציית הנדירות נטענה מחדש"
-  usage: "<#f39c12>שימוש: <#ffeaa7>/rarity <set|custom|remove>"
-  set-usage: "<#f39c12>שימוש: <#ffeaa7>/rarity set <rarity_id>"
-  custom-usage: "<#f39c12>שימוש: <#ffeaa7>/rarity custom <rarity_id>"
-
 commands:
   unknown: "<#e74c3c> פקודה לא ידועה. הקלד <#ffeaa7>/sbi <#e74c3c>לעזרה."
   reload-success: "<#2ecc71> כל הקבצים נטענו מחדש בהצלחה!"

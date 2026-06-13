@@ -332,6 +332,10 @@ public class LevelSelectionGUI implements BaseGUI {
                 .replace("{cost}", String.valueOf(totalCost));
         player.sendMessage(ColorUtils.colorize(successMsg));
 
+        org.bukkit.Bukkit.getPluginManager().callEvent(
+                new dev.agam.skyblockitems.api.events.SkyBlockEnchantEvent(
+                        player, itemToEnchant.clone(), enchant.getId(), level));
+
         // Return to player and close GUI
         this.returningToParent = false;
         player.closeInventory();
