@@ -1,9 +1,11 @@
 package dev.agam.skyblockitems.crafting;
 
 import dev.agam.skyblockitems.SkyBlockItems;
+import dev.agam.skyblockitems.integration.MMOItemsStatIntegration;
 import io.lumine.mythic.lib.api.item.NBTItem;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
@@ -41,6 +43,7 @@ public class CraftingManager {
 
         // 1. Custom Recipes (Priority)
         for (SkyBlockRecipe recipe : customRecipes) {
+            if (!canCraftWithPermission(player, recipe)) continue;
             if (canCraft(contents, recipe)) {
                 ItemStack res = recipe.getResult().clone();
                 // Apply Rarity
@@ -145,23 +148,21 @@ public class CraftingManager {
         return true;
     }
 
-    public Optional<SkyBlockRecipe> findMatchingRecipe(ItemStack[] matrix) {
+    public Optional<SkyBlockRecipe> findMatchingRecipe(ItemStack[] matrix, Player player) {
         for (SkyBlockRecipe recipe : customRecipes) {
-            if (recipe.matches(matrix)) return Optional.of(recipe);
+            if (recipe.matches(matrix) && canCraftWithPermission(player, recipe)) {
+                return Optional.of(recipe);
+            }
         }
         return Optional.empty();
     }
 
-    /**
-     * Finds a matching recipe for the given 3x3 matrix.
-     * Priority: Custom Recipes -> Vanilla Recipes.
-     */
-    public Optional<ItemStack> findResult(ItemStack[] matrix) {
+    public Optional<ItemStack> findResult(ItemStack[] matrix, Player player) {
         if (isMatrixEmpty(matrix)) return Optional.empty();
 
         // 1. Check Custom Recipes
         for (SkyBlockRecipe recipe : customRecipes) {
-            if (recipe.matches(matrix)) {
+            if (recipe.matches(matrix) && canCraftWithPermission(player, recipe)) {
                 return Optional.of(recipe.getResult());
             }
         }
@@ -175,6 +176,26 @@ public class CraftingManager {
         }
 
         return Optional.empty();
+    }
+
+    private boolean canCraftWithPermission(Player player, SkyBlockRecipe recipe) {
+        if (!recipe.requiresCraftPermission()) {
+            return true;
+        }
+        if (player == null) {
+            return false;
+        }
+        return player.isOp() || player.hasPermission(recipe.getCraftPermission());
+    }
+
+    private void registerCustomRecipe(SkyBlockRecipe recipe, String mmoType, String mmoId) {
+        if (mmoType != null && mmoId != null) {
+            String permission = MMOItemsStatIntegration.getCraftPermission(mmoType, mmoId);
+            if (permission != null) {
+                recipe.setCraftPermission(permission);
+            }
+        }
+        customRecipes.add(recipe);
     }
 
     private boolean isMatrixEmpty(ItemStack[] matrix) {
@@ -319,7 +340,7 @@ public class CraftingManager {
                             }
                         }
                         if (!ingredients.isEmpty()) {
-                            registerRecipe(new FlexibleSkyBlockRecipe(fullResult, ingredients));
+                            registerCustomRecipe(new FlexibleSkyBlockRecipe(fullResult, ingredients), mmoType, mmoId);
                             count++;
                         }
                     } else if (isMMO) {
@@ -332,10 +353,10 @@ public class CraftingManager {
                                     matrix[r * 3 + c] = ingMap.get(shape[r].charAt(c));
                                 }
                             }
-                            registerRecipe(new ShapedSkyBlockRecipe(fullResult, matrix));
+                            registerCustomRecipe(new ShapedSkyBlockRecipe(fullResult, matrix), mmoType, mmoId);
                             count++;
                         } else if (recipe instanceof ShapelessRecipe shapeless) {
-                            registerRecipe(new ShapelessSkyBlockRecipe(fullResult, shapeless.getIngredientList()));
+                            registerCustomRecipe(new ShapelessSkyBlockRecipe(fullResult, shapeless.getIngredientList()), mmoType, mmoId);
                             count++;
                         }
                     }

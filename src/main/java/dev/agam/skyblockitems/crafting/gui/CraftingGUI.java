@@ -112,7 +112,7 @@ public class CraftingGUI implements InventoryHolder {
 
     private void updateResult() {
         ItemStack[] matrix = getGridContents();
-        Optional<ItemStack> result = plugin.getCraftingManager().findResult(matrix);
+        Optional<ItemStack> result = plugin.getCraftingManager().findResult(matrix, player);
         
         if (result.isPresent()) {
             ItemStack res = result.get().clone();
@@ -267,14 +267,14 @@ public class CraftingGUI implements InventoryHolder {
         if (result == null || result.getType() == Material.AIR || result.getType() == Material.BARRIER) return;
 
         ItemStack[] matrix = getGridContents();
-        Optional<dev.agam.skyblockitems.crafting.SkyBlockRecipe> recipe = plugin.getCraftingManager().findMatchingRecipe(matrix);
+        Optional<dev.agam.skyblockitems.crafting.SkyBlockRecipe> recipe = plugin.getCraftingManager().findMatchingRecipe(matrix, player);
 
         int crafted = 0;
         int maxCrafts = shift ? 64 : 1; // Limit to 64 for safety/stack size
         
         while (crafted < maxCrafts) {
             // Check if we still have a recipe match
-            Optional<ItemStack> currentResult = plugin.getCraftingManager().findResult(matrix);
+            Optional<ItemStack> currentResult = plugin.getCraftingManager().findResult(matrix, player);
             if (!currentResult.isPresent()) break;
             
             ItemStack toAdd = currentResult.get().clone();

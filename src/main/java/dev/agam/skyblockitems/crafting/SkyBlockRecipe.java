@@ -10,6 +10,7 @@ import java.util.List;
 public abstract class SkyBlockRecipe {
 
     protected final ItemStack result;
+    private String craftPermission;
 
     public SkyBlockRecipe(ItemStack result) {
         this.result = result;
@@ -17,6 +18,18 @@ public abstract class SkyBlockRecipe {
 
     public ItemStack getResult() {
         return result.clone();
+    }
+
+    public String getCraftPermission() {
+        return craftPermission;
+    }
+
+    public void setCraftPermission(String craftPermission) {
+        this.craftPermission = (craftPermission == null || craftPermission.isBlank()) ? null : craftPermission.trim();
+    }
+
+    public boolean requiresCraftPermission() {
+        return craftPermission != null && !craftPermission.isBlank();
     }
 
     public abstract boolean matches(ItemStack[] matrix);

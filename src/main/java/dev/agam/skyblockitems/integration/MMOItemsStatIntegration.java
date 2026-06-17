@@ -4,13 +4,17 @@ import io.lumine.mythic.lib.player.modifier.ModifierType;
 import io.lumine.mythic.lib.player.modifier.ModifierSource;
 import io.lumine.mythic.lib.api.stat.modifier.StatModifier;
 import io.lumine.mythic.lib.api.player.EquipmentSlot;
+import net.Indyuce.mmoitems.ItemStats;
 import net.Indyuce.mmoitems.MMOItems;
 import net.Indyuce.mmoitems.api.Type;
 import net.Indyuce.mmoitems.api.item.mmoitem.MMOItem;
 import net.Indyuce.mmoitems.stat.data.DoubleData;
+import net.Indyuce.mmoitems.stat.data.StringData;
+import net.Indyuce.mmoitems.stat.data.type.StatData;
 import net.Indyuce.mmoitems.stat.type.DoubleStat;
 import net.Indyuce.mmoitems.stat.type.ItemStat;
 import net.Indyuce.mmoitems.stat.type.StatHistory;
+import org.bukkit.Bukkit;
 import io.lumine.mythic.lib.api.item.NBTItem;
 import org.bukkit.inventory.ItemStack;
 
@@ -138,5 +142,37 @@ public class MMOItemsStatIntegration {
             return null;
         NBTItem nbtItem = NBTItem.get(item);
         return nbtItem.hasTag("MMOITEMS_ITEM_ID") ? nbtItem.getString("MMOITEMS_ITEM_ID") : null;
+    }
+
+    /**
+     * Reads MMOItems "Crafting Recipe Permission" ({@link ItemStats#CRAFT_PERMISSION}) from the item template.
+     */
+    public static String getCraftPermission(String typeId, String itemId) {
+        if (typeId == null || itemId == null || !Bukkit.getPluginManager().isPluginEnabled("MMOItems")) {
+            return null;
+        }
+
+        try {
+            Type type = MMOItems.plugin.getTypes().get(typeId);
+            if (type == null) {
+                return null;
+            }
+
+            MMOItem mmoItem = MMOItems.plugin.getMMOItem(type, itemId);
+            if (mmoItem == null || !mmoItem.hasData(ItemStats.CRAFT_PERMISSION)) {
+                return null;
+            }
+
+            StatData data = mmoItem.getData(ItemStats.CRAFT_PERMISSION);
+            if (data instanceof StringData stringData) {
+                String permission = stringData.getString();
+                if (permission != null && !permission.isBlank()) {
+                    return permission.trim();
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
+        return null;
     }
 }
