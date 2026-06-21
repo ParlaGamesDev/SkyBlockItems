@@ -307,62 +307,47 @@ public class EnchantingGUI implements BaseGUI {
         if (isProcessing)
             return;
 
+        int rawSlot = event.getRawSlot();
+        int topSize = event.getView().getTopInventory().getSize();
+        boolean clickedBottom = rawSlot >= topSize;
+
         // Handle clicking in player inventory (to place item)
-        if (event.getClickedInventory() == event.getView().getBottomInventory()) {
+        if (clickedBottom) {
             ItemStack clicked = event.getCurrentItem();
             if (clicked != null && clicked.getType() != Material.AIR) {
-                if (plugin.getConfigManager().isBlacklisted(clicked)) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("errors.blacklisted-item"));
-                    return;
-                }
-                if (clicked.getAmount() > 1) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("errors.one-at-a-time"));
-                    return;
-                }
-
-                // MMOItems Disable Enchanting Check
-                if (io.lumine.mythic.lib.api.item.NBTItem.get(clicked).hasTag("MMOITEMS_DISABLE_ENCHANTING")) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("errors.item-disabled-enchanting"));
-                    return;
-                }
-
-                if (itemToEnchant != null && itemToEnchant.getType() != Material.AIR) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("errors.remove-current-first"));
-                    return;
-                }
-                // Check if any enchants are available for this player
-                List<EnchantConfig> allApplicable = getApplicableEnchants(clicked);
-                boolean hasAnyUnlocked = false;
-                int playerSkillLevel = plugin.isAuraSkillsEnabled()
-                        ? plugin.getAuraSkillsHook().getEnchantingLevel(player)
-                        : 100;
-
-                for (EnchantConfig enchant : allApplicable) {
-                    if (playerSkillLevel >= enchant.getRequiredEnchantingLevel()) {
-                        hasAnyUnlocked = true;
-                        break;
+                ItemStack single = clicked.clone();
+                single.setAmount(1);
+                tryPlaceItem(single, () -> {
+                    if (clicked.getAmount() <= 1) {
+                        event.setCurrentItem(null);
+                    } else {
+                        clicked.setAmount(clicked.getAmount() - 1);
                     }
-                }
-
-                if (!hasAnyUnlocked) {
-                    player.sendMessage(plugin.getConfigManager().getMessage("errors.no-enchants-unlocked"));
-                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
-                    return;
-                }
-
-                itemToEnchant = clicked.clone();
-                event.setCurrentItem(null);
-                inventory.setItem(ITEM_SLOT, itemToEnchant);
-                page = 0;
-                updateEnchantments();
+                });
             }
             return;
         }
 
         int slot = event.getSlot();
 
-        // Handle item slot click (to take item back)
+        // Handle item slot click (place from cursor or take item back)
         if (slot == ITEM_SLOT) {
+            ItemStack cursor = event.getCursor();
+            if ((itemToEnchant == null || itemToEnchant.getType() == Material.AIR)
+                    && cursor != null && cursor.getType() != Material.AIR) {
+                ItemStack single = cursor.clone();
+                single.setAmount(1);
+                if (tryPlaceItem(single, () -> {
+                    if (cursor.getAmount() <= 1) {
+                        event.getView().setCursor(null);
+                    } else {
+                        cursor.setAmount(cursor.getAmount() - 1);
+                    }
+                })) {
+                    return;
+                }
+            }
+
             if (itemToEnchant != null && itemToEnchant.getType() != Material.AIR) {
                 ItemStack toReturn = itemToEnchant;
                 itemToEnchant = null;
@@ -441,6 +426,53 @@ public class EnchantingGUI implements BaseGUI {
             return;
 
         handleEnchantClick(clicked);
+    }
+
+    private boolean tryPlaceItem(ItemStack clicked, Runnable removeSource) {
+        if (plugin.getConfigManager().isBlacklisted(clicked)) {
+            player.sendMessage(plugin.getConfigManager().getMessage("errors.blacklisted-item"));
+            return false;
+        }
+        if (clicked.getAmount() > 1) {
+            player.sendMessage(plugin.getConfigManager().getMessage("errors.one-at-a-time"));
+            return false;
+        }
+
+        if (io.lumine.mythic.lib.api.item.NBTItem.get(clicked).hasTag("MMOITEMS_DISABLE_ENCHANTING")) {
+            player.sendMessage(plugin.getConfigManager().getMessage("errors.item-disabled-enchanting"));
+            return false;
+        }
+
+        if (itemToEnchant != null && itemToEnchant.getType() != Material.AIR) {
+            player.sendMessage(plugin.getConfigManager().getMessage("errors.remove-current-first"));
+            return false;
+        }
+
+        List<EnchantConfig> allApplicable = getApplicableEnchants(clicked);
+        boolean hasAnyUnlocked = false;
+        int playerSkillLevel = plugin.isAuraSkillsEnabled()
+                ? plugin.getAuraSkillsHook().getEnchantingLevel(player)
+                : 100;
+
+        for (EnchantConfig enchant : allApplicable) {
+            if (playerSkillLevel >= enchant.getRequiredEnchantingLevel()) {
+                hasAnyUnlocked = true;
+                break;
+            }
+        }
+
+        if (!hasAnyUnlocked) {
+            player.sendMessage(plugin.getConfigManager().getMessage("errors.no-enchants-unlocked"));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
+            return false;
+        }
+
+        itemToEnchant = clicked.clone();
+        removeSource.run();
+        inventory.setItem(ITEM_SLOT, itemToEnchant);
+        page = 0;
+        updateEnchantments();
+        return true;
     }
 
     private void handleEnchantClick(ItemStack clicked) {
@@ -775,10 +807,6 @@ public class EnchantingGUI implements BaseGUI {
                     .replace("{level}", "")
                     .replace("{cost}", String.valueOf(totalCost));
             player.sendMessage(ColorUtils.colorize(successMsg));
-
-            org.bukkit.Bukkit.getPluginManager().callEvent(
-                    new dev.agam.skyblockitems.api.events.SkyBlockEnchantEvent(
-                            player, itemToEnchant.clone(), enchant.getId(), 1));
 
             // Refresh the item in the inventory slot!
             inventory.setItem(ITEM_SLOT, itemToEnchant);

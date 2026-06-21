@@ -80,6 +80,18 @@ public class RarityManager {
         loadConfig();
     }
 
+    private void ensureAllowedInventoryType(String typeName) {
+        if (typeName == null || typeName.isEmpty()) {
+            return;
+        }
+        for (String allowed : allowedInventoryTypes) {
+            if (typeName.equalsIgnoreCase(allowed)) {
+                return;
+            }
+        }
+        allowedInventoryTypes.add(typeName);
+    }
+
     /** Called from inventory click/drag (survival) so {@link RarityTask} does not run in the same window. */
     public void markSurvivalInventoryEdited(UUID playerId) {
         lastSurvivalInventoryEditMs.put(playerId, System.currentTimeMillis());
@@ -117,6 +129,9 @@ public class RarityManager {
             checkerTime = configSection.getInt("checkerTime", 200);
             loreFormat = configSection.getStringList("lore-format");
             allowedInventoryTypes = configSection.getStringList("allowed-inventories");
+            ensureAllowedInventoryType("FURNACE");
+            ensureAllowedInventoryType("BLAST_FURNACE");
+            ensureAllowedInventoryType("SMOKER");
             // Stable version from config, defaults to 1.0 (prevents mismatch on restarts)
             currentConfigVersion = configSection.getDouble("version", 1.0);
         }

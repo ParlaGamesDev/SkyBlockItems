@@ -10,10 +10,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
+import org.bukkit.block.Block;
+import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -36,6 +39,83 @@ public class RarityListener implements Listener {
     public RarityListener(SkyBlockItems plugin) {
         this.plugin = plugin;
         this.rarityManager = plugin.getRarityManager();
+    }
+
+    private static boolean isSmeltingInventory(Inventory inventory) {
+        if (inventory == null) {
+            return false;
+        }
+        InventoryType type = inventory.getType();
+        return type == InventoryType.FURNACE
+                || type == InventoryType.BLAST_FURNACE
+                || type == InventoryType.SMOKER;
+    }
+
+    /**
+     * Apply rarity to smelt output before it lands in the furnace result slot
+     * ({@link FurnaceSmeltEvent#setResult(ItemStack)}).
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onFurnaceSmelt(FurnaceSmeltEvent event) {
+        ItemStack result = event.getResult();
+        if (result == null || result.getType().isAir()) {
+            return;
+        }
+        ItemStack processed = rarityManager.processItem(result.clone());
+        if (processed != null && processed.getType() == result.getType()) {
+            processed.setAmount(result.getAmount());
+            event.setResult(processed);
+        }
+
+        Block block = event.getBlock();
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (!(block.getState() instanceof org.bukkit.block.Container container)) {
+                return;
+            }
+            Inventory inventory = container.getInventory();
+            if (isSmeltingInventory(inventory)) {
+                rarityManager.processContainerInventory(inventory);
+            }
+        }, 1L);
+    }
+
+    /** Hopper/chest extraction from furnace output — rarity before the item leaves the smelter. */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onSmeltingInventoryMove(InventoryMoveItemEvent event) {
+        if (!isSmeltingInventory(event.getSource())) {
+            return;
+        }
+        ItemStack item = event.getItem();
+        if (item == null || item.getType().isAir()) {
+            return;
+        }
+        ItemStack processed = rarityManager.processItem(item.clone());
+        if (processed != null && processed.getType() == item.getType()) {
+            processed.setAmount(item.getAmount());
+            event.setItem(processed);
+        }
+    }
+
+    /** After taking smelted items, reconcile result slot + player inventory (shift-click / collect). */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onSmeltingInventoryClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        if (player.getGameMode() == GameMode.CREATIVE) {
+            return;
+        }
+        Inventory top = event.getView().getTopInventory();
+        if (!isSmeltingInventory(top)) {
+            return;
+        }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (!player.isOnline()) {
+                return;
+            }
+            rarityManager.processContainerInventory(top);
+            rarityManager.processInventory(player, false);
+        }, 1L);
     }
 
     /**

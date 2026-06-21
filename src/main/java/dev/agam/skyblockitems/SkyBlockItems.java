@@ -165,6 +165,7 @@ public class SkyBlockItems extends JavaPlugin {
         } catch (Throwable e) {
             System.err.println("[SkyBlockItems] [ERROR] Vault integration failed: " + e.getMessage());
         }
+
     }
 
     private void registerAllListeners() {

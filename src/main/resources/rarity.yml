@@ -21,8 +21,8 @@
 # =============================================================================
 
 Config:
-  # Backup scanner interval (ticks). 1 = every tick (can stutter survival moves). 10 = smoother; events still refresh rarity.
-  checkerTime: 10
+  # Backup scanner interval (ticks). 1 = every tick (can stutter survival moves). 200 = every 10s; events still refresh rarity.
+  checkerTime: 200
 
   # Lore format when rarity is applied
   lore-format:
@@ -39,6 +39,9 @@ Config:
     - DISPENSER
     - DROPPER
     - ENDER_CHEST
+    - FURNACE
+    - BLAST_FURNACE
+    - SMOKER
 
 
 # Priority (1, 2, 3...) determines display order. Lower = more common.
