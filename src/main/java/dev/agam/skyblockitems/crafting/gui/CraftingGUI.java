@@ -1,6 +1,8 @@
 package dev.agam.skyblockitems.crafting.gui;
 
 import dev.agam.skyblockitems.SkyBlockItems;
+import dev.agam.skyblockitems.api.events.SkyBlockCraftEvent;
+import dev.agam.skyblockitems.integration.QuestPluginHook;
 import dev.agam.skyblockitems.crafting.RecipeMatcher;
 import dev.agam.skyblockitems.rarity.Rarity;
 import dev.agam.skyblockitems.utils.ColorUtils;
@@ -271,15 +273,24 @@ public class CraftingGUI implements InventoryHolder {
 
         int crafted = 0;
         int maxCrafts = shift ? 64 : 1; // Limit to 64 for safety/stack size
+        ItemStack craftedPrototype = null;
+        Material recipeMaterial = null;
 
         while (crafted < maxCrafts) {
             // Check if we still have a recipe match
             Optional<ItemStack> currentResult = plugin.getCraftingManager().findResult(matrix, player);
             if (!currentResult.isPresent()) break;
 
-            ItemStack toAdd = currentResult.get().clone();
+            ItemStack rawResult = currentResult.get();
+            if (recipeMaterial == null) {
+                recipeMaterial = rawResult.getType();
+            }
+            ItemStack toAdd = rawResult.clone();
             // Apply Rarity
             toAdd = plugin.getRarityManager().processItem(toAdd);
+            if (craftedPrototype == null) {
+                craftedPrototype = toAdd.clone();
+            }
             
             if (player.getInventory().addItem(toAdd).isEmpty()) {
                 if (recipe.isPresent()) {
@@ -307,6 +318,7 @@ public class CraftingGUI implements InventoryHolder {
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 2.0f);
             updateResult();
             updateQuickCraft();
+            fireCraftEvent(craftedPrototype, crafted, recipeMaterial);
         }
     }
 
@@ -319,6 +331,8 @@ public class CraftingGUI implements InventoryHolder {
 
         int totalCrafted = 0;
         int maxCrafts = shift ? 64 : 1;
+        ItemStack craftedPrototype = null;
+        Material recipeMaterial = null;
 
         while (totalCrafted < maxCrafts) {
             ItemStack[] grid = getGridContents();
@@ -327,6 +341,14 @@ public class CraftingGUI implements InventoryHolder {
             if (slotIndex >= craftable.size()) break;
             
             ItemStack result = craftable.get(slotIndex);
+            if (recipeMaterial == null) {
+                recipeMaterial = plugin.getCraftingManager().findResult(grid, player)
+                        .map(ItemStack::getType)
+                        .orElse(result.getType());
+            }
+            if (craftedPrototype == null) {
+                craftedPrototype = result.clone();
+            }
             String resultId = RecipeMatcher.getIdentifier(result);
             Optional<dev.agam.skyblockitems.crafting.SkyBlockRecipe> custom = plugin.getCraftingManager().getCustomRecipes().stream()
                     .filter(r -> RecipeMatcher.getIdentifier(r.getResult()).equals(resultId)).findFirst();
@@ -362,7 +384,17 @@ public class CraftingGUI implements InventoryHolder {
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 2.0f);
             updateResult();
             updateQuickCraft();
+            fireCraftEvent(craftedPrototype, totalCrafted, recipeMaterial);
         }
+    }
+
+    private void fireCraftEvent(ItemStack craftedItem, int amount, Material recipeMaterial) {
+        if (craftedItem == null || craftedItem.getType().isAir() || amount <= 0) {
+            return;
+        }
+        String materialKey = recipeMaterial != null ? recipeMaterial.name() : craftedItem.getType().name();
+        QuestPluginHook.notifyCraft(player, craftedItem, amount, materialKey);
+        Bukkit.getPluginManager().callEvent(new SkyBlockCraftEvent(player, craftedItem, amount, materialKey));
     }
 
 
