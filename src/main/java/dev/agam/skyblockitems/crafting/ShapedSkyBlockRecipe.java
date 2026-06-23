@@ -75,7 +75,7 @@ public class ShapedSkyBlockRecipe extends SkyBlockRecipe {
     }
 
     @Override
-    public void consume(ItemStack[] matrix) {
+    public boolean consume(ItemStack[] matrix) {
         for (int yOff = -2; yOff <= 2; yOff++) {
             for (int xOff = -2; xOff <= 2; xOff++) {
                 if (checkMatch(matrix, xOff, yOff)) {
@@ -88,13 +88,16 @@ public class ShapedSkyBlockRecipe extends SkyBlockRecipe {
                                 ItemStack recipeIng = ingredients[r * 3 + c];
                                 if (item != null && recipeIng != null && recipeIng.getType() != Material.AIR) {
                                     item.setAmount(item.getAmount() - recipeIng.getAmount());
+                                    if (item.getAmount() <= 0)
+                                        matrix[mR * 3 + mC] = null;
                                 }
                             }
                         }
                     }
-                    return;
+                    return true;
                 }
             }
         }
+        return false;
     }
 }

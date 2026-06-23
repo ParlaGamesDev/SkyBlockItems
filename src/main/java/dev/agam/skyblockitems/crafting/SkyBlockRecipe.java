@@ -33,6 +33,9 @@ public abstract class SkyBlockRecipe {
     }
 
     public abstract boolean matches(ItemStack[] matrix);
-    
-    public abstract void consume(ItemStack[] matrix);
+
+    /**
+     * @return true if all ingredients were removed from the matrix
+     */
+    public abstract boolean consume(ItemStack[] matrix);
 }

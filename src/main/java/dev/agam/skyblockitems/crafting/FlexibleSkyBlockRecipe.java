@@ -35,13 +35,13 @@ public class FlexibleSkyBlockRecipe extends SkyBlockRecipe {
 
         for (Map.Entry<String, Integer> entry : ingredients.entrySet()) {
             Integer current = matrixCounts.get(entry.getKey());
-            if (current == null || current < entry.getValue()) return false;
+            if (current == null || !current.equals(entry.getValue())) return false;
         }
         return true;
     }
 
     @Override
-    public void consume(ItemStack[] matrix) {
+    public boolean consume(ItemStack[] matrix) {
         for (Map.Entry<String, Integer> entry : ingredients.entrySet()) {
             int remaining = entry.getValue();
             for (ItemStack is : matrix) {
@@ -52,6 +52,17 @@ public class FlexibleSkyBlockRecipe extends SkyBlockRecipe {
                     if (remaining <= 0) break;
                 }
             }
+            if (remaining > 0)
+                return false;
+        }
+        clearEmptyStacks(matrix);
+        return true;
+    }
+
+    private void clearEmptyStacks(ItemStack[] matrix) {
+        for (int i = 0; i < matrix.length; i++) {
+            if (matrix[i] != null && matrix[i].getAmount() <= 0)
+                matrix[i] = null;
         }
     }
 }

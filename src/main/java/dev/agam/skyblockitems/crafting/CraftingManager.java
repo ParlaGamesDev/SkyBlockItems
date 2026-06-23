@@ -157,6 +157,236 @@ public class CraftingManager {
         return Optional.empty();
     }
 
+    public Optional<SkyBlockRecipe> findCraftableRecipe(Player player, ItemStack[] grid, String resultIdentifier) {
+        if (resultIdentifier == null || resultIdentifier.isEmpty())
+            return Optional.empty();
+
+        ItemStack[] contents = combinePlayerContents(player, grid);
+        for (SkyBlockRecipe recipe : customRecipes) {
+            if (!RecipeMatcher.getIdentifier(recipe.getResult()).equals(resultIdentifier))
+                continue;
+            if (!canCraftWithPermission(player, recipe))
+                continue;
+            if (canCraft(contents, recipe))
+                return Optional.of(recipe);
+        }
+        return Optional.empty();
+    }
+
+    public Optional<Recipe> findCraftableVanillaRecipe(Player player, ItemStack[] grid, String resultIdentifier) {
+        if (resultIdentifier == null || resultIdentifier.isEmpty())
+            return Optional.empty();
+
+        ItemStack[] contents = combinePlayerContents(player, grid);
+        Iterator<Recipe> it = Bukkit.recipeIterator();
+        while (it.hasNext()) {
+            Recipe recipe = it.next();
+            if (!RecipeMatcher.getIdentifier(recipe.getResult()).equals(resultIdentifier))
+                continue;
+            if (canCraftVanilla(contents, recipe))
+                return Optional.of(recipe);
+        }
+        return Optional.empty();
+    }
+
+    public boolean consumeCraftableRecipe(Player player, SkyBlockRecipe recipe, ItemStack[] grid) {
+        int before = countIngredientItems(player, grid, recipe);
+        consumeFromInventory(player, recipe, grid);
+        int after = countIngredientItems(player, grid, recipe);
+        return after < before;
+    }
+
+    public boolean consumeCraftableVanilla(Player player, Recipe recipe, ItemStack[] grid) {
+        int before = countVanillaIngredientItems(player, grid, recipe);
+        consumeVanillaFromInventory(player, recipe, grid);
+        int after = countVanillaIngredientItems(player, grid, recipe);
+        return after < before;
+    }
+
+    private ItemStack[] combinePlayerContents(Player player, ItemStack[] grid) {
+        List<ItemStack> combined = new ArrayList<>();
+        if (player != null) {
+            for (ItemStack is : player.getInventory().getStorageContents()) {
+                if (is != null)
+                    combined.add(is.clone());
+            }
+        }
+        if (grid != null) {
+            for (ItemStack is : grid) {
+                if (is != null)
+                    combined.add(is.clone());
+            }
+        }
+        return combined.toArray(new ItemStack[0]);
+    }
+
+    private int countIngredientItems(Player player, ItemStack[] grid, SkyBlockRecipe recipe) {
+        Map<String, Integer> reqs = new HashMap<>();
+        if (recipe instanceof FlexibleSkyBlockRecipe flexible) {
+            reqs.putAll(flexible.getIngredientsMap());
+        } else if (recipe instanceof ShapedSkyBlockRecipe shaped) {
+            for (ItemStack is : shaped.getIngredients()) {
+                if (is != null && is.getType() != Material.AIR) {
+                    String id = RecipeMatcher.getIdentifier(is);
+                    reqs.put(id, reqs.getOrDefault(id, 0) + is.getAmount());
+                }
+            }
+        } else if (recipe instanceof ShapelessSkyBlockRecipe shapeless) {
+            for (ItemStack is : shapeless.getIngredients()) {
+                if (is != null && is.getType() != Material.AIR) {
+                    String id = RecipeMatcher.getIdentifier(is);
+                    reqs.put(id, reqs.getOrDefault(id, 0) + is.getAmount());
+                }
+            }
+        }
+
+        ItemStack[] contents = combinePlayerContents(player, grid);
+        Map<String, Integer> available = new HashMap<>();
+        for (ItemStack is : contents) {
+            if (is == null || is.getType() == Material.AIR)
+                continue;
+            String id = RecipeMatcher.getIdentifier(is);
+            available.put(id, available.getOrDefault(id, 0) + is.getAmount());
+        }
+
+        int total = 0;
+        for (Map.Entry<String, Integer> entry : reqs.entrySet())
+            total += Math.min(available.getOrDefault(entry.getKey(), 0), entry.getValue());
+        return total;
+    }
+
+    private int countVanillaIngredientItems(Player player, ItemStack[] grid, Recipe recipe) {
+        ItemStack[] ingredients;
+        if (recipe instanceof ShapedRecipe shaped)
+            ingredients = shaped.getIngredientMap().values().toArray(new ItemStack[0]);
+        else if (recipe instanceof ShapelessRecipe shapeless)
+            ingredients = shapeless.getIngredientList().toArray(new ItemStack[0]);
+        else
+            return 0;
+
+        ItemStack[] contents = combinePlayerContents(player, grid);
+        int count = 0;
+        for (ItemStack required : ingredients) {
+            if (required == null || required.getType() == Material.AIR)
+                continue;
+            for (ItemStack is : contents) {
+                if (is != null && RecipeMatcher.matches(is, required)) {
+                    count++;
+                    break;
+                }
+            }
+        }
+        return count;
+    }
+
+    public Optional<SkyBlockRecipe> findMatchingRecipe(ItemStack[] matrix, Player player, String resultIdentifier) {
+        if (resultIdentifier == null || resultIdentifier.isEmpty())
+            return Optional.empty();
+
+        for (SkyBlockRecipe recipe : customRecipes) {
+            if (!canCraftWithPermission(player, recipe))
+                continue;
+            if (!RecipeMatcher.getIdentifier(recipe.getResult()).equals(resultIdentifier))
+                continue;
+            if (recipe.matches(matrix))
+                return Optional.of(recipe);
+        }
+        return Optional.empty();
+    }
+
+    public Optional<Recipe> findMatchingVanillaRecipe(ItemStack[] matrix, String resultIdentifier) {
+        if (resultIdentifier == null || resultIdentifier.isEmpty() || isMatrixEmpty(matrix))
+            return Optional.empty();
+        if (containsRestrictedItems(matrix))
+            return Optional.empty();
+
+        Recipe vanilla = Bukkit.getCraftingRecipe(matrix, Bukkit.getWorlds().get(0));
+        if (vanilla == null)
+            return Optional.empty();
+        if (!RecipeMatcher.getIdentifier(vanilla.getResult()).equals(resultIdentifier))
+            return Optional.empty();
+        return Optional.of(vanilla);
+    }
+
+    public boolean consumeVanillaMatrix(ItemStack[] matrix, Recipe recipe) {
+        if (!(recipe instanceof ShapedRecipe || recipe instanceof ShapelessRecipe))
+            return false;
+
+        ItemStack[] snapshot = snapshotMatrix(matrix);
+        if (recipe instanceof ShapedRecipe shaped) {
+            for (int i = 0; i < 9; i++) {
+                ItemStack item = matrix[i];
+                if (item == null || item.getType() == Material.AIR)
+                    continue;
+                ItemStack[] ingredients = shaped.getIngredientMap().values().toArray(new ItemStack[0]);
+                boolean used = false;
+                for (ItemStack ing : ingredients) {
+                    if (ing != null && RecipeMatcher.matches(item, ing)) {
+                        used = true;
+                        break;
+                    }
+                }
+                if (!used)
+                    return false;
+                item.setAmount(item.getAmount() - 1);
+                if (item.getAmount() <= 0)
+                    matrix[i] = null;
+            }
+        } else {
+            ShapelessRecipe shapeless = (ShapelessRecipe) recipe;
+            for (ItemStack required : shapeless.getIngredientList()) {
+                if (required == null || required.getType() == Material.AIR)
+                    continue;
+                boolean removed = false;
+                for (int i = 0; i < 9; i++) {
+                    ItemStack item = matrix[i];
+                    if (item != null && RecipeMatcher.matches(item, required)) {
+                        item.setAmount(item.getAmount() - 1);
+                        if (item.getAmount() <= 0)
+                            matrix[i] = null;
+                        removed = true;
+                        break;
+                    }
+                }
+                if (!removed) {
+                    restoreMatrix(matrix, snapshot);
+                    return false;
+                }
+            }
+        }
+
+        if (matricesEqual(snapshot, matrix))
+            return false;
+        return true;
+    }
+
+    private ItemStack[] snapshotMatrix(ItemStack[] matrix) {
+        ItemStack[] copy = new ItemStack[matrix.length];
+        for (int i = 0; i < matrix.length; i++) {
+            copy[i] = matrix[i] == null ? null : matrix[i].clone();
+        }
+        return copy;
+    }
+
+    private void restoreMatrix(ItemStack[] matrix, ItemStack[] snapshot) {
+        for (int i = 0; i < matrix.length; i++)
+            matrix[i] = snapshot[i] == null ? null : snapshot[i].clone();
+    }
+
+    private boolean matricesEqual(ItemStack[] a, ItemStack[] b) {
+        for (int i = 0; i < a.length; i++) {
+            ItemStack left = a[i];
+            ItemStack right = b[i];
+            if (left == null && right == null)
+                continue;
+            if (left == null || right == null)
+                return false;
+            if (left.getType() != right.getType() || left.getAmount() != right.getAmount())
+                return false;
+        }
+        return true;
+    }
+
     public Optional<ItemStack> findResult(ItemStack[] matrix, Player player) {
         if (isMatrixEmpty(matrix)) return Optional.empty();
 

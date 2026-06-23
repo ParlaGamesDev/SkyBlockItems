@@ -44,7 +44,8 @@ public class ShapelessSkyBlockRecipe extends SkyBlockRecipe {
         if (matrixCounts.size() != reqCounts.size()) return false;
 
         for (java.util.Map.Entry<String, Integer> entry : reqCounts.entrySet()) {
-            if (!matrixCounts.containsKey(entry.getKey()) || matrixCounts.get(entry.getKey()) < entry.getValue()) {
+            Integer current = matrixCounts.get(entry.getKey());
+            if (current == null || !current.equals(entry.getValue())) {
                 return false;
             }
         }
@@ -52,7 +53,7 @@ public class ShapelessSkyBlockRecipe extends SkyBlockRecipe {
     }
 
     @Override
-    public void consume(ItemStack[] matrix) {
+    public boolean consume(ItemStack[] matrix) {
         java.util.Map<String, Integer> reqCounts = new java.util.HashMap<>();
         for (ItemStack is : ingredients) {
             if (is == null || is.getType() == org.bukkit.Material.AIR) continue;
@@ -70,6 +71,14 @@ public class ShapelessSkyBlockRecipe extends SkyBlockRecipe {
                     if (remaining <= 0) break;
                 }
             }
+            if (remaining > 0)
+                return false;
         }
+
+        for (int i = 0; i < matrix.length; i++) {
+            if (matrix[i] != null && matrix[i].getAmount() <= 0)
+                matrix[i] = null;
+        }
+        return true;
     }
 }
