@@ -120,7 +120,17 @@ public class CustomEnchantManager {
             customEnchants.put(id.toLowerCase(), enchant);
         }
 
-        plugin.getLogger().info("Loaded " + customEnchants.size() + " custom enchants.");
+        long disabled = customEnchants.values().stream().filter(c -> !c.isEnabled()).count();
+        plugin.getLogger().info("Loaded " + customEnchants.size() + " custom enchants (" + disabled + " disabled).");
+    }
+
+    public Collection<CustomEnchant> getEnabledEnchants() {
+        List<CustomEnchant> enabled = new ArrayList<>();
+        for (CustomEnchant enchant : customEnchants.values()) {
+            if (enchant.isEnabled())
+                enabled.add(enchant);
+        }
+        return enabled;
     }
 
     public void saveEnchant(CustomEnchant enchant) {
@@ -133,6 +143,7 @@ public class CustomEnchantManager {
         config.set(path + ".max-level", enchant.getMaxLevel());
         config.set(path + ".conflicts", enchant.getConflicts());
         config.set(path + ".required-enchanting-level", enchant.getRequiredEnchantingLevel());
+        config.set(path + ".enabled", enchant.isEnabled());
 
         // Save stats
         for (Map.Entry<EnchantStat, Double> entry : enchant.getStats().entrySet()) {

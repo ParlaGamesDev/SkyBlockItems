@@ -59,11 +59,8 @@ public class EnchantmentGuideGUI implements BaseGUI {
 
         // Gather all enchantments
         List<EnchantConfig> allEnchants = new ArrayList<>();
-        plugin.getEnchantManager().getEnchants().values().stream()
-                .filter(EnchantConfig::isEnabled)
-                .forEach(allEnchants::add);
-        plugin.getCustomEnchantManager().getAllEnchants().stream()
-                .filter(CustomEnchant::isEnabled)
+        allEnchants.addAll(plugin.getEnchantManager().getEnabledEnchants());
+        plugin.getCustomEnchantManager().getEnabledEnchants().stream()
                 .map(CustomEnchant::toEnchantConfig)
                 .forEach(allEnchants::add);
 

@@ -279,6 +279,10 @@ public class SkyBlockItems extends JavaPlugin {
         // 1. Core Configs (messages, enchants, config.yml)
         enchantConfigManager.reload();
 
+        if (enchantManager != null) {
+            enchantManager.reload();
+        }
+
         // 2. Main plugin abilities.yml
         loadCustomConfigs();
 

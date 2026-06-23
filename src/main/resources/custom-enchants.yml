@@ -4,7 +4,7 @@ custom-enchants:
     display-name: '&aFarming Fortune'
     description: '&7נותן סיכוי לקצור יבולים כפולים ומשולשים'
     material: WHEAT
-    required-enchanting-level: 5
+    required-enchanting-level: 11
     targets:
       - HOE
     max-level: 5
@@ -24,7 +24,7 @@ custom-enchants:
     display-name: '&eTurbo Miner'
     description: '&7מעניק מהירות כרייה נוספת כשכורים ברצף'
     material: NETHERITE_PICKAXE
-    required-enchanting-level: 5
+    required-enchanting-level: 11
     targets:
       - PICKAXE
     max-level: 1
@@ -64,7 +64,7 @@ custom-enchants:
     display-name: '&8Monster Soul'
     description: '&7מקבל פי 10 מהנזק של המפלצת שהרגת למכה הקריטית הבאה'
     material: DIAMOND_SWORD
-    required-enchanting-level: 32
+    required-enchanting-level: 23
     targets:
       - SWORD
       - AXE
@@ -91,7 +91,7 @@ custom-enchants:
     display-name: '&eHarvesting'
     description: '&7מגדיל את כמות הבלוקים שמתקבלים מעצים'
     material: PUMPKIN_SEEDS
-    required-enchanting-level: 24
+    required-enchanting-level: 25
     targets:
       - AXE
     max-level: 5
@@ -111,7 +111,7 @@ custom-enchants:
     display-name: '&7Delicate'
     description: '&7מונע הריסת יבולים שלא גדלו עד הסוף'
     material: MELON_SEEDS
-    required-enchanting-level: 28
+    required-enchanting-level: 22
     targets:
       - HOE
     max-level: 1

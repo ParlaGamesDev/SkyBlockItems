@@ -480,7 +480,7 @@ public class EnchantingGUI implements BaseGUI {
 
         // Check normal enchants - Sort by name length descending to catch longer
         // matches first (e.g. Blast Protection before Protection)
-        List<EnchantConfig> sortedEnchants = new ArrayList<>(plugin.getEnchantManager().getEnchants().values());
+        List<EnchantConfig> sortedEnchants = new ArrayList<>(plugin.getEnchantManager().getEnabledEnchants());
         sortedEnchants.sort((a, b) -> {
             String nameA = ChatColor.stripColor(ColorUtils.colorize(a.getDisplayName()));
             String nameB = ChatColor.stripColor(ColorUtils.colorize(b.getDisplayName()));
@@ -524,7 +524,7 @@ public class EnchantingGUI implements BaseGUI {
         }
 
         // Check custom enchants - Sort by name length descending
-        List<CustomEnchant> sortedCustom = new ArrayList<>(plugin.getCustomEnchantManager().getAllEnchants());
+        List<CustomEnchant> sortedCustom = new ArrayList<>(plugin.getCustomEnchantManager().getEnabledEnchants());
         sortedCustom.sort((a, b) -> {
             String nameA = ChatColor.stripColor(ColorUtils.colorize(a.getDisplayName()));
             String nameB = ChatColor.stripColor(ColorUtils.colorize(b.getDisplayName()));
@@ -679,10 +679,7 @@ public class EnchantingGUI implements BaseGUI {
         Set<String> itemCategories = getItemCategories(item);
 
         // 1. Add Vanilla Enchants
-        for (EnchantConfig enchant : plugin.getEnchantManager().getEnchants().values()) {
-            if (!enchant.isEnabled())
-                continue;
-
+        for (EnchantConfig enchant : plugin.getEnchantManager().getEnabledEnchants()) {
             boolean matches = false;
             for (String target : enchant.getTargets()) {
                 if (target.equalsIgnoreCase("GLOBAL") || itemCategories.contains(target.toUpperCase())) {
@@ -696,10 +693,7 @@ public class EnchantingGUI implements BaseGUI {
         }
 
         // 2. Add Custom Enchants
-        for (CustomEnchant customEnchant : plugin.getCustomEnchantManager().getAllEnchants()) {
-            if (!customEnchant.isEnabled())
-                continue;
-
+        for (CustomEnchant customEnchant : plugin.getCustomEnchantManager().getEnabledEnchants()) {
             EnchantConfig config = customEnchant.toEnchantConfig();
 
             boolean matches = false;
@@ -743,6 +737,9 @@ public class EnchantingGUI implements BaseGUI {
 
     private void applyEnchantmentImmediately(EnchantConfig enchant) {
         if (itemToEnchant == null)
+            return;
+
+        if (!enchant.isEnabled())
             return;
 
         // Check if item already has this enchantment at this level (or higher)

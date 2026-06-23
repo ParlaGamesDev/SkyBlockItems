@@ -433,6 +433,9 @@ public class CustomAnvilGUI implements BaseGUI {
             String id = entry.getKey();
             int sacrificeLevel = entry.getValue();
 
+            if (!plugin.getEnchantManager().isAvailableToPlayers(id))
+                continue;
+
             // Applicability Check
             boolean applicable = targetIsBook || isApplicable(id, target);
             if (!applicable)
@@ -497,6 +500,8 @@ public class CustomAnvilGUI implements BaseGUI {
 
         var conf = plugin.getEnchantManager().getEnchant(id);
         if (conf != null) {
+            if (!conf.isEnabled())
+                return false;
             for (String cat : conf.getTargets()) {
                 if (categories.contains(cat) || cat.equals("GLOBAL"))
                     return true;
@@ -506,6 +511,8 @@ public class CustomAnvilGUI implements BaseGUI {
 
         var ce = plugin.getCustomEnchantManager().getEnchant(id);
         if (ce != null) {
+            if (!ce.isEnabled())
+                return false;
             for (String cat : ce.getTargets()) {
                 if (categories.contains(cat) || cat.equals("GLOBAL"))
                     return true;
@@ -578,22 +585,7 @@ public class CustomAnvilGUI implements BaseGUI {
     }
 
     private Map<String, Integer> getEnchantMap(ItemStack item) {
-        if (isEmpty(item) || !item.hasItemMeta())
-            return new HashMap<>();
-
-        ItemMeta meta = item.getItemMeta();
-        List<String> lore = meta.getLore();
-        Map<String, Integer> enchants = plugin.getEnchantManager().parseLore(lore);
-
-        // Also capture vanilla enchants from the item itself
-        item.getEnchantments().forEach((e, l) -> enchants.put(e.getKey().getKey().toLowerCase(), l));
-
-        // CRITICAL: Also capture stored enchants from Enchanted Books
-        if (meta instanceof org.bukkit.inventory.meta.EnchantmentStorageMeta esm) {
-            esm.getStoredEnchants().forEach((e, l) -> enchants.put(e.getKey().getKey().toLowerCase(), l));
-        }
-
-        return enchants;
+        return plugin.getEnchantManager().getEnchantsFromItem(item);
     }
 
     private boolean areConflicting(String id1, String id2) {

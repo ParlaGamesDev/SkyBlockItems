@@ -66,9 +66,19 @@ public class ConfigManager {
             // 2. FORCE MERGE - Copy missing keys from default to active config
             // This is required for getConfigurationSection to work on the main config
             // object
+            boolean changed = false;
             for (String key : defConfig.getKeys(true)) {
                 if (!config.contains(key)) {
                     config.set(key, defConfig.get(key));
+                    changed = true;
+                }
+            }
+
+            if (changed) {
+                try {
+                    config.save(file);
+                } catch (java.io.IOException e) {
+                    plugin.getLogger().warning("Could not save merged defaults to " + fileName + ": " + e.getMessage());
                 }
             }
         }

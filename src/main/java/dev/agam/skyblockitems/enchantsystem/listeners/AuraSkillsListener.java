@@ -35,7 +35,7 @@ public class AuraSkillsListener implements Listener {
             int newLevel = event.getLevel();
 
             // Check normal enchants
-            for (EnchantConfig enchant : plugin.getEnchantManager().getEnchants().values()) {
+            for (EnchantConfig enchant : plugin.getEnchantManager().getEnabledEnchants()) {
                 int required = plugin.getConfig().getInt("required-enchanting-level-" + enchant.getId().toLowerCase(),
                         enchant.getRequiredEnchantingLevel());
 
@@ -45,7 +45,7 @@ public class AuraSkillsListener implements Listener {
             }
 
             // Check custom enchants
-            for (CustomEnchant enchant : plugin.getCustomEnchantManager().getAllEnchants()) {
+            for (CustomEnchant enchant : plugin.getCustomEnchantManager().getEnabledEnchants()) {
                 int required = enchant.getRequiredEnchantingLevel();
                 if (required == newLevel) {
                     notifyUnlock(player, enchant.getDisplayName());

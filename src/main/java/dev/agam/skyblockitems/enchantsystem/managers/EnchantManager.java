@@ -55,7 +55,41 @@ public class EnchantManager {
             }
         }
 
-        plugin.getLogger().info("Loaded " + enchants.size() + " enchantments.");
+        long disabled = enchants.values().stream().filter(c -> !c.isEnabled()).count();
+        plugin.getLogger().info("Loaded " + enchants.size() + " enchantments (" + disabled + " disabled).");
+    }
+
+    public void reload() {
+        loadEnchants();
+    }
+
+    /**
+     * Whether this enchant can be obtained or shown in player-facing systems
+     * (enchant GUI, guide, anvil books). Disabled enchants stay in config for
+     * easy re-enable via enabled: true.
+     */
+    public boolean isAvailableToPlayers(String id) {
+        if (id == null)
+            return false;
+
+        EnchantConfig conf = enchants.get(id.toLowerCase());
+        if (conf != null)
+            return conf.isEnabled();
+
+        CustomEnchant ce = plugin.getCustomEnchantManager().getEnchant(id);
+        if (ce != null)
+            return ce.isEnabled();
+
+        return true;
+    }
+
+    public Collection<EnchantConfig> getEnabledEnchants() {
+        List<EnchantConfig> enabled = new ArrayList<>();
+        for (EnchantConfig config : enchants.values()) {
+            if (config.isEnabled())
+                enabled.add(config);
+        }
+        return enabled;
     }
 
     private void loadEnchant(String id, ConfigurationSection section) {
@@ -216,6 +250,38 @@ public class EnchantManager {
             }
         }
         return result;
+    }
+
+    /**
+     * Collects enchants tracked by this plugin from an item's lore and NBT.
+     * Skips cosmetic vanilla enchants on incompatible items (e.g. Lure I used only
+     * for glow on MMOItems gear).
+     */
+    public Map<String, Integer> getEnchantsFromItem(ItemStack item) {
+        Map<String, Integer> enchants = new HashMap<>();
+        if (item == null || !item.hasItemMeta())
+            return enchants;
+
+        ItemMeta meta = item.getItemMeta();
+        enchants.putAll(parseLore(meta.getLore()));
+
+        if (meta instanceof EnchantmentStorageMeta esm) {
+            esm.getStoredEnchants().forEach(
+                    (e, l) -> enchants.put(e.getKey().getKey().toLowerCase(), l));
+            return enchants;
+        }
+
+        item.getEnchantments().forEach((e, l) -> {
+            if (e.canEnchantItem(item))
+                enchants.put(e.getKey().getKey().toLowerCase(), l);
+        });
+
+        enchants.entrySet().removeIf(entry -> {
+            Enchantment vanilla = Enchantment.getByKey(NamespacedKey.minecraft(entry.getKey()));
+            return vanilla != null && !vanilla.canEnchantItem(item);
+        });
+
+        return enchants;
     }
 
     public String getDisplayNameForId(String id) {
@@ -494,10 +560,6 @@ public class EnchantManager {
             case 10 -> "X";
             default -> String.valueOf(num);
         };
-    }
-
-    public void reload() {
-        loadEnchants();
     }
 
     // ============================================

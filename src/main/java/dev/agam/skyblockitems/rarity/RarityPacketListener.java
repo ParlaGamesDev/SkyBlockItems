@@ -7,7 +7,12 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import dev.agam.skyblockitems.SkyBlockItems;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.BlockInventoryHolder;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+
 import java.util.List;
 
 /**
@@ -17,11 +22,13 @@ import java.util.List;
  */
 public class RarityPacketListener extends PacketAdapter {
 
+    private static final int SMELTING_RESULT_SLOT = 2;
+
     private final RarityManager rarityManager;
 
     public RarityPacketListener(SkyBlockItems plugin) {
-        super(plugin, ListenerPriority.HIGHEST, 
-            PacketType.Play.Server.SET_SLOT, 
+        super(plugin, ListenerPriority.HIGHEST,
+            PacketType.Play.Server.SET_SLOT,
             PacketType.Play.Server.WINDOW_ITEMS,
             PacketType.Play.Server.SET_CURSOR_ITEM);
         this.rarityManager = plugin.getRarityManager();
@@ -33,26 +40,27 @@ public class RarityPacketListener extends PacketAdapter {
 
     @Override
     public void onPacketSending(PacketEvent event) {
+        if (event.getPacketType() == PacketType.Play.Server.SET_CURSOR_ITEM) {
+            handleCursorItem(event);
+            return;
+        }
+
+        if (!shouldProcessPacket(event)) {
+            return;
+        }
+
         PacketContainer packet = event.getPacket();
-        
+
         if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
+            int slot = readSetSlotIndex(packet);
             ItemStack item = packet.getItemModifier().read(0);
             if (shouldProcess(item)) {
                 ItemStack visualItem = item.clone();
-                if (applyVisualRarity(visualItem)) {
-                    packet.getItemModifier().write(0, visualItem);
-                }
-            }
-        } else if (event.getPacketType() == PacketType.Play.Server.SET_CURSOR_ITEM) {
-            ItemStack item = packet.getItemModifier().read(0);
-            if (shouldProcess(item)) {
-                ItemStack visualItem = item.clone();
-                if (applyVisualRarity(visualItem)) {
+                if (applyVisualRarity(event, visualItem, slot)) {
                     packet.getItemModifier().write(0, visualItem);
                 }
             }
         } else if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
-            // Process the list of items
             List<ItemStack> items = packet.getItemListModifier().read(0);
             if (items != null) {
                 boolean modified = false;
@@ -60,7 +68,7 @@ public class RarityPacketListener extends PacketAdapter {
                     ItemStack item = items.get(i);
                     if (shouldProcess(item)) {
                         ItemStack visualItem = item.clone();
-                        if (applyVisualRarity(visualItem)) {
+                        if (applyVisualRarity(event, visualItem, i)) {
                             items.set(i, visualItem);
                             modified = true;
                         }
@@ -70,37 +78,151 @@ public class RarityPacketListener extends PacketAdapter {
                     packet.getItemListModifier().write(0, items);
                 }
             }
-            
-            // Process the carried item (cursor item in 1.17+)
-            // Some ProtocolLib versions map this to the second ItemStack modifier
+
             try {
                 if (packet.getItemModifier().size() > 1) {
                     ItemStack carried = packet.getItemModifier().read(1);
                     if (shouldProcess(carried)) {
                         ItemStack visualItem = carried.clone();
-                        if (applyVisualRarity(visualItem)) {
+                        if (applyVisualRarity(event, visualItem, -1)) {
                             packet.getItemModifier().write(1, visualItem);
                         }
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
+    }
+
+    private void handleCursorItem(PacketEvent event) {
+        ItemStack item = event.getPacket().getItemModifier().read(0);
+        if (!shouldProcess(item)) {
+            return;
+        }
+        // Cursor is always player context; only items already stamped with rarity NBT.
+        if (rarityManager.getCurrentRarity(item) == null) {
+            return;
+        }
+        ItemStack visualItem = item.clone();
+        if (applyVisualRarity(event, visualItem, -1)) {
+            event.getPacket().getItemModifier().write(0, visualItem);
+        }
+    }
+
+    /**
+     * Skip virtual plugin menus (collections, shops, etc.). Only player inventory, physical blocks,
+     * smelters, and SkyBlockItems GUIs may receive injected lore.
+     */
+    private boolean shouldProcessPacket(PacketEvent event) {
+        Player player = event.getPlayer();
+        if (player == null) {
+            return false;
+        }
+
+        int windowId = readWindowId(event.getPacket());
+        if (windowId == 0) {
+            return true;
+        }
+
+        InventoryView view = player.getOpenInventory();
+        Inventory top = view.getTopInventory();
+        if (top == null) {
+            return false;
+        }
+
+        if (RarityManager.isSmeltingInventory(top)) {
+            return true;
+        }
+
+        if (top.getHolder() instanceof BlockInventoryHolder) {
+            return rarityManager.isAllowedInventory(view);
+        }
+
+        return isSkyBlockItemsGui(top);
+    }
+
+    private static boolean isSkyBlockItemsGui(Inventory inventory) {
+        if (inventory.getHolder() == null) {
+            return false;
+        }
+        return inventory.getHolder().getClass().getName().startsWith("dev.agam.skyblockitems");
     }
 
     private boolean shouldProcess(ItemStack item) {
         return item != null && !item.getType().isAir();
     }
 
-    /**
-     * Applies visual rarity lore if applicable.
-     * @return true if the item was modified.
-     */
-    private boolean applyVisualRarity(ItemStack item) {
-        Rarity rarity = rarityManager.getCurrentRarity(item);
-        if (rarity != null && !rarity.getIdentifier().equalsIgnoreCase("NONE")) {
-            rarityManager.updateRarityLore(item, rarity);
-            return true;
+    private boolean applyVisualRarity(PacketEvent event, ItemStack item, int windowSlotIndex) {
+        Rarity stamped = rarityManager.getCurrentRarity(item);
+        Rarity rarity = stamped;
+
+        if ((rarity == null || rarity.getIdentifier().equalsIgnoreCase("NONE"))
+                && isSmeltingResultSlot(event, windowSlotIndex)) {
+            rarity = rarityManager.getRarityForItem(item);
         }
-        return false;
+
+        if (rarity == null || rarity.getIdentifier().equalsIgnoreCase("NONE")) {
+            return false;
+        }
+
+        // Mapped rarity (no NBT yet) is furnace-output only.
+        if (stamped == null && !isSmeltingResultSlot(event, windowSlotIndex)) {
+            return false;
+        }
+
+        rarityManager.updateRarityLore(item, rarity);
+        return true;
+    }
+
+    private boolean isSmeltingResultSlot(PacketEvent event, int windowSlotIndex) {
+        if (windowSlotIndex != SMELTING_RESULT_SLOT) {
+            return false;
+        }
+
+        Player player = event.getPlayer();
+        if (player == null) {
+            return false;
+        }
+
+        InventoryView view = player.getOpenInventory();
+        if (!RarityManager.isSmeltingInventory(view.getTopInventory())) {
+            return false;
+        }
+
+        if (SMELTING_RESULT_SLOT >= view.getTopInventory().getSize()) {
+            return false;
+        }
+
+        int windowId = readWindowId(event.getPacket());
+        if (windowId == 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static int readWindowId(PacketContainer packet) {
+        try {
+            return packet.getIntegers().read(0);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private static int readSetSlotIndex(PacketContainer packet) {
+        try {
+            if (packet.getIntegers().size() >= 3) {
+                return packet.getIntegers().read(2);
+            }
+            if (packet.getIntegers().size() >= 2) {
+                return packet.getIntegers().read(1);
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            return packet.getShorts().read(0);
+        } catch (Exception ignored) {
+        }
+        return -1;
     }
 }

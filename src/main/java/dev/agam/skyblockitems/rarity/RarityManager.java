@@ -1249,10 +1249,77 @@ public class RarityManager {
     }
 
     /**
+     * Whether two stacks may combine in player storage (hotbar + main), including plain + rarity-stamped pairs.
+     */
+    public boolean canMergeInPlayerInventory(ItemStack a, ItemStack b) {
+        return canMergePlayerStorageStacks(a, b);
+    }
+
+    /**
+     * Adds a stack to player storage after {@link #processItem(ItemStack)}; merges into compatible slots first.
+     *
+     * @return amount that could not fit (inventory full)
+     */
+    public int addProcessedStackToPlayer(Player player, ItemStack stack) {
+        if (player == null || stack == null || stack.getType().isAir() || stack.getAmount() <= 0) {
+            return stack != null ? stack.getAmount() : 0;
+        }
+        ItemStack processed = processItem(stack.clone());
+        int remaining = processed.getAmount();
+        PlayerInventory inv = player.getInventory();
+        ItemStack mergeProbe = processed.clone();
+        mergeProbe.setAmount(1);
+
+        for (int i = 0; i < 36 && remaining > 0; i++) {
+            ItemStack slot = inv.getItem(i);
+            if (slot == null || slot.getType().isAir()) {
+                continue;
+            }
+            if (!canMergePlayerStorageStacks(slot, mergeProbe)) {
+                continue;
+            }
+            int space = slot.getMaxStackSize() - slot.getAmount();
+            if (space <= 0) {
+                continue;
+            }
+            int move = Math.min(space, remaining);
+            slot.setAmount(slot.getAmount() + move);
+            inv.setItem(i, slot);
+            remaining -= move;
+        }
+
+        for (int i = 0; i < 36 && remaining > 0; i++) {
+            ItemStack slot = inv.getItem(i);
+            if (slot != null && !slot.getType().isAir()) {
+                continue;
+            }
+            int move = Math.min(processed.getMaxStackSize(), remaining);
+            ItemStack placed = processed.clone();
+            placed.setAmount(move);
+            inv.setItem(i, placed);
+            remaining -= move;
+        }
+        return remaining;
+    }
+
+    /**
+     * Furnace / blast furnace / smoker — never write rarity into the live tile inventory (breaks smelting).
+     */
+    public static boolean isSmeltingInventory(Inventory inventory) {
+        if (inventory == null) {
+            return false;
+        }
+        org.bukkit.event.inventory.InventoryType type = inventory.getType();
+        return type == org.bukkit.event.inventory.InventoryType.FURNACE
+                || type == org.bukkit.event.inventory.InventoryType.BLAST_FURNACE
+                || type == org.bukkit.event.inventory.InventoryType.SMOKER;
+    }
+
+    /**
      * Applies rarity rules to every slot in a block inventory (chest, shulker, etc.).
      */
     public void processContainerInventory(Inventory inventory) {
-        if (inventory == null) {
+        if (inventory == null || isSmeltingInventory(inventory)) {
             return;
         }
         ItemStack[] contents = inventory.getContents();

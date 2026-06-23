@@ -10,8 +10,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
-import org.bukkit.block.Block;
-import org.bukkit.event.inventory.FurnaceSmeltEvent;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
@@ -33,6 +33,8 @@ import java.util.Locale;
  */
 public class RarityListener implements Listener {
 
+    private static final int SMELTING_RESULT_SLOT = 2;
+
     private final SkyBlockItems plugin;
     private final RarityManager rarityManager;
 
@@ -41,48 +43,122 @@ public class RarityListener implements Listener {
         this.rarityManager = plugin.getRarityManager();
     }
 
-    private static boolean isSmeltingInventory(Inventory inventory) {
-        if (inventory == null) {
-            return false;
-        }
-        InventoryType type = inventory.getType();
-        return type == InventoryType.FURNACE
-                || type == InventoryType.BLAST_FURNACE
-                || type == InventoryType.SMOKER;
-    }
-
     /**
-     * Apply rarity to smelt output before it lands in the furnace result slot
-     * ({@link FurnaceSmeltEvent#setResult(ItemStack)}).
+     * Take smelt output with server-side rarity on exit. The furnace result slot stays vanilla so
+     * {@code canBurn}/{@code canSmelt} keep working; clients still see rarity lore via {@link RarityPacketListener}.
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onFurnaceSmelt(FurnaceSmeltEvent event) {
-        ItemStack result = event.getResult();
-        if (result == null || result.getType().isAir()) {
+    public void onSmeltingResultTake(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-        ItemStack processed = rarityManager.processItem(result.clone());
-        if (processed != null && processed.getType() == result.getType()) {
-            processed.setAmount(result.getAmount());
-            event.setResult(processed);
+        if (player.getGameMode() == GameMode.CREATIVE) {
+            return;
+        }
+        Inventory top = event.getView().getTopInventory();
+        if (!RarityManager.isSmeltingInventory(top)) {
+            return;
+        }
+        Inventory clicked = event.getClickedInventory();
+        if (clicked == null || !RarityManager.isSmeltingInventory(clicked)
+                || event.getSlot() != SMELTING_RESULT_SLOT) {
+            return;
         }
 
-        Block block = event.getBlock();
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (!(block.getState() instanceof org.bukkit.block.Container container)) {
-                return;
+        ItemStack rawResult = event.getCurrentItem();
+        if (rawResult == null || rawResult.getType().isAir()) {
+            return;
+        }
+
+        ItemStack cursor = event.getCursor();
+        boolean cursorEmpty = cursor == null || cursor.getType().isAir();
+        ClickType click = event.getClick();
+
+        if (!cursorEmpty && rawResult.getType() == cursor.getType()) {
+            if (click == ClickType.LEFT || click == ClickType.RIGHT) {
+                mergeSmeltingResultOntoCursor(event, player, top, rawResult, cursor);
             }
-            Inventory inventory = container.getInventory();
-            if (isSmeltingInventory(inventory)) {
-                rarityManager.processContainerInventory(inventory);
+            return;
+        }
+        if (!cursorEmpty) {
+            return;
+        }
+        if (click != ClickType.LEFT && click != ClickType.RIGHT && click != ClickType.DOUBLE_CLICK
+                && !event.isShiftClick()) {
+            return;
+        }
+
+        event.setCancelled(true);
+
+        if (event.isShiftClick() || event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+            int leftover = rarityManager.addProcessedStackToPlayer(player, rawResult);
+            if (leftover <= 0) {
+                top.setItem(SMELTING_RESULT_SLOT, null);
+            } else if (leftover < rawResult.getAmount()) {
+                ItemStack remainVanilla = rawResult.clone();
+                remainVanilla.setAmount(leftover);
+                top.setItem(SMELTING_RESULT_SLOT, remainVanilla);
             }
-        }, 1L);
+        } else if (click == ClickType.DOUBLE_CLICK) {
+            ItemStack processed = rarityManager.processItem(rawResult.clone());
+            processed.setAmount(rawResult.getAmount());
+            event.getView().setCursor(processed);
+            top.setItem(SMELTING_RESULT_SLOT, null);
+            rarityManager.processInventory(player, true, true);
+        } else {
+            int takeAmount = click == ClickType.RIGHT
+                    ? (rawResult.getAmount() + 1) / 2
+                    : rawResult.getAmount();
+            takeAmount = Math.min(takeAmount, rawResult.getAmount());
+
+            ItemStack toCursor = rarityManager.processItem(rawResult.clone());
+            toCursor.setAmount(takeAmount);
+            event.getView().setCursor(toCursor);
+
+            int remainAmount = rawResult.getAmount() - takeAmount;
+            if (remainAmount > 0) {
+                ItemStack remainVanilla = rawResult.clone();
+                remainVanilla.setAmount(remainAmount);
+                top.setItem(SMELTING_RESULT_SLOT, remainVanilla);
+            } else {
+                top.setItem(SMELTING_RESULT_SLOT, null);
+            }
+        }
+
+        player.updateInventory();
     }
 
-    /** Hopper/chest extraction from furnace output — rarity before the item leaves the smelter. */
+    private void mergeSmeltingResultOntoCursor(InventoryClickEvent event, Player player, Inventory top,
+            ItemStack rawResult, ItemStack cursor) {
+        ItemStack processed = rarityManager.processItem(rawResult.clone());
+        ItemStack mergeProbe = processed.clone();
+        mergeProbe.setAmount(1);
+        if (!rarityManager.canMergeInPlayerInventory(cursor, mergeProbe)) {
+            return;
+        }
+
+        event.setCancelled(true);
+        int space = cursor.getMaxStackSize() - cursor.getAmount();
+        int move = Math.min(space, rawResult.getAmount());
+        ItemStack newCursor = rarityManager.processItem(cursor.clone());
+        newCursor.setAmount(cursor.getAmount() + move);
+        event.getView().setCursor(newCursor);
+
+        int remainAmount = rawResult.getAmount() - move;
+        if (remainAmount > 0) {
+            ItemStack remainVanilla = rawResult.clone();
+            remainVanilla.setAmount(remainAmount);
+            top.setItem(SMELTING_RESULT_SLOT, remainVanilla);
+        } else {
+            top.setItem(SMELTING_RESULT_SLOT, null);
+        }
+        player.updateInventory();
+    }
+
+    /** Hopper extraction — stamp rarity as the item leaves the smelter (slot stays vanilla while inside). */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onSmeltingInventoryMove(InventoryMoveItemEvent event) {
-        if (!isSmeltingInventory(event.getSource())) {
+        if (!RarityManager.isSmeltingInventory(event.getSource())) {
             return;
         }
         ItemStack item = event.getItem();
@@ -94,28 +170,6 @@ public class RarityListener implements Listener {
             processed.setAmount(item.getAmount());
             event.setItem(processed);
         }
-    }
-
-    /** After taking smelted items, reconcile result slot + player inventory (shift-click / collect). */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onSmeltingInventoryClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) {
-            return;
-        }
-        if (player.getGameMode() == GameMode.CREATIVE) {
-            return;
-        }
-        Inventory top = event.getView().getTopInventory();
-        if (!isSmeltingInventory(top)) {
-            return;
-        }
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (!player.isOnline()) {
-                return;
-            }
-            rarityManager.processContainerInventory(top);
-            rarityManager.processInventory(player, false);
-        }, 1L);
     }
 
     /**

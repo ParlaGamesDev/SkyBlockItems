@@ -338,6 +338,8 @@ public class LevelSelectionGUI implements BaseGUI {
     }
 
     private void applyEnchantment(int level, LevelConfig levelConfig) {
+        if (!plugin.getEnchantManager().isAvailableToPlayers(enchant.getId()))
+            return;
         plugin.getEnchantManager().applyEnchantment(itemToEnchant, enchant.getId(), level);
     }
 
