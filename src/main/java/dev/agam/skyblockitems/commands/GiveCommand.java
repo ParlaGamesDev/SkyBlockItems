@@ -128,8 +128,8 @@ public class GiveCommand implements CommandExecutor, TabCompleter, Listener {
 
         item.setAmount(amount);
 
-        // Apply rarity BEFORE giving
-        item = plugin.getRarityManager().processItem(item);
+        // Apply rarity + lore on the item itself (not packet-only)
+        item = plugin.getRarityManager().processItemWithLore(item);
 
         // Give the item to the players
         for (Player p : targets) {

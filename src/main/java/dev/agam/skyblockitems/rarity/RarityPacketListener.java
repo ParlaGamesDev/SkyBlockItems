@@ -45,14 +45,13 @@ public class RarityPacketListener extends PacketAdapter {
             return;
         }
 
-        if (!shouldProcessPacket(event)) {
-            return;
-        }
-
         PacketContainer packet = event.getPacket();
 
         if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
             int slot = readSetSlotIndex(packet);
+            if (!shouldProcessSlot(event, slot)) {
+                return;
+            }
             ItemStack item = packet.getItemModifier().read(0);
             if (shouldProcess(item)) {
                 ItemStack visualItem = item.clone();
@@ -65,6 +64,9 @@ public class RarityPacketListener extends PacketAdapter {
             if (items != null) {
                 boolean modified = false;
                 for (int i = 0; i < items.size(); i++) {
+                    if (!shouldProcessSlot(event, i)) {
+                        continue;
+                    }
                     ItemStack item = items.get(i);
                     if (shouldProcess(item)) {
                         ItemStack visualItem = item.clone();
@@ -82,7 +84,7 @@ public class RarityPacketListener extends PacketAdapter {
             try {
                 if (packet.getItemModifier().size() > 1) {
                     ItemStack carried = packet.getItemModifier().read(1);
-                    if (shouldProcess(carried)) {
+                    if (shouldProcess(carried) && shouldProcessSlot(event, -1)) {
                         ItemStack visualItem = carried.clone();
                         if (applyVisualRarity(event, visualItem, -1)) {
                             packet.getItemModifier().write(1, visualItem);
@@ -110,13 +112,18 @@ public class RarityPacketListener extends PacketAdapter {
     }
 
     /**
-     * Skip virtual plugin menus (collections, shops, etc.). Only player inventory, physical blocks,
-     * smelters, and SkyBlockItems GUIs may receive injected lore.
+     * Per-slot gate for packet lore injection. Player inventory slots stay enabled while any
+     * chest-style menu is open; plugin GUIs (SkyBlockItems, CrazyMinions) also allow top slots.
+     * {@link #applyVisualRarity} still only injects lore for stamped rarity NBT (or smelter output).
      */
-    private boolean shouldProcessPacket(PacketEvent event) {
+    private boolean shouldProcessSlot(PacketEvent event, int windowSlotIndex) {
         Player player = event.getPlayer();
         if (player == null) {
             return false;
+        }
+
+        if (windowSlotIndex < 0) {
+            return true;
         }
 
         int windowId = readWindowId(event.getPacket());
@@ -130,6 +137,10 @@ public class RarityPacketListener extends PacketAdapter {
             return false;
         }
 
+        if (windowSlotIndex >= top.getSize()) {
+            return true;
+        }
+
         if (RarityManager.isSmeltingInventory(top)) {
             return true;
         }
@@ -138,7 +149,7 @@ public class RarityPacketListener extends PacketAdapter {
             return rarityManager.isAllowedInventory(view);
         }
 
-        return isSkyBlockItemsGui(top);
+        return isSkyBlockItemsGui(top) || isCrazyMinionsGui(top);
     }
 
     private static boolean isSkyBlockItemsGui(Inventory inventory) {
@@ -146,6 +157,13 @@ public class RarityPacketListener extends PacketAdapter {
             return false;
         }
         return inventory.getHolder().getClass().getName().startsWith("dev.agam.skyblockitems");
+    }
+
+    private static boolean isCrazyMinionsGui(Inventory inventory) {
+        if (inventory.getHolder() == null) {
+            return false;
+        }
+        return inventory.getHolder().getClass().getName().startsWith("dev.agam.crazyminions.gui.");
     }
 
     private boolean shouldProcess(ItemStack item) {

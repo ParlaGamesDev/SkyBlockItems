@@ -605,6 +605,23 @@ public class RarityManager {
     }
 
     /**
+     * Applies config rarity and writes the rarity lore onto the {@link ItemStack} itself
+     * (NBT stamp + visible lore). Use for drops, /give, and plugin integrations that must
+     * not depend on {@link RarityPacketListener} packet injection.
+     */
+    public ItemStack processItemWithLore(ItemStack item) {
+        ItemStack processed = processItem(item);
+        if (processed == null || processed.getType().isAir()) {
+            return processed;
+        }
+        Rarity rarity = getCurrentRarity(processed);
+        if (rarity != null && !rarity.getIdentifier().equalsIgnoreCase("NONE")) {
+            return updateRarityLore(processed, rarity);
+        }
+        return processed;
+    }
+
+    /**
      * Checks if the item has un-persisted custom rarity NBT and saves it if needed.
      * This fixes the issue where custom NBT tags are lost on restart because they
      * weren't in rarity.yml.
