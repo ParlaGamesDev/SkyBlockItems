@@ -26,7 +26,11 @@ public class PassiveAbilityTask extends BukkitRunnable {
 
     @Override
     public void run() {
+        dev.agam.skyblockitems.restart.RestartLockManager lockManager = SkyBlockItems.getInstance().getRestartLockManager();
         for (Player player : Bukkit.getOnlinePlayers()) {
+            if (lockManager != null && lockManager.isInteractionLocked(player)) {
+                continue;
+            }
             processPassiveAbilities(player);
             processNightVision(player);
         }

@@ -275,3 +275,29 @@ target-icons:
 abilities:
   visual-cooldown:
     enabled: true
+
+# Safe restart: 60s countdown, /lobby for all players, full interaction lock
+restart-lock:
+  enabled: true
+  countdown-seconds: 60
+  # BungeeCord/Velocity: use "server lobby" to disconnect from this backend
+  lobby-command: lobby
+  intercept-restart-commands: true
+  restart-commands:
+    - stop
+    - restart
+    - minecraft:stop
+    - spigot:restart
+  allowed-commands:
+    - lobby
+    - hub
+    - server
+    - lock
+  re-lobby-interval: 5
+  # Kick everyone off THIS server before stop so PlayerDataSync can flush to DB
+  kick-before-shutdown: true
+  post-kick-wait-seconds: 8
+  save-vanilla-playerdata: true
+  # Force PlayerDataSyncReloaded DB writes before /lobby and before kick/shutdown
+  pds-save-during-countdown: true
+  pds-save-wait-seconds: 15

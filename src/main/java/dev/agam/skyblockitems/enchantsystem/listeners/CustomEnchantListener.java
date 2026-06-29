@@ -151,6 +151,17 @@ public class CustomEnchantListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onDamage(EntityDamageByEntityEvent event) {
+        if (event.getEntity() instanceof Player victim
+                && plugin.getRestartLockManager() != null
+                && plugin.getRestartLockManager().isInteractionLocked(victim)) {
+            return;
+        }
+        if (event.getDamager() instanceof Player attacker
+                && plugin.getRestartLockManager() != null
+                && plugin.getRestartLockManager().isInteractionLocked(attacker)) {
+            return;
+        }
+
         // Defensive stats (Player is the victim)
         if (event.getEntity() instanceof Player victim) {
             applyDefensiveEffects(event, victim);

@@ -28,6 +28,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -62,6 +66,9 @@ public class RarityManager {
     private int checkerTime = 200;
     private List<String> loreFormat = new ArrayList<>();
     private List<String> allowedInventoryTypes = new ArrayList<>();
+    private boolean reforgeableLoreEnabled = true;
+    private String reforgeableLoreLine = "&7פריט זה ניתן לחישול";
+    private String reforgeableLoreStripped = "";
     private double currentConfigVersion = 0;
 
     /**
@@ -113,12 +120,7 @@ public class RarityManager {
         itemMappings.clear();
         defaultRarity = null;
 
-        // Save default if not exists
-        rarityFile = new File(plugin.getDataFolder(), "rarity.yml");
-        if (!rarityFile.exists()) {
-            plugin.saveResource("rarity.yml", false);
-        }
-        rarityConfig = YamlConfiguration.loadConfiguration(rarityFile);
+        rarityConfig = loadAndMergeRarityConfig();
 
         // Refresh version on every reload (Default fallback is 1.0)
         currentConfigVersion = 1.0;
@@ -128,7 +130,13 @@ public class RarityManager {
         if (configSection != null) {
             checkerTime = configSection.getInt("checkerTime", 200);
             loreFormat = configSection.getStringList("lore-format");
+            if (loreFormat == null || loreFormat.isEmpty()) {
+                loreFormat = rarityConfig.getStringList("Config.lore-format");
+            }
             allowedInventoryTypes = configSection.getStringList("allowed-inventories");
+            reforgeableLoreEnabled = configSection.getBoolean("reforgeable-lore.enabled", true);
+            reforgeableLoreLine = configSection.getString("reforgeable-lore.line", reforgeableLoreLine);
+            reforgeableLoreStripped = stripFullColor(ColorUtils.colorize(reforgeableLoreLine)).toLowerCase().trim();
             ensureAllowedInventoryType("FURNACE");
             ensureAllowedInventoryType("BLAST_FURNACE");
             ensureAllowedInventoryType("SMOKER");
@@ -732,11 +740,30 @@ public class RarityManager {
         
         currentLore = stripRarityLore(currentLore);
 
+        boolean showReforgeable = shouldShowReforgeableLore(item);
+        boolean formatHasReforgeablePlaceholder = loreFormat.stream()
+                .anyMatch(line -> line != null && line.contains("{reforgeable-lore}"));
+
         // Build new lore from format
         List<String> newLore = new ArrayList<>();
         String coloredRarity = ColorUtils.colorize(rarity.getDisplayName());
 
         for (String formatLine : loreFormat) {
+            if (formatLine == null) {
+                continue;
+            }
+            if (formatLine.contains("{reforgeable-lore}")) {
+                if (!showReforgeable) {
+                    continue;
+                }
+                if (formatLine.trim().equals("{reforgeable-lore}")) {
+                    newLore.add(ColorUtils.colorize(reforgeableLoreLine));
+                } else {
+                    String processedLine = formatLine.replace("{reforgeable-lore}", reforgeableLoreLine);
+                    newLore.add(ColorUtils.colorize(processedLine));
+                }
+                continue;
+            }
             if (formatLine.contains("{item-lore}")) {
                 // Insert original lore here
                 for (String originalLine : currentLore) {
@@ -763,6 +790,12 @@ public class RarityManager {
                         newLore.add("");
                     }
                 }
+            } else if (formatLine.contains("{rarity-prefix}")) {
+                if (!formatHasReforgeablePlaceholder && showReforgeable) {
+                    newLore.add(ColorUtils.colorize(reforgeableLoreLine));
+                }
+                String processedLine = formatLine.replace("{rarity-prefix}", coloredRarity);
+                newLore.add(ColorUtils.colorize(processedLine));
             } else {
                 String processedLine = formatLine.replace("{rarity-prefix}", coloredRarity);
                 newLore.add(ColorUtils.colorize(processedLine));
@@ -840,7 +873,8 @@ public class RarityManager {
             if (stripped.contains("rarity:") ||
                     stripped.contains("נדירות:") ||
                     stripped.contains("item-rarity") ||
-                    isRarityName(stripped)) {
+                    isRarityName(stripped) ||
+                    isReforgeableLoreLine(stripped)) {
                 continue;
             }
             result.add(line);
@@ -852,6 +886,56 @@ public class RarityManager {
         }
 
         return result;
+    }
+
+    private FileConfiguration loadAndMergeRarityConfig() {
+        rarityFile = new File(plugin.getDataFolder(), "rarity.yml");
+        if (!rarityFile.exists()) {
+            plugin.saveResource("rarity.yml", false);
+        }
+
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(rarityFile);
+        InputStream defStream = plugin.getResource("rarity.yml");
+        if (defStream != null) {
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(
+                    new InputStreamReader(defStream, StandardCharsets.UTF_8));
+            config.setDefaults(defConfig);
+
+            boolean changed = false;
+            for (String key : defConfig.getKeys(true)) {
+                if (!config.contains(key)) {
+                    config.set(key, defConfig.get(key));
+                    changed = true;
+                }
+            }
+            if (changed) {
+                try {
+                    config.save(rarityFile);
+                    plugin.getLogger().info("Merged missing keys into rarity.yml (including reforgeable-lore).");
+                } catch (IOException e) {
+                    plugin.getLogger().warning("Could not save merged rarity.yml: " + e.getMessage());
+                }
+            }
+        }
+        return config;
+    }
+
+    private boolean shouldShowReforgeableLore(ItemStack item) {
+        if (!reforgeableLoreEnabled || item == null || item.getType().isAir()) {
+            return false;
+        }
+        return dev.agam.skyblockitems.integration.ReforgeableStat.isReforgeable(item);
+    }
+
+    private boolean isReforgeableLoreLine(String stripped) {
+        if (stripped == null || stripped.isEmpty()) {
+            return false;
+        }
+        if (reforgeableLoreStripped != null && !reforgeableLoreStripped.isEmpty()
+                && stripped.equals(reforgeableLoreStripped)) {
+            return true;
+        }
+        return stripped.contains("ניתן לחישול") || stripped.contains("reforgeable");
     }
 
     private String stripFullColor(String text) {

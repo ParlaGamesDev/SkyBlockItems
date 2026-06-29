@@ -23,6 +23,7 @@ public class SkyBlockItems extends JavaPlugin {
     private dev.agam.skyblockitems.rarity.RarityManager rarityManager;
     private dev.agam.skyblockitems.reforge.ReforgeManager reforgeManager;
     private dev.agam.skyblockitems.crafting.CraftingManager craftingManager;
+    private dev.agam.skyblockitems.restart.RestartLockManager restartLockManager;
     private ConfigManager enchantConfigManager;
     private EnchantManager enchantManager;
     private CustomEnchantManager customEnchantManager;
@@ -91,6 +92,7 @@ public class SkyBlockItems extends JavaPlugin {
             }
 
             this.craftingManager = new dev.agam.skyblockitems.crafting.CraftingManager(this);
+            this.restartLockManager = new dev.agam.skyblockitems.restart.RestartLockManager(this);
             System.out.println("[SkyBlockItems] [BOOT] Step 2/7 complete.");
 
             // 3. Plugin Integration
@@ -169,6 +171,9 @@ public class SkyBlockItems extends JavaPlugin {
     }
 
     private void registerAllListeners() {
+        getServer().getPluginManager().registerEvents(restartLockManager, this);
+        getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.restart.ServerLockListener(this), this);
+
         if (mythicLibEnabled) {
             try {
                 getServer().getPluginManager().registerEvents(new dev.agam.skyblockitems.abilities.AbilityListener(),
@@ -249,6 +254,9 @@ public class SkyBlockItems extends JavaPlugin {
         getCommand("reforge").setExecutor(new dev.agam.skyblockitems.commands.ReforgeCommand(this));
         getCommand("blacksmith").setExecutor(new dev.agam.skyblockitems.commands.BlacksmithCommand(this));
         getCommand("craft").setExecutor(new dev.agam.skyblockitems.commands.CraftCommand(this));
+        dev.agam.skyblockitems.commands.LockCommand lockCommand = new dev.agam.skyblockitems.commands.LockCommand(this);
+        getCommand("lock").setExecutor(lockCommand);
+        getCommand("lock").setTabCompleter(lockCommand);
     }
 
     private void startRaritySystem() {
@@ -298,6 +306,10 @@ public class SkyBlockItems extends JavaPlugin {
 
         if (customEnchantManager != null) {
             customEnchantManager.reload();
+        }
+
+        if (restartLockManager != null) {
+            restartLockManager.reloadSettings();
         }
 
         if (auraSkillsEnabled && auraSkillsHook != null) {
@@ -388,5 +400,9 @@ public class SkyBlockItems extends JavaPlugin {
 
     public dev.agam.skyblockitems.crafting.CraftingManager getCraftingManager() {
         return craftingManager;
+    }
+
+    public dev.agam.skyblockitems.restart.RestartLockManager getRestartLockManager() {
+        return restartLockManager;
     }
 }

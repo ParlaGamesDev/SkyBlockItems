@@ -27,3 +27,7 @@ commands:
     description: Open the custom crafting table
     permission: skyblock.craft
     aliases: [crafting]
+  lock:
+    description: Lock player interactions or start safe restart countdown
+    permission: skyblockitems.admin.lock
+    aliases: [serverlock]

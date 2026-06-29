@@ -219,6 +219,11 @@ public class AbilityListener implements Listener {
     }
 
     private void tryActivateAbilities(Player player, ItemStack item, TriggerType trigger, Event event) {
+        dev.agam.skyblockitems.restart.RestartLockManager lockManager = SkyBlockItems.getInstance().getRestartLockManager();
+        if (lockManager != null && lockManager.isInteractionLocked(player)) {
+            return;
+        }
+
         NBTItem nbtItem = (item != null && !item.getType().isAir()) ? NBTItem.get(item) : null;
         // Strict check: Only proceed if it is a valid MMOItem with NBT tags
         if (nbtItem == null || !nbtItem.hasType()) {

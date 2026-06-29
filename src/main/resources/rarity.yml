@@ -25,10 +25,16 @@ Config:
   checkerTime: 200
 
   # Lore format when rarity is applied
+  # {reforgeable-lore} uses reforgeable-lore.line below (only on reforgeable MMOItems)
   lore-format:
     - '{item-lore}'
     - ''
+    - '{reforgeable-lore}'
     - '&f{rarity-prefix}'
+
+  reforgeable-lore:
+    enabled: true
+    line: '&7פריט זה ניתן לחישול'
 
   # Inventories where rarity updates ARE allowed (beside PLAYER)
   allowed-inventories:
