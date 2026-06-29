@@ -23,19 +23,20 @@ public class FlexibleSkyBlockRecipe extends SkyBlockRecipe {
 
     @Override
     public boolean matches(ItemStack[] matrix) {
-        Map<String, Integer> matrixCounts = new HashMap<>();
-        for (ItemStack is : matrix) {
-            if (is == null || is.getType() == Material.AIR) continue;
-            String id = RecipeMatcher.getIdentifier(is);
-            matrixCounts.put(id, matrixCounts.getOrDefault(id, 0) + is.getAmount());
+        for (Map.Entry<String, Integer> entry : ingredients.entrySet()) {
+            int found = countMatchingInMatrix(matrix, entry.getKey());
+            if (found != entry.getValue()) {
+                return false;
+            }
         }
 
-        // If number of distinct items doesn't match, it's not our recipe (prevent overlap)
-        if (matrixCounts.size() != ingredients.size()) return false;
-
-        for (Map.Entry<String, Integer> entry : ingredients.entrySet()) {
-            Integer current = matrixCounts.get(entry.getKey());
-            if (current == null || !current.equals(entry.getValue())) return false;
+        for (ItemStack is : matrix) {
+            if (is == null || is.getType() == Material.AIR) {
+                continue;
+            }
+            if (!matchesAnyRequirement(is)) {
+                return false;
+            }
         }
         return true;
     }
@@ -45,24 +46,47 @@ public class FlexibleSkyBlockRecipe extends SkyBlockRecipe {
         for (Map.Entry<String, Integer> entry : ingredients.entrySet()) {
             int remaining = entry.getValue();
             for (ItemStack is : matrix) {
-                if (is != null && RecipeMatcher.getIdentifier(is).equals(entry.getKey())) {
+                if (is != null && RecipeMatcher.matchesRequirementId(is, entry.getKey())) {
                     int take = Math.min(is.getAmount(), remaining);
                     is.setAmount(is.getAmount() - take);
                     remaining -= take;
-                    if (remaining <= 0) break;
+                    if (remaining <= 0) {
+                        break;
+                    }
                 }
             }
-            if (remaining > 0)
+            if (remaining > 0) {
                 return false;
+            }
         }
         clearEmptyStacks(matrix);
         return true;
     }
 
+    private int countMatchingInMatrix(ItemStack[] matrix, String requirementId) {
+        int found = 0;
+        for (ItemStack is : matrix) {
+            if (is != null && RecipeMatcher.matchesRequirementId(is, requirementId)) {
+                found += is.getAmount();
+            }
+        }
+        return found;
+    }
+
+    private boolean matchesAnyRequirement(ItemStack item) {
+        for (String requirementId : ingredients.keySet()) {
+            if (RecipeMatcher.matchesRequirementId(item, requirementId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void clearEmptyStacks(ItemStack[] matrix) {
         for (int i = 0; i < matrix.length; i++) {
-            if (matrix[i] != null && matrix[i].getAmount() <= 0)
+            if (matrix[i] != null && matrix[i].getAmount() <= 0) {
                 matrix[i] = null;
+            }
         }
     }
 }

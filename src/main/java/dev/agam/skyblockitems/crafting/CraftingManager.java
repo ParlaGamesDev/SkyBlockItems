@@ -107,18 +107,8 @@ public class CraftingManager {
     }
 
     private boolean canCraft(ItemStack[] inventory, SkyBlockRecipe recipe) {
-        java.util.Map<String, Integer> available = new java.util.HashMap<>();
-        for (ItemStack is : inventory) {
-            if (is == null || is.getType() == Material.AIR) continue;
-            String id = RecipeMatcher.getIdentifier(is);
-            available.put(id, available.getOrDefault(id, 0) + is.getAmount());
-        }
-
         if (recipe instanceof FlexibleSkyBlockRecipe flexible) {
-            for (java.util.Map.Entry<String, Integer> req : flexible.getIngredientsMap().entrySet()) {
-                if (available.getOrDefault(req.getKey(), 0) < req.getValue()) return false;
-            }
-            return true;
+            return hasRequiredAmounts(inventory, flexible.getIngredientsMap());
         } else if (recipe instanceof ShapedSkyBlockRecipe shaped) {
             return hasAllIngredients(inventory, shaped.getIngredients());
         } else if (recipe instanceof ShapelessSkyBlockRecipe shapeless) {
@@ -128,22 +118,29 @@ public class CraftingManager {
     }
 
     private boolean hasAllIngredients(ItemStack[] inventory, ItemStack[] ingredients) {
-        java.util.Map<String, Integer> available = new java.util.HashMap<>();
-        for (ItemStack is : inventory) {
-            if (is == null || is.getType() == Material.AIR) continue;
-            String id = RecipeMatcher.getIdentifier(is);
-            available.put(id, available.getOrDefault(id, 0) + is.getAmount());
-        }
-
         java.util.Map<String, Integer> reqs = new java.util.HashMap<>();
         for (ItemStack is : ingredients) {
             if (is == null || is.getType() == Material.AIR) continue;
             String id = RecipeMatcher.getIdentifier(is);
             reqs.put(id, reqs.getOrDefault(id, 0) + is.getAmount());
         }
+        return hasRequiredAmounts(inventory, reqs);
+    }
 
-        for (java.util.Map.Entry<String, Integer> entry : reqs.entrySet()) {
-            if (available.getOrDefault(entry.getKey(), 0) < entry.getValue()) return false;
+    private boolean hasRequiredAmounts(ItemStack[] inventory, Map<String, Integer> reqs) {
+        for (Map.Entry<String, Integer> entry : reqs.entrySet()) {
+            int available = 0;
+            for (ItemStack is : inventory) {
+                if (is == null || is.getType() == Material.AIR) {
+                    continue;
+                }
+                if (RecipeMatcher.matchesRequirementId(is, entry.getKey())) {
+                    available += is.getAmount();
+                }
+            }
+            if (available < entry.getValue()) {
+                return false;
+            }
         }
         return true;
     }
@@ -190,17 +187,19 @@ public class CraftingManager {
     }
 
     public boolean consumeCraftableRecipe(Player player, SkyBlockRecipe recipe, ItemStack[] grid) {
-        int before = countIngredientItems(player, grid, recipe);
+        Map<String, Integer> reqs = buildRecipeRequirements(recipe);
+        Map<String, Integer> before = countMatchingAmounts(player, grid, reqs);
         consumeFromInventory(player, recipe, grid);
-        int after = countIngredientItems(player, grid, recipe);
-        return after < before;
+        Map<String, Integer> after = countMatchingAmounts(player, grid, reqs);
+        return wasRequirementConsumed(reqs, before, after);
     }
 
     public boolean consumeCraftableVanilla(Player player, Recipe recipe, ItemStack[] grid) {
-        int before = countVanillaIngredientItems(player, grid, recipe);
+        Map<String, Integer> reqs = buildVanillaRequirements(recipe);
+        Map<String, Integer> before = countMatchingAmounts(player, grid, reqs);
         consumeVanillaFromInventory(player, recipe, grid);
-        int after = countVanillaIngredientItems(player, grid, recipe);
-        return after < before;
+        Map<String, Integer> after = countMatchingAmounts(player, grid, reqs);
+        return wasRequirementConsumed(reqs, before, after);
     }
 
     private ItemStack[] combinePlayerContents(Player player, ItemStack[] grid) {
@@ -220,7 +219,7 @@ public class CraftingManager {
         return combined.toArray(new ItemStack[0]);
     }
 
-    private int countIngredientItems(Player player, ItemStack[] grid, SkyBlockRecipe recipe) {
+    private Map<String, Integer> buildRecipeRequirements(SkyBlockRecipe recipe) {
         Map<String, Integer> reqs = new HashMap<>();
         if (recipe instanceof FlexibleSkyBlockRecipe flexible) {
             reqs.putAll(flexible.getIngredientsMap());
@@ -239,44 +238,57 @@ public class CraftingManager {
                 }
             }
         }
-
-        ItemStack[] contents = combinePlayerContents(player, grid);
-        Map<String, Integer> available = new HashMap<>();
-        for (ItemStack is : contents) {
-            if (is == null || is.getType() == Material.AIR)
-                continue;
-            String id = RecipeMatcher.getIdentifier(is);
-            available.put(id, available.getOrDefault(id, 0) + is.getAmount());
-        }
-
-        int total = 0;
-        for (Map.Entry<String, Integer> entry : reqs.entrySet())
-            total += Math.min(available.getOrDefault(entry.getKey(), 0), entry.getValue());
-        return total;
+        return reqs;
     }
 
-    private int countVanillaIngredientItems(Player player, ItemStack[] grid, Recipe recipe) {
-        ItemStack[] ingredients;
-        if (recipe instanceof ShapedRecipe shaped)
+    private Map<String, Integer> buildVanillaRequirements(Recipe recipe) {
+        Map<String, Integer> reqs = new HashMap<>();
+        ItemStack[] ingredients = null;
+        if (recipe instanceof ShapedRecipe shaped) {
             ingredients = shaped.getIngredientMap().values().toArray(new ItemStack[0]);
-        else if (recipe instanceof ShapelessRecipe shapeless)
+        } else if (recipe instanceof ShapelessRecipe shapeless) {
             ingredients = shapeless.getIngredientList().toArray(new ItemStack[0]);
-        else
-            return 0;
-
-        ItemStack[] contents = combinePlayerContents(player, grid);
-        int count = 0;
-        for (ItemStack required : ingredients) {
-            if (required == null || required.getType() == Material.AIR)
-                continue;
-            for (ItemStack is : contents) {
-                if (is != null && RecipeMatcher.matches(is, required)) {
-                    count++;
-                    break;
+        }
+        if (ingredients != null) {
+            for (ItemStack is : ingredients) {
+                if (is != null && is.getType() != Material.AIR) {
+                    String id = RecipeMatcher.getIdentifier(is);
+                    reqs.put(id, reqs.getOrDefault(id, 0) + 1);
                 }
             }
         }
-        return count;
+        return reqs;
+    }
+
+    private Map<String, Integer> countMatchingAmounts(Player player, ItemStack[] grid, Map<String, Integer> reqs) {
+        Map<String, Integer> totals = new HashMap<>();
+        for (String reqId : reqs.keySet()) {
+            totals.put(reqId, 0);
+        }
+
+        ItemStack[] contents = combinePlayerContents(player, grid);
+        for (ItemStack is : contents) {
+            if (is == null || is.getType() == Material.AIR) {
+                continue;
+            }
+            for (String reqId : reqs.keySet()) {
+                if (RecipeMatcher.matchesRequirementId(is, reqId)) {
+                    totals.put(reqId, totals.get(reqId) + is.getAmount());
+                }
+            }
+        }
+        return totals;
+    }
+
+    private boolean wasRequirementConsumed(Map<String, Integer> reqs, Map<String, Integer> before,
+            Map<String, Integer> after) {
+        for (Map.Entry<String, Integer> entry : reqs.entrySet()) {
+            int consumed = before.getOrDefault(entry.getKey(), 0) - after.getOrDefault(entry.getKey(), 0);
+            if (consumed < entry.getValue()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public Optional<SkyBlockRecipe> findMatchingRecipe(ItemStack[] matrix, Player player, String resultIdentifier) {
@@ -497,7 +509,7 @@ public class CraftingManager {
             // 1. Extra Items (Grid)
             if (extraItems != null) {
                 for (ItemStack invItem : extraItems) {
-                    if (invItem != null && RecipeMatcher.getIdentifier(invItem).equals(entry.getKey())) {
+                    if (invItem != null && RecipeMatcher.matchesRequirementId(invItem, entry.getKey())) {
                         int take = Math.min(invItem.getAmount(), remaining);
                         invItem.setAmount(invItem.getAmount() - take);
                         remaining -= take;
@@ -509,7 +521,7 @@ public class CraftingManager {
             // 2. Inventory
             if (remaining > 0) {
                 for (ItemStack invItem : invContents) {
-                    if (invItem != null && RecipeMatcher.getIdentifier(invItem).equals(entry.getKey())) {
+                    if (invItem != null && RecipeMatcher.matchesRequirementId(invItem, entry.getKey())) {
                         int take = Math.min(invItem.getAmount(), remaining);
                         invItem.setAmount(invItem.getAmount() - take);
                         remaining -= take;

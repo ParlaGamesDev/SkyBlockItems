@@ -11,19 +11,31 @@ public class RecipeMatcher {
 
     /**
      * Checks if two items match. 
-     * Supports: Material match, MMOItem Type/ID match.
+     * Supports: Material match, MMOItem Type/ID match, vanilla log/wood families.
      */
     public static boolean matches(ItemStack input, ItemStack ingredient) {
         if (input == null || ingredient == null) {
             return input == ingredient; // Both null matches
         }
 
-        if (input.getType() != ingredient.getType()) return false;
-        
-        // If it's a basic material without special data, material match is enough
-        if (!ingredient.hasItemMeta() && !input.hasItemMeta()) return true;
+        if (input.getType() == ingredient.getType()) {
+            return matchesSameType(input, ingredient);
+        }
 
-        // Check for MMOItems NBT
+        NBTItem inputNbt = NBTItem.get(input);
+        NBTItem ingNbt = NBTItem.get(ingredient);
+        if (getMMOType(inputNbt) != null || getMMOType(ingNbt) != null) {
+            return false;
+        }
+
+        return matchesMaterialFamily(input.getType(), ingredient.getType());
+    }
+
+    private static boolean matchesSameType(ItemStack input, ItemStack ingredient) {
+        if (!ingredient.hasItemMeta() && !input.hasItemMeta()) {
+            return true;
+        }
+
         NBTItem inputNbt = NBTItem.get(input);
         NBTItem ingNbt = NBTItem.get(ingredient);
 
@@ -31,17 +43,60 @@ public class RecipeMatcher {
         String ingType = getMMOType(ingNbt);
 
         if (ingType != null) {
-            if (!ingType.equalsIgnoreCase(inputType)) return false;
+            if (!ingType.equalsIgnoreCase(inputType)) {
+                return false;
+            }
             String inputId = getMMOId(inputNbt);
             String ingId = getMMOId(ingNbt);
             return ingId != null && ingId.equalsIgnoreCase(inputId);
         }
 
-        // If not an MMOItem, check material and ensure it's not an MMOItem at all
-        if (inputType != null) return false; 
+        return inputType == null;
+    }
 
-        // Vanilla comparison - ignore durability and other volatile tags if possible
-        return input.getType() == ingredient.getType();
+    /**
+     * Checks whether an item satisfies a recipe requirement identifier.
+     */
+    public static boolean matchesRequirementId(ItemStack input, String requirementId) {
+        if (input == null || input.getType() == Material.AIR || requirementId == null) {
+            return false;
+        }
+        if (getIdentifier(input).equals(requirementId)) {
+            return true;
+        }
+        if (!requirementId.startsWith("VANILLA:")) {
+            return false;
+        }
+        Material required = Material.matchMaterial(requirementId.substring("VANILLA:".length()));
+        if (required == null) {
+            return false;
+        }
+        return matchesMaterialFamily(input.getType(), required);
+    }
+
+    /**
+     * Vanilla log/wood/stem/hyphae variants of the same tree type are interchangeable.
+     */
+    public static boolean matchesMaterialFamily(Material input, Material required) {
+        String inputFamily = getWoodFamilyKey(input);
+        String requiredFamily = getWoodFamilyKey(required);
+        return inputFamily != null && inputFamily.equals(requiredFamily);
+    }
+
+    public static String getWoodFamilyKey(Material material) {
+        if (material == null) {
+            return null;
+        }
+        String name = material.name();
+        if (name.startsWith("STRIPPED_")) {
+            name = name.substring("STRIPPED_".length());
+        }
+        for (String suffix : new String[]{"_LOG", "_WOOD", "_STEM", "_HYPHAE"}) {
+            if (name.endsWith(suffix)) {
+                return name.substring(0, name.length() - suffix.length());
+            }
+        }
+        return null;
     }
 
     public static String getMMOType(NBTItem nbt) {
