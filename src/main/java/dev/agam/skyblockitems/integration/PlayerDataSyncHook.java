@@ -18,7 +18,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
 
 /**
  * Forces PlayerDataSyncReloaded to persist online player data and waits for DB writes.
@@ -50,15 +49,10 @@ public final class PlayerDataSyncHook {
         }
 
         Bukkit.getScheduler().runTask(plugin, () -> {
-            List<CompletableFuture<Void>> futures;
-            try {
-                futures = collectForcedSaveFutures(pds);
-            } catch (Throwable t) {
-                plugin.getLogger().log(Level.FINE, "PlayerDataSyncReloaded direct save unavailable, using handleQuit fallback", t);
-                if (!triggerHandleQuitFallback(pds)) {
-                    dispatchSaveAllCommand();
-                }
-                completeOnMain.run();
+            List<CompletableFuture<Void>> futures = tryCollectForcedSaveFutures(pds);
+            if (futures == null) {
+                triggerHandleQuitFallback(pds);
+                waitThenComplete(plugin, timeoutSeconds, completeOnMain);
                 return;
             }
 
@@ -71,18 +65,44 @@ public final class PlayerDataSyncHook {
                     futures.toArray(new CompletableFuture[0]));
 
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                int timeout = Math.max(1, timeoutSeconds);
-                try {
-                    combined.get(timeout, TimeUnit.SECONDS);
-                    plugin.getLogger().fine("PlayerDataSyncReloaded flushed " + futures.size() + " player(s).");
-                } catch (TimeoutException e) {
-                    plugin.getLogger().fine("PlayerDataSyncReloaded save timed out after " + timeout + "s.");
-                } catch (Exception e) {
-                    plugin.getLogger().log(Level.FINE, "PlayerDataSyncReloaded save wait failed", e);
-                }
-                completeOnMain.run();
+                awaitCombined(plugin, combined, futures.size(), timeoutSeconds, completeOnMain);
             });
         });
+    }
+
+    private static void waitThenComplete(SkyBlockItems plugin, int timeoutSeconds, Runnable onComplete) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                TimeUnit.SECONDS.sleep(Math.max(1, timeoutSeconds));
+            } catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            }
+            onComplete.run();
+        });
+    }
+
+    private static void awaitCombined(SkyBlockItems plugin, CompletableFuture<Void> combined, int playerCount,
+            int timeoutSeconds, Runnable onComplete) {
+        int timeout = Math.max(1, timeoutSeconds);
+        try {
+            combined.get(timeout, TimeUnit.SECONDS);
+            plugin.getLogger().fine("PlayerDataSyncReloaded flushed " + playerCount + " player(s).");
+        } catch (TimeoutException ignored) {
+            plugin.getLogger().fine("PlayerDataSyncReloaded save timed out after " + timeout + "s.");
+        } catch (Exception ignored) {
+            // Fallback already ran inside tryCollectForcedSaveFutures when needed.
+        }
+        onComplete.run();
+    }
+
+    private static List<CompletableFuture<Void>> tryCollectForcedSaveFutures(Plugin pds) {
+        try {
+            return collectForcedSaveFutures(pds);
+        } catch (Throwable ignored) {
+            triggerHandleQuitFallback(pds);
+            dispatchSaveAllCommand();
+            return null;
+        }
     }
 
     private static List<CompletableFuture<Void>> collectForcedSaveFutures(Plugin pds)
@@ -119,7 +139,7 @@ public final class PlayerDataSyncHook {
         return futures;
     }
 
-    private static boolean triggerHandleQuitFallback(Plugin pds) {
+    private static void triggerHandleQuitFallback(Plugin pds) {
         try {
             Object syncManager = resolveSyncManager(pds);
             Constructor<?> pdsPlayerCtor = resolvePdsPlayerConstructor(pds);
@@ -137,9 +157,8 @@ public final class PlayerDataSyncHook {
                     handleQuit.invoke(syncManager, pdsPlayer);
                 }
             }
-            return true;
-        } catch (ReflectiveOperationException ex) {
-            return false;
+        } catch (ReflectiveOperationException ignored) {
+            dispatchSaveAllCommand();
         }
     }
 
@@ -158,12 +177,16 @@ public final class PlayerDataSyncHook {
     }
 
     private static Object resolveSyncManager(Plugin pds) throws ReflectiveOperationException {
-        Method getSyncManager = pds.getClass().getMethod("getSyncManager");
-        Object syncManager = getSyncManager.invoke(pds);
-        if (syncManager == null) {
-            throw new IllegalStateException("PlayerDataSyncReloaded sync manager is null");
+        try {
+            Method getSyncManager = pds.getClass().getMethod("getSyncManager");
+            Object syncManager = getSyncManager.invoke(pds);
+            if (syncManager != null) {
+                return syncManager;
+            }
+        } catch (ReflectiveOperationException ignored) {
+            // Fall through to declared field lookup.
         }
-        return syncManager;
+        return readField(pds, "syncManager");
     }
 
     private static Class<?> loadPdsClass(Plugin pds, String className) throws ClassNotFoundException {
